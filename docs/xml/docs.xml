@@ -2282,7 +2282,7 @@
 							<configtag name="effects">
 								<configtag name="driver">
 									digital
-									<comment>Gameplay SFX backend: digital (default), FMOpl, or MT32Emu. Missing or invalid values use digital SFX. Independent of the music driver. MT32Emu requires compatible ROMs. Black Gate MT-32 effects additionally require the original U7.EXE beside STATIC; currently supported: 689248 bytes, SHA1 5f2887c84474cbbd0752634925d8dd5d6425e981. Unsupported or missing resources fall back to the configured digital pack with a diagnostic. Extracted note definitions remain in memory only. Introduction audio is unchanged.</comment>
+									<comment>Gameplay SFX backend: digital (default), FMOpl, or MT32Emu. Missing or invalid values use digital SFX. Independent of the music driver. MT32Emu requires compatible ROMs. Black Gate MT-32 effects additionally require the original U7.EXE beside STATIC; currently supported: 689248 bytes, SHA1 5f2887c84474cbbd0752634925d8dd5d6425e981. Unsupported or missing resources fall back to the configured digital pack with a diagnostic. Extracted note definitions remain in memory only. BG cinematic synthesis reads U7INTRO.TIM and the recognized original INTRO.EXE (116068 bytes, SHA1 c8ea335ef7392865389c55f13b8ef1102fc4d427); Both read original driver data (AdLib frequency data and MT-32 patch defaults) from U7STRAX.DRV (5379 bytes, SHA1 5aae6e31b61ee26b38e8d21a020bf7a698da86c7). Failed cinematic synthesis reports an error without substituting recorded SFX. Digital SFX keeps recorded cinematic cues. SI cinematic thunder remains sampled under SFX controls; speech retains its independent controls. No intro-specific settings are required.</comment>
 								</configtag>
 								<configtag name="enabled">
 									yes

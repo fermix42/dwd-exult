@@ -81,6 +81,21 @@ enum {
 	quotes_midi    = 5
 };
 
+namespace {
+class IntroHeldSound {
+	int handle=-1;
+public:
+	~IntroHeldSound() { stop(); }
+	void stop() { if(handle>=0) { Audio::get_ptr()->stop_sound_effect(handle); handle=-1; } }
+	void play(const File_spec& file,int cue) {
+		stop();
+		int id=Audio::get_ptr()->play_bg_intro_sfx(file,cue);
+		std::string mode; config->value("config/audio/effects/driver",mode,"digital");
+		if(mode=="FMOpl" || mode=="MT32Emu") handle=id;
+	}
+};
+}
+
 BG_Game::BG_Game() : shapes(ENDSHAPE_FLX, -1, PATCH_ENDSHAPE) {
 	if (!read_game_xml()) {
 		add_shape("gumps/check", 2);
@@ -766,7 +781,7 @@ void BG_Game::scene_guardian() {
 			pal->apply();
 
 			// play static SFX
-			Audio::get_ptr()->play_sound_effect(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_STATIC1_WAV);
+			Audio::get_ptr()->play_bg_intro_sfx(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_STATIC1_WAV);
 
 			//
 			// Show some "static" alternating with the blue plasma
@@ -786,7 +801,7 @@ void BG_Game::scene_guardian() {
 				}
 			}
 
-			Audio::get_ptr()->play_sound_effect(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_STATIC2_WAV);
+			Audio::get_ptr()->play_bg_intro_sfx(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_STATIC2_WAV);
 
 			win->put(plasma.get(), win->get_start_x(), win->get_start_y());
 			win->ShowFillGuardBand();
@@ -802,7 +817,7 @@ void BG_Game::scene_guardian() {
 				}
 			}
 
-			Audio::get_ptr()->play_sound_effect(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_STATIC3_WAV);
+			Audio::get_ptr()->play_bg_intro_sfx(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_STATIC3_WAV);
 
 			win->put(plasma.get(), win->get_start_x(), win->get_start_y());
 			win->ShowFillGuardBand();
@@ -833,7 +848,7 @@ void BG_Game::scene_guardian() {
 		// First 'popup' (sh. 0x21)
 		//
 
-		Audio::get_ptr()->play_sound_effect(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_GUARDIAN1_WAV);
+		Audio::get_ptr()->play_bg_intro_sfx(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_GUARDIAN1_WAV);
 
 		{
 			Shape_frame*                   s = shapes.get_shape(0x21, 0);
@@ -848,7 +863,7 @@ void BG_Game::scene_guardian() {
 		//
 		// Second 'popup' (sh. 0x22)
 		//
-		Audio::get_ptr()->play_sound_effect(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_GUARDIAN2_WAV);
+		Audio::get_ptr()->play_bg_intro_sfx(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_GUARDIAN2_WAV);
 
 		{
 			Shape_frame*                   s = shapes.get_shape(0x22, 0);
@@ -863,7 +878,7 @@ void BG_Game::scene_guardian() {
 		//
 		// Successful 'popup' (sh. 0x23)
 		//
-		Audio::get_ptr()->play_sound_effect(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_GUARDIAN3_WAV);
+		Audio::get_ptr()->play_bg_intro_sfx(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_GUARDIAN3_WAV);
 
 		{
 			Shape_frame*                   s = shapes.get_shape(0x23, 0);
@@ -1041,7 +1056,7 @@ void BG_Game::scene_guardian() {
 			}
 
 			// G. disappears again (sp. 0x23 again)
-			Audio::get_ptr()->play_sound_effect(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_GUARDIAN4_WAV);
+			Audio::get_ptr()->play_bg_intro_sfx(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_GUARDIAN4_WAV);
 
 			{
 				Shape_frame*                   s = shapes.get_shape(0x23, 0);
@@ -1065,7 +1080,7 @@ void BG_Game::scene_guardian() {
 		//
 		// More static
 		//
-		Audio::get_ptr()->play_sound_effect(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_OUTSTATIC_WAV);
+		Audio::get_ptr()->play_bg_intro_sfx(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_OUTSTATIC_WAV);
 
 		ticks = SDL_GetTicks();
 		while (true) {
@@ -1082,7 +1097,7 @@ void BG_Game::scene_guardian() {
 		//
 		// White dot
 		//
-		Audio::get_ptr()->play_sound_effect(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_OUTNOISE_WAV);
+		Audio::get_ptr()->play_bg_intro_sfx(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_OUTNOISE_WAV);
 
 		Shape_frame*                   s = shapes.get_shape(0x14, 0);
 		const unique_ptr<Image_buffer> backup(win->create_buffer(s->get_width() + 2, s->get_height() + 2));
@@ -1136,6 +1151,7 @@ namespace {    // anonymous
 		int                           handFrNum;
 		HandlerScriptOps              currBackground;
 		bool                          playedStaticSFX;
+		IntroHeldSound                staticSfx;
 
 	public:
 		Hand_Handler(BG_Game* game, Vga_file& shapes, Image_window8* _win, Shape_manager* _sman, int _centerx, int _centery)
@@ -1174,7 +1190,7 @@ namespace {    // anonymous
 		// Do hand first
 		switch (currOp) {
 		case eHAND_HIT:
-			// TODO: SFX for hand hitting monitor
+			Audio::get_ptr()->play_bg_intro_sfx(BG_Game::get_sfx_subflex(), 12);
 			drawHand  = true;
 			handFrNum = 3;
 			break;
@@ -1215,7 +1231,7 @@ namespace {    // anonymous
 					playedStaticSFX = true;
 					// play static SFX
 					const File_spec sfxfile = BG_Game::get_sfx_subflex();
-					Audio::get_ptr()->play_sound_effect(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_MONITORSLAP_WAV);
+					staticSfx.play(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_MONITORSLAP_WAV);
 				}
 			}
 			staticScreen->fill_static(0, 7, 15);
@@ -1225,6 +1241,7 @@ namespace {    // anonymous
 			break;
 		case eFLASH_FAKE_TITLE:
 		case eSHOW_FAKE_TITLE:
+			staticSfx.stop();
 			sman->paint_shape(centerx + 12, centery - 22, screenShape);
 			win->ShowFillGuardBand();
 			drawHand = false;
@@ -1234,6 +1251,7 @@ namespace {    // anonymous
 			}
 			[[fallthrough]];
 		case eBLACK_SCREEN:
+			staticSfx.stop();
 			win->fill8(
 					0, screenShape->get_width(), screenShape->get_height(), centerx + 12 - screenShape->get_width() / 2,
 					centery - 22 - screenShape->get_height() / 2);
@@ -1409,7 +1427,8 @@ void BG_Game::scene_moongate() {
 	pal->fade_in(c_fade_in_time);
 
 	const File_spec sfxfile = get_sfx_subflex();
-	Audio::get_ptr()->play_sound_effect(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_MOONGATE_WAV);
+	IntroHeldSound gateSound;
+	gateSound.play(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_MOONGATE_WAV);
 
 	// TODO: fade in screen while text is onscreen
 
@@ -1466,7 +1485,10 @@ void BG_Game::scene_moongate() {
 	const int zw = 5;
 	const int zh = 4;
 
-	Audio::get_ptr()->play_sound_effect(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_SHOT_WAV);
+	std::string sfxMode;
+	config->value("config/audio/effects/driver",sfxMode,"digital");
+	const bool synthesized=sfxMode=="FMOpl" || sfxMode=="MT32Emu";
+	if (!synthesized) Audio::get_ptr()->play_bg_intro_sfx(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_SHOT_WAV);
 
 	uint32 next_ticks = SDL_GetTicks() + 10;
 	for (int i = 159; i >= 0; i--) {
@@ -1488,6 +1510,8 @@ void BG_Game::scene_moongate() {
 		}
 		next_ticks += 5;
 	}
+	gateSound.stop();
+	if (synthesized) Audio::get_ptr()->play_bg_intro_sfx(sfxfile, INTROSFX_MT32_FLX_INTRO_MT_SHOT_WAV);
 }
 
 Shape_frame* BG_Game::get_menu_shape() {

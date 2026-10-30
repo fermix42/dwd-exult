@@ -505,6 +505,154 @@ public:
 	}
 };
 
+// Original BG cinematic notes are constructor constants in this recognized
+// INTRO.EXE. Extract only those operands; never execute or redistribute them.
+inline Bytes loadBgIntroNotes() {
+	Bytes exe=readFile("<STATIC>/../intro.exe");
+	if(exe.size()!=116068 || std::string(sha1::toHexString(sha1::calc(exe.data(),int(exe.size()))).data())!="c8ea335ef7392865389c55f13b8ef1102fc4d427")
+		throw std::runtime_error("unsupported BG INTRO.EXE for synthesized intro SFX");
+	constexpr unsigned offsets[]={36921,36946,36971,37046,37071,37096,37121,37171};
+	Bytes result;
+	for(unsigned at:offsets) {
+		for(unsigned i=0;i<7;++i) if(exe[at+i*2]!=0x6a) throw std::runtime_error("invalid BG intro note operands");
+		result.insert(result.end(),{exe[at+13],exe[at+11],exe[at+9],exe[at+7],exe[at+5],0,exe[at+3],exe[at+1]});
+	}
+	return result;
+}
+
+#ifdef USE_FMOPL_MIDI
+class IntroFm final : public FMOplMidiDriver {
+public:
+	using FMOplMidiDriver::send;
+	using FMOplMidiDriver::lowLevelProduceSamples;
+};
+#endif
+
+class BgIntro final : public Engine {
+	std::shared_ptr<MidiDriver> driver;
+	struct Event { uint64 frame; uint32 message; };
+	std::vector<Event> events;
+	unsigned rate, next=0, silent=0;
+	uint64 rendered=0;
+	bool fm, held=false;
+	void send(uint32 message) {
+#ifdef USE_FMOPL_MIDI
+		if(fm) { std::static_pointer_cast<IntroFm>(driver)->send(message); return; }
+#endif
+#ifdef USE_MT32EMU_MIDI
+		std::static_pointer_cast<EffectMt32>(driver)->send(message);
+#endif
+	}
+public:
+	BgIntro(bool adlib,int id,unsigned hz) : rate(hz),fm(adlib) {
+		Bytes notes=loadBgIntroNotes();
+		struct Cue { unsigned at,note,duration; };
+		std::vector<Cue> cues;
+		// Held-note boundaries follow the existing cinematic frames. Finite
+		// notes retain their original 60 Hz definition, independent of WAVs.
+		switch(id) {
+		case 0: cues={{0,0,400}}; break;
+		case 1: cues={{0,0,200}}; break;
+		case 2: cues={{0,0,100}}; break;
+		case 3: cues={{0,2,640},{640,6,720}}; break;
+		case 4: cues={{0,2,720},{720,6,800}}; break;
+		case 5: cues={{0,2,1050}}; break;
+		case 6: cues={{0,6,1050}}; break;
+		case 7: cues={{0,0,400}}; break;
+		case 8: cues={{0,1,1500},{0,7,800}}; break;
+		case 9: cues={{0,0,0}}; break;
+		case 10: cues={{0,4,0}}; break;
+		case 11: cues={{0,5,0}}; break;
+		case 12: cues={{0,3,0}}; break;
+		default: throw std::runtime_error("invalid BG intro cue");
+		}
+		unsigned channel=1;
+		for(const auto& cue:cues) {
+			unsigned p=cue.note*8;
+			uint64 start=uint64(cue.at)*rate/1000;
+			events.push_back({start,uint32(0xc0|channel)|((notes[p+1]-1)<<8)});
+			events.push_back({start,uint32(0x90|channel)|(notes[p+2]<<8)|(notes[p+3]<<16)});
+			if((notes[p]&4) && !cue.duration) held=true;
+			else {
+				uint64 duration=(notes[p]&4)?uint64(cue.duration)*rate/1000:uint64(word(notes,p+4))*rate/60;
+				events.push_back({start+duration,uint32(0x80|channel)|(notes[p+2]<<8)});
+			}
+			if(id==8) ++channel;
+		}
+		std::stable_sort(events.begin(),events.end(),[](const Event& a,const Event& b){return a.frame<b.frame;});
+#ifdef USE_FMOPL_MIDI
+		if(fm) driver=std::make_shared<IntroFm>();
+#endif
+#ifdef USE_MT32EMU_MIDI
+		if(!fm) driver=std::make_shared<EffectMt32>();
+#endif
+		if(!driver || driver->initMidiDriver(rate,true)) throw std::runtime_error("intro SFX synthesizer initialization failed");
+		std::static_pointer_cast<LowLevelMidiDriver>(driver)->setSfxSynchronous(true);
+		try {
+#ifdef USE_FMOPL_MIDI
+			if(fm) std::static_pointer_cast<IntroFm>(driver)->setOriginalIntro(true);
+#endif
+			if (!fm) {
+#ifdef USE_MT32EMU_MIDI
+				// Direct intro notes cannot use the sequencer's on-demand patch
+				// cache. Mirror the original MT-32 driver's bank upload instead.
+				auto mt=std::static_pointer_cast<EffectMt32>(driver);
+				Bytes bank=record("<STATIC>/u7intro.tim",0);
+				Bytes original=readFile("<STATIC>/u7strax.drv");
+				if(original.size()!=5379 || std::string(sha1::toHexString(sha1::calc(original.data(),int(original.size()))).data())!="5aae6e31b61ee26b38e8d21a020bf7a698da86c7")
+					throw std::runtime_error("unsupported U7STRAX.DRV for BG intro MT-32 patch defaults");
+				if(bank.empty() || !bank[0] || bank[0]>64 || bank.size()!=1+unsigned(bank[0])*247)
+					throw std::runtime_error("invalid BG intro MT-32 bank");
+				Bytes patch(original.begin()+229,original.begin()+237);
+				mt->memory((127u<<14)|127,Bytes{0});
+				for(unsigned slot=0;slot<bank[0];++slot) {
+					size_t at=1+slot*247;
+					unsigned program=bank[at+246];
+					if(!program || program>128) throw std::runtime_error("invalid BG intro MT-32 program");
+					mt->memory((8u<<14)+slot*256,Bytes(bank.begin()+at,bank.begin()+at+246));
+					patch[1]=uint8(slot);
+					mt->memory((5u<<14)+(program-1)*8,patch);
+				}
+				mt->memory((16u<<14)+22,Bytes{70});
+#endif
+			} else {
+				IExultDataSource timbres("<STATIC>/u7intro.tim",1);
+				if(!timbres.good()) throw std::runtime_error("missing BG intro timbres");
+				driver->loadTimbreLibrary(&timbres,MidiDriver::TIMBRE_LIBRARY_U7VOICE_AD);
+			}
+			restart();
+		} catch(...) { driver->destroyMidiDriver(); throw; }
+	}
+	~BgIntro() override { driver->destroyMidiDriver(); }
+	void restart() override {
+		next=silent=0; rendered=0;
+		for(unsigned c=1;c<=2;++c) { send(0xb0|c|(123<<8)); send(0xb0|c|(7<<8)|(127<<16)); send(0xb0|c|(10<<8)|(64<<16)); }
+	}
+	bool render(sint16* out,unsigned frames) override {
+		if(!held && next==events.size() && silent>=rate/4) return false;
+		unsigned position=0;
+		while(position<frames) {
+			while(next<events.size() && events[next].frame<=rendered) send(events[next++].message);
+			unsigned chunk=frames-position;
+			if(next<events.size()) chunk=unsigned(std::min(uint64(chunk),events[next].frame-rendered));
+			// These are direct original note events, not sequencer activity.
+			// Render the isolated synth continuously, including held notes.
+#ifdef USE_FMOPL_MIDI
+			if(fm) std::static_pointer_cast<IntroFm>(driver)->lowLevelProduceSamples(out+position*2,chunk);
+#endif
+#ifdef USE_MT32EMU_MIDI
+			if(!fm) std::static_pointer_cast<EffectMt32>(driver)->lowLevelProduceSamples(out+position*2,chunk);
+#endif
+			rendered+=chunk; position+=chunk;
+		}
+
+		if(next==events.size()) for(unsigned i=0;i<frames;++i) {
+			if(!out[i*2] && !out[i*2+1]) ++silent; else silent=0;
+		}
+		return true;
+	}
+};
+
 class Sample final : public Pentagram::AudioSample {
 	std::unique_ptr<Engine> engine;
 public:
@@ -524,7 +672,8 @@ public:
 	}
 };
 
-inline Pentagram::AudioSample* create(const std::string& mode, bool si, int id, unsigned rate) {
+inline Pentagram::AudioSample* create(const std::string& mode, bool si, int id, unsigned rate, bool intro = false) {
+	if (intro && !si) return new Sample(std::make_unique<BgIntro>(mode=="FMOpl",id,rate),rate);
 	if (id < 0 || (!si && id >= 115)) throw std::runtime_error("SFX number outside original game range");
 	std::unique_ptr<Engine> engine;
 	if (si) engine = std::make_unique<SiXmidi>(mode == "FMOpl", id, rate);

@@ -458,6 +458,7 @@ sint32 Audio::copy_and_play_speech(const uint8* sound_data, uint32 len, bool wai
 }
 
 sint32 Audio::copy_and_play_sfx(const uint8* sound_data, uint32 len, bool wait, int volume) {
+	if (!audio_enabled || !effects_enabled || !mixer) return -1;
 	auto new_sound_data = std::make_unique<uint8[]>(len);
 	std::memcpy(new_sound_data.get(), sound_data, len);
 	volume = (volume * sfx_volume) / 100;
@@ -765,6 +766,26 @@ int Audio::play_wave_sfx(
 /*
  *	This returns a 'unique' ID, but only for .wav SFX's (for now).
  */
+int Audio::play_bg_intro_sfx(const File_spec& sfxfile, int num) {
+	if (!audio_enabled || !effects_enabled || !mixer) return -1;
+	std::string mode;
+	config->value("config/audio/effects/driver", mode, "digital");
+	if (mode == "MT32Emu" || mode == "FMOpl") {
+		try {
+			auto* sample=mixer->createOriginalSfx(mode,false,num,true);
+			if (!sample) throw std::runtime_error("intro SFX synthesizer unavailable");
+			const int volume=AUDIO_MAX_VOLUME*sfx_volume/100;
+			const int handle=mixer->playSample(sample,0,0,false,AUDIO_DEF_PITCH,volume,volume);
+			sample->Release();
+			return handle;
+		} catch (const std::exception& e) {
+			cerr << "BG intro synthesized SFX failed: " << e.what() << endl;
+			return -1; // Never conceal a failed selected synth with recorded effects.
+		}
+	}
+	return num==12 ? -1 : play_sound_effect(sfxfile,num);
+}
+
 int Audio::play_sound_effect(const File_spec& sfxfile, int num, int volume, int balance, int repeat, int distance) {
 #ifdef DEBUG
 	cout << formatTicks() << "Audio subsystem request: Sound Effect play " << num << " in " << sfxfile.name << " volume " << volume

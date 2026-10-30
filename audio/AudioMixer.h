@@ -46,7 +46,7 @@ namespace Pentagram {
 		}
 
 		void reset();
-		AudioSample* createOriginalSfx(const std::string& mode, bool si, int id);
+		AudioSample* createOriginalSfx(const std::string& mode, bool si, int id, bool intro = 0);
 
 		sint32 playSample(
 				AudioSample* sample, int loop, int priority, bool paused = false, uint32 pitch_shift = AUDIO_DEF_PITCH,

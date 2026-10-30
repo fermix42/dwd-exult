@@ -154,15 +154,15 @@ AudioMixer::~AudioMixer() {
 	the_audio_mixer = nullptr;
 }
 
-AudioSample* AudioMixer::createOriginalSfx(const std::string& mode, bool si, int id) {
+AudioSample* AudioMixer::createOriginalSfx(const std::string& mode, bool si, int id, bool intro) {
 	if (!audio_ok) return nullptr;
 	// Munt instances share no chip state. ROM and timbre preparation must
 	// not hold the output lock or delay the music callback.
-	if (mode == "MT32Emu") return OriginalSfx::create(mode, si, id, sample_rate);
+	if (mode == "MT32Emu") return OriginalSfx::create(mode, si, id, sample_rate, intro);
 	// FMOpl's tables and scratch state are shared internally: serialize chip
 	// construction with the existing audio callback, as for normal playback.
 	const std::lock_guard<SDLAudioDevice> lock(*device);
-	return OriginalSfx::create(mode, si, id, sample_rate);
+	return OriginalSfx::create(mode, si, id, sample_rate, intro);
 }
 
 void AudioMixer::reset() {

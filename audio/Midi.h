@@ -154,7 +154,7 @@ private:
 	int           timbre_lib_game    = NONE;
 	int           music_conversion   = XMIDIFILE_CONVERT_MT32_TO_GM;
 	int           effects_conversion = XMIDIFILE_CONVERT_GS127_TO_GS;
-	int           setup_timbre_for_track(std::string& str);
+	int           setup_timbre_for_track(std::string& str, bool bg_intro = false);
 
 	// Ogg Stuff
 	bool        ogg_enabled     = false;

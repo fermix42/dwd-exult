@@ -344,12 +344,16 @@ void SI_Game::play_intro() {
 		// Start Music
 		if (extended_intro) {
 			const auto* midi_driver = audio->get_midi();
-			if (midi_driver->get_ogg_enabled()) {
-				audio->start_music(EXULT_SI_FLX_EXT_INTRO_SI01_OGG, false, MyMidiPlayer::Force_None, EXULT_SI_FLX);
-			} else if (midi_driver->is_mt32()) {
-				audio->start_music(EXULT_SI_FLX_EXT_INTRO_R_XMI, false, MyMidiPlayer::Force_None, EXULT_SI_FLX);
-			} else {
-				audio->start_music(EXULT_SI_FLX_EXT_INTRO_A_XMI, false, MyMidiPlayer::Force_None, EXULT_SI_FLX);
+			if (midi_driver && audio->is_music_enabled()) {
+				// Try the existing digital score without parsing it as MIDI on failure.
+				const bool digital = midi_driver->get_ogg_enabled();
+				if (!digital || !audio->start_music(EXULT_SI_FLX_EXT_INTRO_SI01_OGG, false, MyMidiPlayer::Force_Ogg, EXULT_SI_FLX)) {
+					if (digital) std::cerr << "SI extended intro digital music unavailable; trying selected MIDI backend" << std::endl;
+					const int score = midi_driver->is_adlib() ? EXULT_SI_FLX_EXT_INTRO_A_XMI : EXULT_SI_FLX_EXT_INTRO_R_XMI;
+					if (!audio->start_music(score, false, MyMidiPlayer::Force_Midi, EXULT_SI_FLX)) {
+						std::cerr << "SI extended intro music unavailable for selected backend" << std::endl;
+					}
+				}
 			}
 		} else {
 			audio->start_music(R_SINTRO, 0, false);

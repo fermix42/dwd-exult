@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #	include "LowLevelMidiDriver.h"
 #	include "fmopl.h"
+#	include <array>
+#	include <vector>
 
 class IDataSource;
 
@@ -36,6 +38,9 @@ class FMOplMidiDriver : public LowLevelMidiDriver {
 
 public:
 	FMOplMidiDriver() : LowLevelMidiDriver(std::string(desc.name)) {}
+
+	// Opt-in for the original BG introduction bank; gameplay is unchanged.
+	void setOriginalIntro(bool enabled) { original_intro = enabled; }
 
 	static const MidiDriverDesc* getDesc() {
 		return &desc;
@@ -60,6 +65,25 @@ protected:
 	void loadTimbreLibrary(IDataSource*, TimbreLibraryType type) override;
 
 private:
+	bool original_intro = false;
+	std::vector<std::array<uint8,48>> intro_bank;
+	std::array<uint16,13> intro_fnums{};
+	struct IntroVoice {
+		int timbre=-1, channel=-1, note=0, stage=1, pitch=0, slide=0, vibrato=0;
+		uint8 phase=0;
+		unsigned age=0;
+	};
+	std::array<IntroVoice,11> intro_voices{};
+	std::array<int,32> intro_program{}, intro_bend{}, intro_volume{}, intro_vibrato{}, intro_pan{};
+	std::array<uint8,88> intro_perc_channel{}, intro_perc_note{};
+	unsigned intro_clock=0, intro_age=0;
+	bool intro_rhythm=false;
+	uint8 intro_rhythm_bits=0;
+	void introSend(uint32 message);
+	void introNote(unsigned channel,unsigned note,unsigned velocity);
+	void introTick();
+	void introFrequency(unsigned voice);
+	void loadIntroBank(IDataSource* source);
 	struct xinstrument {
 		unsigned char mod_avekm;
 		unsigned char car_avekm;

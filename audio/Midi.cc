@@ -20,6 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "pent_include.h"
 
 #include "Midi.h"
+#ifdef USE_FMOPL_MIDI
+#include "midi_drivers/FMOplMidiDriver.h"
+#endif
 
 #include "../conf/Configuration.h"
 #include "Audio.h"
@@ -203,7 +206,7 @@ bool MyMidiPlayer::start_music(int num, bool repeat, ForceType force, std::strin
 		return false;
 	}
 
-	XMidiFile midfile(mid_data.get(), setup_timbre_for_track(flex), midi_driver->getName());
+	XMidiFile midfile(mid_data.get(), setup_timbre_for_track(flex, GAME_BG && num >= 0 && num <= 2), midi_driver->getName());
 
 	// Now give the xmidi object to the midi device
 
@@ -308,7 +311,7 @@ void MyMidiPlayer::set_timbre_lib(TimbreLibrary lib) {
 	}
 }
 
-int MyMidiPlayer::setup_timbre_for_track(std::string& str) {
+int MyMidiPlayer::setup_timbre_for_track(std::string& str, bool bg_intro) {
 	// Default to GM
 	TimbreLibrary lib = TIMBRE_LIB_GM;
 
@@ -321,9 +324,9 @@ int MyMidiPlayer::setup_timbre_for_track(std::string& str) {
 
 	// BG
 	else if (str == INTROMUS) {
-		lib = TIMBRE_LIB_MAINMENU;    // is both intro and menu
+		lib = bg_intro ? TIMBRE_LIB_INTRO : TIMBRE_LIB_MAINMENU;
 	} else if (str == INTROMUS_AD) {
-		lib = TIMBRE_LIB_MAINMENU;    // is both intro and menu
+		lib = bg_intro ? TIMBRE_LIB_INTRO : TIMBRE_LIB_MAINMENU;
 	} else if (str == ENDSCORE_XMI) {
 		lib = TIMBRE_LIB_ENDGAME;
 	}
@@ -468,6 +471,11 @@ void MyMidiPlayer::load_timbres() {
 
 	// Note: ds can be null here if inde == -2. In this case, the pointer
 	// will never be used inside loadTimbreLibrary.
+#ifdef USE_FMOPL_MIDI
+	if (auto fm=std::dynamic_pointer_cast<FMOplMidiDriver>(midi_driver)) {
+		fm->setOriginalIntro(GAME_BG && timbre_lib==TIMBRE_LIB_INTRO);
+	}
+#endif
 	midi_driver->loadTimbreLibrary(ds.get(), type);
 }
 

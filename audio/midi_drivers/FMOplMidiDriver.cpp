@@ -26,6 +26,8 @@
 
 #	include "XMidiEvent.h"
 #	include "databuf.h"
+#	include "sha1/sha1.h"
+#	include <stdexcept>
 
 #	include <algorithm>
 #	include <cmath>
@@ -250,7 +252,14 @@ void FMOplMidiDriver::close() {
 // Generate the samples
 //
 void FMOplMidiDriver::lowLevelProduceSamples(sint16* samples, uint32 num_samples) {
-	if (!opl) {
+	if (original_intro && opl) {
+		for (uint32 i=0;i<num_samples;++i) {
+			intro_clock+=60;
+			if (intro_clock>=sample_rate) { intro_clock-=sample_rate; introTick(); }
+			if (stereo) FMOpl_Pentagram::YM3812UpdateOne_Stereo(opl,samples+i*2,1);
+			else FMOpl_Pentagram::YM3812UpdateOne_Mono(opl,samples+i,1);
+		}
+	} else if (!opl) {
 		std::fill_n(samples, num_samples * (stereo ? 2 : 1), 0);
 	} else if (stereo) {
 		FMOpl_Pentagram::YM3812UpdateOne_Stereo(opl, samples, num_samples);
@@ -278,6 +287,7 @@ int FMOplMidiDriver::midi_calc_volume(int channel, int vel) {
 // Send a single packed midi command to the Opl (to be played now)
 //
 void FMOplMidiDriver::send(uint32 b) {
+	if (original_intro) { introSend(b); return; }
 	const auto channel = uint8(b & 0x0F);
 
 	// Discard everything on channel 9 for now
@@ -1179,6 +1189,7 @@ void FMOplMidiDriver::loadXMIDITimbres(IDataSource* ds) {
 }
 
 void FMOplMidiDriver::loadU7VoiceTimbres(IDataSource* ds) {
+	if (original_intro) { loadIntroBank(ds); return; }
 	struct u7voice_adlib_ins {
 		unsigned char mod_avekm;     // 0: 	(20)
 		unsigned char mod_ksl_tl;    // 1: 	(40)
@@ -1319,6 +1330,199 @@ void FMOplMidiDriver::loadU7VoiceTimbres(IDataSource* ds) {
 
 	for (auto& i : ch) {
 		i.xmidi = true;
+	}
+}
+
+
+namespace {
+int introWord(const std::array<uint8,48>& t,unsigned at) {
+	return sint16(uint16(t[at]) | (uint16(t[at+1])<<8));
+}
+int introShift(int value,unsigned count) {
+	count&=31;
+	return count>15 ? (sint16(value)<0 ? -1 : 0) : sint16(value)>>count;
+}
+}
+
+void FMOplMidiDriver::loadIntroBank(IDataSource* source) {
+	// Only read the frequency data from the established original driver layout.
+	// Neither its code nor its tables are redistributed with Exult.
+	IFileDataSource drv("<STATIC>/u7strax.drv");
+	std::vector<uint8> bytes(drv.getSize());
+	if (!drv.good() || bytes.size()!=5379) throw std::runtime_error("unsupported BG intro AdLib driver");
+	drv.read(bytes.data(),bytes.size());
+	if (std::string(sha1::toHexString(sha1::calc(bytes.data(),int(bytes.size()))).data()) != "5aae6e31b61ee26b38e8d21a020bf7a698da86c7")
+		throw std::runtime_error("unrecognized U7STRAX.DRV for original intro AdLib");
+	for(unsigned i=0;i<13;++i) {
+		unsigned at=1351+0x215+i*2;
+		intro_fnums[i]=bytes[at]|(uint16(bytes[at+1])<<8);
+	}
+	source->seek(0);
+	unsigned count=source->read1();
+	if (!count || source->getAvail()!=count*48) throw std::runtime_error("invalid BG intro AdLib timbre bank");
+	intro_bank.resize(count);
+	for(auto& timbre:intro_bank) source->read(timbre.data(),48);
+	intro_voices={}; intro_program.fill(0); intro_bend.fill(0);
+	intro_volume.fill(255); intro_vibrato.fill(0);
+	intro_pan.fill(64);
+	IFileDataSource exe("<STATIC>/../intro.exe");
+	std::vector<uint8> program(exe.getSize());
+	if (!exe.good() || program.size()!=116068) throw std::runtime_error("unsupported BG INTRO.EXE for original AdLib percussion");
+	exe.read(program.data(),program.size());
+	if (std::string(sha1::toHexString(sha1::calc(program.data(),int(program.size()))).data()) != "c8ea335ef7392865389c55f13b8ef1102fc4d427")
+		throw std::runtime_error("unrecognized BG INTRO.EXE for original AdLib percussion");
+	std::copy_n(program.begin()+111619,88,intro_perc_channel.begin());
+	std::copy_n(program.begin()+111707,88,intro_perc_note.begin());
+	constexpr unsigned offsets[]={59199,59208,59216,59225,59233,59242,59251,59260,59269,59278,59287,59296,59305,59314,59323,59332,59341,59350,59359,59368,59377};
+	for(unsigned c=0;c<21;++c) for(unsigned i=0;i<intro_bank.size();++i) if(intro_bank[i][47]==program[offsets[c]]) { intro_program[c+9]=i; break; }
+	intro_clock=intro_age=0; intro_rhythm=false; intro_rhythm_bits=0;
+	for(unsigned v=0;v<9;++v) midi_write_adlib(0xb0+v,0);
+	midi_write_adlib(0xbd,0);
+	for(unsigned c=9;c<30;++c) if(intro_bank[intro_program[c]][11]) {
+		intro_rhythm=true; intro_rhythm_bits=32;
+		midi_write_adlib(0xa7,0); midi_write_adlib(0xb7,10);
+		midi_write_adlib(0xa8,84); midi_write_adlib(0xb8,9);
+		midi_write_adlib(0xbd,32); break;
+	}
+}
+
+void FMOplMidiDriver::introFrequency(unsigned index) {
+	auto& v=intro_voices[index];
+	if (v.timbre<0) return;
+	const auto& t=intro_bank[v.timbre];
+	int pitch=sint16(v.pitch+v.slide+v.vibrato+intro_bend[v.channel]+introWord(t,36));
+	int semitone=pitch>>8;
+	// Defined playable pitches use this thirteen-entry interpolation table.
+	int step=(semitone+6)%12;
+	if(step<0) step+=12;
+	int f=intro_fnums[step];
+	if(pitch&255) f+=sint16((intro_fnums[step+1]-f)*(pitch&255))>>8;
+	unsigned freq=(std::clamp((semitone+6)/12-2,0,7)<<10)+f;
+	unsigned reg=index>8 ? 17-index : index;
+	if(v.stage>1 && !t[11]) freq|=0x2000;
+	midi_write_adlib(0xa0+reg,freq&255);
+	midi_write_adlib(0xb0+reg,uint8(freq>>8));
+}
+
+void FMOplMidiDriver::introNote(unsigned channel,unsigned note,unsigned velocity) {
+	if(intro_bank.empty()) return;
+	int first=intro_program[channel];
+	for(unsigned layer=0;first<int(intro_bank.size()) && layer<9;++first,++layer) {
+		const auto& t=intro_bank[first];
+		unsigned index=11;
+		if(t[11]>=6 && t[11]<=10) {
+			index=t[11];
+			if(!intro_rhythm) {
+				for(unsigned i=6;i<9;++i) { midi_write_adlib(0xb0+i,0); intro_voices[i]={}; }
+				midi_write_adlib(0xa7,0); midi_write_adlib(0xb7,10);
+				midi_write_adlib(0xa8,84); midi_write_adlib(0xb8,9);
+				intro_rhythm=true; intro_rhythm_bits=32;
+			}
+			intro_rhythm_bits&=~(16>>(index-6)); midi_write_adlib(0xbd,intro_rhythm_bits);
+		} else if(velocity) {
+			unsigned oldest=~0u;
+			for(unsigned i=0;i<(intro_rhythm?6u:9u);++i) if(intro_voices[i].stage<=1 && intro_voices[i].age<=oldest) {
+				oldest=intro_voices[i].age; index=i;
+			}
+			if(index==11 && !layer) for(unsigned i=0;i<(intro_rhythm?6u:9u);++i) if(intro_voices[i].age<=oldest) {
+				oldest=intro_voices[i].age; index=i;
+			}
+		} else for(unsigned i=0;i<(intro_rhythm?6u:9u);++i) {
+			const auto& v=intro_voices[i];
+			if(v.stage>1 && v.channel==int(channel) && v.note==int(note) && v.timbre==first) { index=i; break; }
+		}
+		if(index<11) {
+			auto& v=intro_voices[index];
+			unsigned carrier=index<9 ? adlib_opadd[index]+3 : (index==9?21:17);
+			unsigned modulator=index<9 ? adlib_opadd[index] : (index==9?21:17);
+			if(intro_rhythm && index>=7) {
+				carrier= index==7?20 : index==8?18 : index==9?21:17;
+				modulator= index==7?20 : index==8?18 : index==9?21:17;
+			}
+			if(velocity) {
+				if(!t[11]) midi_write_adlib(0xb0+index,0);
+				for(unsigned op=0;op<2;++op) {
+					if(op==1 && intro_rhythm && t[11]>=7) continue;
+					unsigned slot=op?carrier:modulator, at=op?5:0;
+					midi_write_adlib(0x20+slot,t[at]); midi_write_adlib(0x60+slot,t[at+2]);
+					midi_write_adlib(0x80+slot,t[at+3]); midi_write_adlib(0xe0+slot,t[at+4]);
+					int level=t[at+1]&63;
+					unsigned touch=t[op?12:13];
+					if(touch || intro_volume[channel]<256) {
+						int x=introShift(63-int(velocity),7-touch)+level;
+						int scaled=x;
+						if(op || (t[10]&1)) { scaled=introShift(intro_volume[channel]*(63-x),8); x=63-scaled; }
+						if(op ? x>63 : scaled>63) x=63;
+						level=std::max(0,x);
+					}
+					midi_write_adlib(0x40+slot,(t[at+1]&192)|level);
+				}
+				if(index<9 && (!intro_rhythm || t[11]<7)) midi_write_adlib(0xc0+index,t[10]);
+				v.timbre=first; v.channel=channel; v.note=note; v.stage=2; v.phase=0;
+				v.slide=introWord(t,18); v.vibrato=0; v.age=++intro_age;
+				int pitch=sint16(uint16(uint8(note-60))<<8);
+				if(sint8(t[39])<0) pitch=introShift(-pitch,uint8(~t[39])); else pitch=introShift(pitch,t[39]);
+				v.pitch=sint16(pitch+(60<<8));
+				FMOpl_Pentagram::OPLSetPan(opl,index<9?index:17-index,intro_pan[channel]);
+			} else { v.stage=0; v.age=++intro_age; }
+			if(!t[11] || index==6) introFrequency(index);
+			if(t[11]) { if(velocity) intro_rhythm_bits|=16>>(index-6); midi_write_adlib(0xbd,intro_rhythm_bits); }
+		}
+		if(!t[38]) break;
+	}
+}
+
+void FMOplMidiDriver::introSend(uint32 message) {
+	unsigned channel=message&15, type=message&240, a=(message>>8)&127, b=(message>>16)&127;
+	if(type==0x90 || type==0x80) {
+		if(channel==9) { if(a<intro_perc_channel.size() && intro_perc_channel[a]) introNote(intro_perc_channel[a]-1,intro_perc_note[a],type==0x80?0:b); }
+		else introNote(channel,a,type==0x80?0:b);
+		return;
+	}
+	if(type==0xc0) {
+		if(channel==9) return;
+		for(auto& v:intro_voices) if(v.channel==int(channel)) { if(v.stage>1) introNote(channel,v.note,0); v.channel=-1; v.timbre=-1; }
+		unsigned found=0;
+		for(unsigned i=0;i<intro_bank.size();++i) if(intro_bank[i][47]==a) { found=i; break; }
+		intro_program[channel]=found; intro_vibrato[channel]=intro_bank.empty()?0:intro_bank[found][17];
+	} else if(type==0xb0) {
+		// The original percussion channel forwards controls to its mapped parts.
+		for(unsigned c=channel;c<(channel==9?30u:channel+1);++c) {
+			if(a==7) intro_volume[c]=b+128;
+			else if(a==10) intro_pan[c]=b;
+			else if(a==1 && !intro_bank.empty()) intro_vibrato[c]=introShift(intro_bank[intro_program[c]][15]*b,7)+intro_bank[intro_program[c]][17];
+			else if(a==123 || a==121) {
+				for(unsigned i=0;i<intro_voices.size();++i) { auto& v=intro_voices[i]; if(v.channel==int(c) && v.stage>1) introNote(c,v.note,0); }
+				if(a==121) { intro_volume[c]=255; intro_bend[c]=0; intro_vibrato[c]=intro_bank.empty()?0:intro_bank[intro_program[c]][17]; }
+			}
+		}
+
+	} else if(type==0xe0 && !intro_bank.empty()) {
+		intro_bend[channel]=((int((b<<7)|a)-8192)*intro_bank[intro_program[channel]][14])>>8;
+		for(unsigned i=0;i<intro_voices.size();++i) if(intro_voices[i].channel==int(channel) && intro_voices[i].stage>1) introFrequency(i);
+	}
+}
+
+void FMOplMidiDriver::introTick() {
+	for(unsigned i=0;i<(intro_rhythm?6u:9u);++i) {
+		auto& v=intro_voices[i]; if(v.timbre<0) continue;
+		const auto& t=intro_bank[v.timbre];
+		// Attack 1, attack 2, decay, sustain, then release (60 Hz).
+		unsigned at=v.stage==0?32:v.stage==2?20:v.stage==3?24:v.stage==4?28:0;
+		bool changed=false;
+		if(at) {
+			int rate=introWord(t,at), target=introWord(t,at+2);
+			if(unsigned(std::abs(target-v.slide))<uint16(rate)) { v.slide=target; ++v.stage; }
+			else v.slide=sint16(v.slide+(v.slide<target?rate:-rate));
+			changed=true;
+		}
+		unsigned vib_rate=intro_bank[intro_program[v.channel]][16];
+		if(vib_rate) {
+			v.phase+=vib_rate; int phase=sint8(v.phase);
+			if(phase>63 || phase<-64) phase=sint8(128-phase);
+			v.vibrato=introShift(intro_vibrato[v.channel]*phase,4); changed=true;
+		}
+		if(changed || introWord(t,36)) introFrequency(i);
 	}
 }
 
