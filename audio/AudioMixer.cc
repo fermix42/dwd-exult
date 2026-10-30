@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "pent_include.h"
 
 #include "AudioMixer.h"
+#include "OriginalSfx.h"
 
 #include "AudioChannel.h"
 #include "Configuration.h"
@@ -151,6 +152,17 @@ AudioMixer::~AudioMixer() {
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
 	the_audio_mixer = nullptr;
+}
+
+AudioSample* AudioMixer::createOriginalSfx(const std::string& mode, bool si, int id) {
+	if (!audio_ok) return nullptr;
+	// Munt instances share no chip state. ROM and timbre preparation must
+	// not hold the output lock or delay the music callback.
+	if (mode == "MT32Emu") return OriginalSfx::create(mode, si, id, sample_rate);
+	// FMOpl's tables and scratch state are shared internally: serialize chip
+	// construction with the existing audio callback, as for normal playback.
+	const std::lock_guard<SDLAudioDevice> lock(*device);
+	return OriginalSfx::create(mode, si, id, sample_rate);
 }
 
 void AudioMixer::reset() {

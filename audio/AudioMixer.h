@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "common_types.h"
 
 #include <memory>
+#include <string>
 #include <vector>
 
 class MyMidiPlayer;
@@ -45,6 +46,7 @@ namespace Pentagram {
 		}
 
 		void reset();
+		AudioSample* createOriginalSfx(const std::string& mode, bool si, int id);
 
 		sint32 playSample(
 				AudioSample* sample, int loop, int priority, bool paused = false, uint32 pitch_shift = AUDIO_DEF_PITCH,

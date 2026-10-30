@@ -25,6 +25,7 @@ libaudio_la_SOURCES =	\
 	AudioMixer.h    \
 	AudioSample.cc  \
 	AudioSample.h   \
+	OriginalSfx.h   \
 	OggAudioSample.cc \
 	OggAudioSample.h  \
 	RawAudioSample.cc \

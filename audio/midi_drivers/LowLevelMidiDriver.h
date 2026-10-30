@@ -89,6 +89,9 @@ public:
 	void produceSamples(sint16* samples, uint32 bytes) override;
 
 	void loadTimbreLibrary(IDataSource*, TimbreLibraryType type) override;
+	// Isolated SFX producers are serviced by the mixer, without a music
+	// callback or worker thread to acknowledge setup/teardown commands.
+	void setSfxSynchronous(bool enabled) { synchronous_sfx = enabled; }
 
 	static bool precacheTimbresOnStartup;
 	static bool precacheTimbresOnPlay;
@@ -132,10 +135,14 @@ protected:
 
 	//! Yield execution of the current thread
 	void yield() {
-		std::this_thread::yield();
+		if (synchronous_sfx && initialized && isSampleProducer()) {
+			sint16 scratch[512]{};
+			produceSamples(scratch, sizeof(scratch));
+		} else std::this_thread::yield();
 	}
 
 private:
+	bool synchronous_sfx = false;
 	enum Messages {
 		LLMD_MSG_NONE              = 0,
 		LLMD_MSG_UNKNOWN           = 1 << 30,

@@ -392,6 +392,7 @@ bool Audio::have_config_sfx(const std::string& game, std::string* out) {
 }
 
 void Audio::Init_sfx() {
+	stop_sound_effects();
 	sfx_file.reset();
 
 	if (sfxs) {
@@ -649,13 +650,41 @@ int Audio::wait_for_speech(std::function<int(Uint32 ms)> waitfunc) {
 /*
  *	This returns a 'unique' ID, but only for .wav SFX's (for now).
  */
-int Audio::play_sound_effect(int num, int volume, int balance, int repeat, int distance) {
+int Audio::play_sound_effect(int num, int volume, int balance, int repeat, int distance, bool boost_bg_mt32) {
 #ifdef DEBUG
 	cout << formatTicks() << "Audio subsystem request: Sound Effect play " << num << " volume " << volume << " balance " << balance
 		 << " distance " << distance << endl;
 #endif
 	if (!audio_enabled || !effects_enabled) {
 		return -1;
+	}
+	string driver;
+	config->value("config/audio/effects/driver", driver, "digital");
+	if (mixer && (driver == "FMOpl" || driver == "MT32Emu")
+		&& (Game::get_game_type() == BLACK_GATE || Game::get_game_type() == SERPENT_ISLE)) {
+		try {
+			auto* sample = mixer->createOriginalSfx(driver, Game::get_game_type() == SERPENT_ISLE, num);
+			if (sample) {
+				// Only the closing UI event opts in. Keep the unboosted volume
+				// for digital fallback; the mixer retains its output saturation.
+				const int boost = boost_bg_mt32 && driver == "MT32Emu" && Game::get_game_type() == BLACK_GATE ? 4 : 1;
+				const int gain = volume * sfx_volume / 100 * boost;
+				const int handle = mixer->playSample(sample, repeat, 0, true, AUDIO_DEF_PITCH, gain, gain);
+				sample->Release();
+				if (handle >= 0) {
+					mixer->set2DPosition(handle, distance, balance);
+					mixer->setPaused(handle, false);
+					active_sfx_[num].push_back(handle);
+				}
+				return handle;
+			}
+		} catch (const std::exception& e) {
+			static std::set<string> reported;
+			const string message = driver + ": " + e.what();
+			if (reported.insert(message).second)
+				cerr << "Original SFX unavailable: " << message << "; using digital SFX fallback." << endl;
+		}
+		return play_wave_sfx(num, volume, balance, repeat, distance);
 	}
 
 #ifdef ENABLE_MIDISFX
@@ -902,6 +931,10 @@ void Audio::stop_sound_effects() {
 #endif
 	if (sfxs) {
 		sfxs->flush(mixer.get());
+	}
+	if (mixer) {
+		for (const auto& entry : active_sfx_)
+			for (int handle : entry.second) mixer->stopSample(handle);
 	}
 	active_sfx_.clear();
 #ifdef ENABLE_MIDISFX

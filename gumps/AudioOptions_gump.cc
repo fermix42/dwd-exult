@@ -35,6 +35,7 @@
 #include "AdvancedOptions_gump.h"
 #include "Audio.h"
 #include "AudioMixer.h"
+#include "AudioSample.h"
 #include "AudioOptions_gump.h"
 #include "Configuration.h"
 #include "Enabled_button.h"
@@ -316,10 +317,7 @@ void AudioOptions_gump::rebuild_buttons() {
 	}
 
 	// sfx on/off
-	std::vector<std::string> sfx_options = {Strings::Disabled()};
-	if (have_digital_sfx()) {
-		sfx_options.emplace_back(Strings::Digital());
-	}
+	std::vector<std::string> sfx_options = {Strings::Disabled(), Strings::Digital(), "FMOpl", "MT32Emu"};
 #ifdef ENABLE_MIDISFX
 	if (have_midi_pack) {
 		midi_state = sfx_options.size();
@@ -554,8 +552,14 @@ void AudioOptions_gump::load_settings() {
 	} else {    // This should *never* happen.
 		sfx_package = 0;
 	}
+	std::string effects_driver;
+	config->value("config/audio/effects/driver", effects_driver, "digital");
 	if (!sfx_on) {
 		sfx_enabled = 0;
+	} else if (effects_driver == "FMOpl") {
+		sfx_enabled = 2;
+	} else if (effects_driver == "MT32Emu") {
+		sfx_enabled = 3;
 	} else {
 #ifdef ENABLE_MIDISFX
 		config->value("config/audio/effects/midi", s, "no");
@@ -563,13 +567,11 @@ void AudioOptions_gump::load_settings() {
 		s = "no";
 #endif
 		if (s == "yes" && have_midi_pack) {
-			sfx_enabled = 1 + have_digital_sfx();
+			sfx_enabled = 4;
 		} else if (have_digital_sfx()) {
 			sfx_enabled = 1;
 		} else {
-			// Actually disable sfx if no sfx packs and no midi sfx.
-			// This is just in case -- it should not be needed.
-			sfx_enabled = 0;
+			sfx_enabled = 1;
 		}
 	}
 }
@@ -685,6 +687,11 @@ void AudioOptions_gump::save_settings() {
 	config->set("config/audio/enabled", audio_enabled ? "yes" : "no", false);
 	config->set("config/audio/midi/enabled", midi_enabled ? "yes" : "no", false);
 	config->set("config/audio/effects/enabled", sfx_enabled ? "yes" : "no", false);
+	// Disabling effects retains the preferred backend for manual CFG use.
+	if (sfx_enabled >= 1 && sfx_enabled <= 3) {
+		const char* drivers[] = {"digital", "FMOpl", "MT32Emu"};
+		config->set("config/audio/effects/driver", drivers[sfx_enabled - 1], false);
+	}
 	config->set("config/audio/speech/enabled", (speech_option != speech_off) ? "yes" : "no", false);
 	config->set("config/audio/speech/with_subs", (speech_option == speech_on_with_subtitles) ? "yes" : "no", false);
 
@@ -707,14 +714,21 @@ void AudioOptions_gump::save_settings() {
 		}
 	}
 #ifdef ENABLE_MIDISFX
-	config->set("config/audio/effects/midi", sfx_enabled == 1 + have_digital_sfx() ? "yes" : "no", false);
+	config->set("config/audio/effects/midi", sfx_enabled == midi_state ? "yes" : "no", false);
 #endif
+	std::string backend_warning;
 	if (midi) {
 		std::string s = "default";
 		if (midi_driver != MidiDriver::getDriverCount()) {
 			s = MidiDriver::getDriverName(midi_driver);
 		}
 		midi->set_midi_driver(s, midi_ogg_enabled != 0);
+		if (audio_enabled && midi_enabled && !midi_ogg_enabled && s == "MT32Emu"
+			&& midi->get_actual_midi_driver_name() != s) {
+			const auto actual = midi->get_actual_midi_driver_name();
+			backend_warning = "MT32Emu music could not initialize. Active music driver: "
+				+ (actual.empty() ? std::string("none") : std::string(actual)) + ".\n";
+		}
 #ifdef ENABLE_MIDISFX
 		midi->set_effects_conversion(sfx_conversion);
 #endif
@@ -738,6 +752,21 @@ void AudioOptions_gump::save_settings() {
 	}
 	config->write_back();
 	Audio::get_ptr()->Init_sfx();
+	// SFX synths are independent and created on demand. Validate the selected
+	// MT-32 backend now, without playing an effect, so Apply can report a
+	// missing ROM/resource instead of silently leaving digital fallback.
+	if (audio_enabled && sfx_enabled == 3 && !gwin->is_in_exult_menu()
+		&& (Game::get_game_type() == BLACK_GATE || Game::get_game_type() == SERPENT_ISLE)) {
+		try {
+			auto* mixer = Pentagram::AudioMixer::get_instance();
+			auto* sample = mixer ? mixer->createOriginalSfx("MT32Emu", Game::get_game_type() == SERPENT_ISLE, 0) : nullptr;
+			if (sample) sample->Release();
+			else backend_warning += "MT32Emu SFX could not initialize: audio output unavailable.\n";
+		} catch (const std::exception& e) {
+			backend_warning += std::string("MT32Emu SFX could not initialize: ") + e.what()
+				+ ". Digital SFX fallback will be attempted.\n";
+		}
+	}
 	// restart music track if one was playing and isn't anymore
 	if (midi && Audio::get_ptr()->is_music_enabled() && midi->get_current_track() != track_playing
 		&& (!gwin->is_background_track(track_playing) || midi->get_ogg_enabled() || midi->is_mt32())) {
@@ -746,6 +775,12 @@ void AudioOptions_gump::save_settings() {
 		} else {
 			Audio::get_ptr()->start_music(track_playing, looping);
 		}
+	}
+	if (!backend_warning.empty()) {
+		backend_warning += "Compatible MT-32/CM-32L ROMs must be in " + get_system_path("<DATA>")
+			+ " or " + get_system_path("<SAVEHOME>/data") + ".";
+		std::cerr << backend_warning << std::endl;
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Audio backend initialization", backend_warning.c_str(), nullptr);
 	}
 }
 

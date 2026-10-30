@@ -45,7 +45,7 @@ bool Checkmark_button::activate(MouseButton button) {
 	if (button != MouseButton::Left) {
 		return false;
 	}
-	Audio::get_ptr()->play_sound_effect(Audio::game_sfx(74));
+	Audio::get_ptr()->play_sound_effect(Audio::game_sfx(74), AUDIO_MAX_VOLUME, 0, 0, 0, true);
 	parent->close();
 	return true;
 }

@@ -445,6 +445,17 @@ bool LowLevelMidiDriver::waitTillNoComMessages(std::chrono::milliseconds timeout
 			std::cerr << __FUNCTION__ << " exceeded timeout of " << timeout.count() << " ms" << std::endl;
 			return false;
 		}
+		if (synchronous_sfx && isSampleProducer()) {
+			if (playSequences() == PlaySeqResult::terminate) {
+				// playSequences leaves shutdown queued for its caller to
+				// acknowledge, just as produceSamples does below. Without
+				// draining it here an isolated SFX synth waits until timeout.
+				auto lock = LockMutex();
+				while (!messages.empty()) messages.pop();
+				initialized = false;
+			}
+			continue;
+		}
 		yield();
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}

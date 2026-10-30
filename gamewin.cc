@@ -280,6 +280,15 @@ void Background_noise::handle_event(unsigned long curtime, uintptr udata) {
 			last_sound = sound;
 		}
 		if (sound >= 0 && sound != 255) {
+			// The digital pack's daytime shriek is short, but original BG
+			// effect 82 is a sustained generator sound, not a one-shot bird.
+			// Keep that native effect intact for its real callers; use the
+			// existing bird effect for this Exult ambient-audio extension.
+			if (sound == 82 && Game::get_game_type() == BLACK_GATE) {
+				std::string driver;
+				config->value("config/audio/effects/driver", driver, "digital");
+				if (driver == "FMOpl" || driver == "MT32Emu") sound = 85;
+			}
 			Audio::get_ptr()->play_sound_effect(Audio::game_sfx(sound), AUDIO_MAX_VOLUME - 64);
 			repeats++;    // Count it.
 			if (rand() % (repeats + 1) == 0) {

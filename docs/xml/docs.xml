@@ -2280,6 +2280,10 @@
 							<comment>**enable/disable stereo sound.</comment>
 							</configtag>
 							<configtag name="effects">
+								<configtag name="driver">
+									digital
+									<comment>Gameplay SFX backend: digital (default), FMOpl, or MT32Emu. Missing or invalid values use digital SFX. Independent of the music driver. MT32Emu requires compatible ROMs. Black Gate MT-32 effects additionally require the original U7.EXE beside STATIC; currently supported: 689248 bytes, SHA1 5f2887c84474cbbd0752634925d8dd5d6425e981. Unsupported or missing resources fall back to the configured digital pack with a diagnostic. Extracted note definitions remain in memory only. Introduction audio is unchanged.</comment>
+								</configtag>
 								<configtag name="enabled">
 									yes
 									<comment>**enable/disable sound effects.</comment>

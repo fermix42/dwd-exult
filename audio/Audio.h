@@ -151,7 +151,8 @@ public:
 	bool start_music(
 			const std::string& fname, int num, bool continuous = false, MyMidiPlayer::ForceType force = MyMidiPlayer::Force_None);
 	void stop_music();
-	int  play_sound_effect(int num, int volume = AUDIO_MAX_VOLUME, int balance = 0, int repeat = 0, int distance = 0);
+	int  play_sound_effect(int num, int volume = AUDIO_MAX_VOLUME, int balance = 0, int repeat = 0, int distance = 0,
+			bool boost_bg_mt32 = false);
 	int  play_wave_sfx(int num, int volume = AUDIO_MAX_VOLUME, int balance = 0, int repeat = 0, int distance = 0);
 	int  play_sound_effect(int num, const Game_object* obj, int volume = AUDIO_MAX_VOLUME, int repeat = 0);
 	int  play_sound_effect(int num, const Tile_coord& tile, int volume = AUDIO_MAX_VOLUME, int repeat = 0);

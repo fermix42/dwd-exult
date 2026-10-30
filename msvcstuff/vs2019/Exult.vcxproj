@@ -600,6 +600,7 @@ for /f "tokens=* delims=" %%u in ('git ls-remote --get-url') do echo #define GIT
     <ClInclude Include="..\..\audio\AudioChannel.h" />
     <ClInclude Include="..\..\audio\AudioMixer.h" />
     <ClInclude Include="..\..\audio\AudioSample.h" />
+    <ClInclude Include="..\..\audio\OriginalSfx.h" />
     <ClInclude Include="..\..\audio\conv.h" />
     <ClInclude Include="..\..\audio\convmusic.h" />
     <ClInclude Include="..\..\audio\Midi.h" />
