@@ -44,6 +44,7 @@ private:
 	Image_window::FillMode fill_mode;
 	bool                   has_ac;
 	bool                   share_settings;
+	Image_window::WindowSettings window_settings;
 
 	bool                   o_share_settings;
 	uint32                 o_resolution;
@@ -67,6 +68,8 @@ private:
 		id_fullscreen = id_first_setting,
 		id_share_settings,
 		id_high_dpi,
+		id_borderless,
+		id_window_position,
 		id_resolution,    // id_resolution and all past it
 		id_scaler,        // are deleted by rebuild_buttons
 		id_scaling,
@@ -177,6 +180,12 @@ public:
 
 	void toggle_share_settings(int state) {
 		share_settings = state;
+	}
+	void toggle_borderless(int state) {
+		window_settings.borderless = state != 0;
+	}
+	void toggle_window_position(int state) {
+		window_settings.position = static_cast<Image_window::WindowPosition>(state);
 	}
 
 	Gump_button* on_button(int mx, int my) override;

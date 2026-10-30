@@ -486,7 +486,7 @@ void VideoOptions_gump::load_settings(bool Fullscreen) {
 }
 
 VideoOptions_gump::VideoOptions_gump() : Modal_gump(nullptr, -1), startup_fill_mode(static_cast<Image_window::FillMode>(0)) {
-	SetProceduralBackground(TileRect(0, 0, 100, yForRow(13)), -1);
+	SetProceduralBackground(TileRect(0, 0, 100, yForRow(15)), -1);
 	video_options_gump = this;
 
 	if (gwin->get_ui_layer_palette_mode(Image_window::UiLayerModalGumps) == Image_window::UiPaletteDisabled) {
@@ -513,15 +513,24 @@ VideoOptions_gump::VideoOptions_gump() : Modal_gump(nullptr, -1), startup_fill_m
 			get_button_pos_for_label(Strings::andfullscreen_()), yForRow(11), 40);
 #endif
 	o_share_settings = share_settings;
+	window_settings = Image_window::read_window_settings();
+#if !defined(SDL_PLATFORM_IOS) && !defined(ANDROID)
+	buttons[id_borderless] = std::make_unique<VideoTextToggle>(
+			this, &VideoOptions_gump::toggle_borderless, enabledtext, window_settings.borderless,
+			get_button_pos_for_label("Borderless Window:"), yForRow(12), 74);
+	buttons[id_window_position] = std::make_unique<VideoTextToggle>(
+			this, &VideoOptions_gump::toggle_window_position, std::vector<std::string>{"Normal", "Left", "Right"},
+			static_cast<int>(window_settings.position), get_button_pos_for_label("Window Position:"), yForRow(13), 74);
+#endif
 
 	// Apply
 	buttons[id_apply]
-			= std::make_unique<VideoOptions_button>(this, &VideoOptions_gump::save_settings, Strings::APPLY(), 25, yForRow(12), 50);
+			= std::make_unique<VideoOptions_button>(this, &VideoOptions_gump::save_settings, Strings::APPLY(), 25, yForRow(14), 50);
 	// Help
-	buttons[id_help] = std::make_unique<VideoOptions_button>(this, &VideoOptions_gump::help, Strings::HELP(), 53, yForRow(12), 50);
+	buttons[id_help] = std::make_unique<VideoOptions_button>(this, &VideoOptions_gump::help, Strings::HELP(), 53, yForRow(14), 50);
 	// Cancel
 	buttons[id_cancel]
-			= std::make_unique<VideoOptions_button>(this, &VideoOptions_gump::cancel, Strings::CANCEL(), 75, yForRow(12), 50);
+			= std::make_unique<VideoOptions_button>(this, &VideoOptions_gump::cancel, Strings::CANCEL(), 75, yForRow(14), 50);
 	load_settings(fullscreen);
 
 	rebuild_buttons();
@@ -541,6 +550,7 @@ VideoOptions_gump::~VideoOptions_gump() {
 }
 
 void VideoOptions_gump::save_settings() {
+	const auto old_window_settings = Image_window::read_window_settings();
 	int resx = get_width(resolution);
 	int resy = get_height(resolution);
 	int gw   = get_width(game_resolution);
@@ -567,6 +577,7 @@ void VideoOptions_gump::save_settings() {
 			fill_scaler == 2   ? Image_window::SDLScaler
 			: fill_scaler == 1 ? Image_window::bilinear
 							   : Image_window::point);
+	gwin->get_win()->apply_window_settings(window_settings);
 	gclock->reset_palette();
 	set_pos();
 	gwin->set_all_dirty();
@@ -590,11 +601,13 @@ void VideoOptions_gump::save_settings() {
 					: o_fill_scaler == 1 ? Image_window::bilinear
 										 : Image_window::point);
 		}
+		gwin->get_win()->apply_window_settings(old_window_settings);
 		gclock->reset_palette();
 		set_pos();
 		gwin->set_all_dirty();
 	} else {
 		config->set("config/video/fullscreen", fullscreen ? "yes" : "no", false);
+		Image_window::save_window_settings(window_settings);
 		config->set("config/video/share_video_settings", share_settings ? "yes" : "no", false);
 		setup_video(
 				fullscreen != 0, SET_CONFIG, resx, resy, gw, gh, scaling + 1, scaler, fill_mode,
@@ -679,6 +692,8 @@ void VideoOptions_gump::paint() {
 #if !defined(SDL_PLATFORM_IOS) && !defined(ANDROID)
 	font->paint_text(iwin->get_ib8(), Strings::Samesettingsforwindow(), x + label_margin, y + yForRow(10) + 1);
 	font->paint_text(iwin->get_ib8(), Strings::andfullscreen_(), x + label_margin, y + yForRow(11) + 1);
+	font->paint_text(iwin->get_ib8(), "Borderless Window:", x + label_margin, y + yForRow(12) + 1);
+	font->paint_text(iwin->get_ib8(), "Window Position:", x + label_margin, y + yForRow(13) + 1);
 #endif
 	gwin->set_painted();
 }

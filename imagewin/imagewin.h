@@ -546,6 +546,15 @@ protected:
 	static float nativescale;
 
 public:
+	enum class WindowPosition { Normal, Left, Right };
+	struct WindowSettings {
+		bool borderless = false;
+		WindowPosition position = WindowPosition::Normal;
+	};
+	static WindowSettings read_window_settings();
+	static void save_window_settings(const WindowSettings& settings);
+	void apply_window_settings(const WindowSettings& settings);
+
 	inline struct SDL_Window* get_screen_window() const {
 		return screen_window;
 	}

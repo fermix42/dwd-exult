@@ -2496,6 +2496,15 @@
 							</configtag>
 						</configtag>
 						<configtag name="video">
+							<configtag name="borderless">
+							no
+							<comment>Fork: yes removes the window title bar and borders; no (default) uses a normal decorated window. Values are case-insensitive; missing or invalid values use no.</comment>
+							</configtag>
+							<configtag name="window_position">
+							normal
+							<comment>Fork: normal (default), left, or right. Normal uses Exult's existing centered placement; left/right align the outer window to the usable edge of its current monitor and center it vertically without resizing it. Values are case-insensitive; missing or invalid values use normal.</comment>
+							<comment>Both window preferences load at startup, can be edited directly in exult.cfg, and are shared regardless of share_video_settings. They are inactive in fullscreen but retained for returning to windowed mode. Video Options previews them on Apply; confirming saves them, while Cancel or rejecting/timing out the confirmation leaves the saved preferences unchanged.</comment>
+							</configtag>
 							<configtag name="share_video_settings">
 							yes
 							<comment>**yes means that fullscreen and windowed mode share the same</comment>

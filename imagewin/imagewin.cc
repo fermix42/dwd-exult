@@ -669,6 +669,7 @@ bool Image_window::create_scale_surfaces(int w, int h, int bpp) {
 				SDL_WINDOWPOS_CENTERED_DISPLAY(original_displayID));
 		SDL_SetRenderLogicalPresentation(screen_renderer, w, h, SDL_LOGICAL_PRESENTATION_LETTERBOX);
 	}
+	apply_window_settings(read_window_settings());
 	display_width  = w;
 	display_height = h;
 
@@ -1116,6 +1117,53 @@ void Image_window::show(int x, int y, int w, int h) {
 /*
  *   Toggle fullscreen.
  */
+Image_window::WindowSettings Image_window::read_window_settings() {
+	WindowSettings settings;
+	config->value("config/video/borderless", settings.borderless, false);
+	std::string position;
+	config->value("config/video/window_position", position, "normal");
+	if (!Pentagram::strcasecmp(position.c_str(), "left")) {
+		settings.position = WindowPosition::Left;
+	} else if (!Pentagram::strcasecmp(position.c_str(), "right")) {
+		settings.position = WindowPosition::Right;
+	}
+	return settings;
+}
+
+void Image_window::save_window_settings(const WindowSettings& settings) {
+	config->set("config/video/borderless", settings.borderless ? "yes" : "no", false);
+	const char* position = settings.position == WindowPosition::Left ? "left"
+			: settings.position == WindowPosition::Right ? "right" : "normal";
+	config->set("config/video/window_position", position, false);
+}
+
+void Image_window::apply_window_settings(const WindowSettings& settings) {
+	// Preferences remain in the CFG while fullscreen owns window placement.
+	if (!screen_window || fullscreen) {
+		return;
+	}
+	SDL_SetWindowBordered(screen_window, !settings.borderless);
+	SDL_SyncWindow(screen_window);
+	const SDL_DisplayID display = SDL_GetDisplayForWindow(screen_window);
+	if (settings.position == WindowPosition::Normal) {
+		// Match Exult's existing centered placement, including missing keys.
+		SDL_SetWindowPosition(screen_window, SDL_WINDOWPOS_CENTERED_DISPLAY(display), SDL_WINDOWPOS_CENTERED_DISPLAY(display));
+		return;
+	}
+	SDL_Rect bounds;
+	if (!SDL_GetDisplayUsableBounds(display, &bounds)) {
+		return;
+	}
+	int w, h, top = 0, left = 0, bottom = 0, right = 0;
+	SDL_GetWindowSize(screen_window, &w, &h);
+	SDL_GetWindowBordersSize(screen_window, &top, &left, &bottom, &right);
+	const int outer_width = w + left + right;
+	const int outer_height = h + top + bottom;
+	const int x = bounds.x + left + (settings.position == WindowPosition::Right ? std::max(0, bounds.w - outer_width) : 0);
+	const int y = bounds.y + top + std::max(0, (bounds.h - outer_height) / 2);
+	SDL_SetWindowPosition(screen_window, x, y);
+}
+
 void Image_window::toggle_fullscreen() {
 	int w;
 	int h;
