@@ -446,13 +446,18 @@ bool LowLevelMidiDriver::waitTillNoComMessages(std::chrono::milliseconds timeout
 			return false;
 		}
 		if (synchronous_sfx && isSampleProducer()) {
-			if (playSequences() == PlaySeqResult::terminate) {
+			auto progress = playSequences();
+			if (progress == PlaySeqResult::terminate) {
 				// playSequences leaves shutdown queued for its caller to
 				// acknowledge, just as produceSamples does below. Without
 				// draining it here an isolated SFX synth waits until timeout.
 				auto lock = LockMutex();
 				while (!messages.empty()) messages.pop();
 				initialized = false;
+			} else if (progress == PlaySeqResult::delayreq) {
+				// An isolated SFX producer has no mixer callback during setup.
+				// Render locally so deferred starts can reach their sample time.
+				yield();
 			}
 			continue;
 		}
@@ -1290,6 +1295,11 @@ int LowLevelMidiDriver::lockChannel(uint16 sequence_id, int chan, bool lock) {
 		phys         = -1;
 		int prev_max = 128;
 		for (c = 0; c < 16; c++) {
+			// Isolated MT-32 SFX use the default eight melodic parts.
+			// Only these channels have assigned melodic parts on this synth.
+			if (synchronous_sfx && isMT32() && (c < 1 || c > 8)) {
+				continue;
+			}
 			// Protected or locked
 			if (chan_locks[c] != -1) {
 				continue;

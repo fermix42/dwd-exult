@@ -16,6 +16,7 @@
 #include <cstring>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <stdexcept>
 #include <vector>
 
@@ -261,6 +262,196 @@ public:
 };
 #endif
 
+#ifdef USE_FMOPL_MIDI
+// SI's effect banks contain Origin TVFX records, not fixed BNK instruments.
+// Keep their envelopes on the isolated SFX synth; the existing sequencer
+// still owns XMIDI timing, channel locks, note durations and loops.
+class SiFmDriver final : public FMOplMidiDriver {
+	using Chip = FMOpl_Pentagram::FM_OPL;
+	struct Voice {
+		struct Ramp { uint16 value{}, pos{}, left{1}, delta{}; };
+		const Bytes* data = nullptr;
+		std::array<Ramp, 8> ramps{};
+		unsigned channel{}, note{}, velocity{}, duration{};
+		uint8 key{0x28}, flags[2]{0x20,0x20}, ksl[2]{}, connection{}, scale{2};
+		bool release = false;
+		unsigned dirty = 255;
+	};
+	Chip* effects = nullptr;
+	std::map<unsigned, Bytes> timbres;
+	std::array<Voice, 9> voices{};
+	std::array<unsigned,16> banks{}, programs{}, volumes{}, expressions{}, pans{}, sustain{};
+	unsigned clock = 0;
+	bool level_refresh = false;
+	static unsigned scaleVolume(unsigned x, unsigned y) {
+		unsigned v = x*y/128; return v ? v+1 : 0;
+	}
+	void write(unsigned voice, unsigned reg, unsigned value, int op = -1) {
+		unsigned operatorOffset = (voice/3)*8 + voice%3;
+		unsigned address = reg + (op < 0 ? voice : operatorOffset + unsigned(op)*3);
+		FMOpl_Pentagram::OPLWriteReg(effects, address, value & 255);
+	}
+	void phase(Voice& v) {
+		v.key=0x28; v.flags[0]=v.flags[1]=0x20; v.ksl[0]=v.ksl[1]=0;
+		v.connection=0; v.scale=2; v.dirty=255;
+		for(unsigned p=0;p<8;++p) {
+			unsigned field=6+p*6;
+			if(!v.release) v.ramps[p].value=word(*v.data,field);
+			v.ramps[p].pos=uint16(word(*v.data,field+(v.release?4:2))+2);
+			v.ramps[p].left=1; v.ramps[p].delta=0;
+		}
+		if(!v.release) v.duration=uint16(word(*v.data,4)+1);
+	}
+	void fetch(Voice& v,unsigned p) {
+		auto& r=v.ramps[p];
+		for(unsigned guard=0;guard<10;++guard) {
+			unsigned op=word(*v.data,r.pos), arg=word(*v.data,size_t(r.pos)+2);
+			if(!op) { r.pos=uint16(r.pos+arg); continue; }
+			r.pos+=4;
+			if(op==65535) { r.value=uint16(arg); continue; }
+			if(op!=65534) { r.left=uint16(op); r.delta=uint16(arg); return; }
+			switch(p) {
+			case 0: v.key=uint8(arg>>8); break;
+			case 1: v.ksl[0]=uint8(arg); break;
+			case 2: v.ksl[1]=uint8(arg); break;
+			case 4: v.connection=uint8(arg>>8); v.scale=uint8((arg>>8)|2); break;
+			case 5: v.flags[0]=uint8(arg); break;
+			case 6: v.flags[1]=uint8(arg); break;
+			default: break;
+			}
+		}
+		r.left=65535; r.delta=0;
+	}
+	void update(unsigned index) {
+		auto& v=voices[index]; auto& r=v.ramps;
+		if(v.dirty & 1) {
+			unsigned f=r[0].value>>6; write(index,0xa0,f); write(index,0xb0,(f>>8)|v.key);
+		}
+		if(v.dirty & 128) for(unsigned op=0;op<2;++op) write(index,0x20,(r[5+op].value>>12)|v.flags[op],op);
+		if(v.dirty & 64) {
+			unsigned gain=scaleVolume(scaleVolume(volumes[v.channel],expressions[v.channel]),v.velocity);
+			for(unsigned op=0;op<2;++op) {
+				unsigned level=r[1+op].value>>10;
+				if(v.scale & (1u<<op)) level=level*gain/127;
+				write(index,0x40,((~level)&63)|v.ksl[op],op);
+			}
+		}
+		if(v.dirty & 32) {
+			uint16 a=0xff0f,b=0xff0f;
+			if(uint16(word(*v.data,8)+2)!=54) {
+				a=word(*v.data,v.release?58:54); b=word(*v.data,v.release?60:56);
+			}
+			write(index,0x60,b>>8,0); write(index,0x80,b,0);
+			write(index,0x60,a>>8,1); write(index,0x80,a,1);
+		}
+		if(v.dirty & 16) { write(index,0xe0,r[7].value>>8,0); write(index,0xe0,r[7].value,1); }
+		if(v.dirty & 8) write(index,0xc0,((r[4].value>>12)&14)|(v.connection&1));
+		effects->P_CH[index].PAN=uint8(pans[v.channel]); v.dirty=0;
+	}
+	void tick() {
+		level_refresh=!level_refresh;
+		constexpr unsigned masks[8]={1,64,64,0,8,128,128,16};
+		for(unsigned i=0;i<voices.size();++i) {
+			auto& v=voices[i]; if(!v.data) continue;
+			for(unsigned p=0;p<8;++p) {
+				auto& r=v.ramps[p];
+				if(r.delta) {
+					uint16 old=r.value, next=uint16(old+r.delta);
+					if(v.release && (p==1 || p==2) && ((next^old)&0x8000) && !((next^r.delta)&0x8000)) next=0;
+					r.value=next;
+					if((p!=1 && p!=2) || level_refresh) v.dirty|=masks[p];
+				}
+				if(!uint16(--r.left)) { fetch(v,p); v.dirty|=masks[p]; }
+			}
+			update(i);
+			if(!v.release) {
+				if(!uint16(--v.duration)) { v.release=true; phase(v); }
+			} else if(v.ramps[1].value<1024 && v.ramps[2].value<1024) {
+				write(i,0xb0,0); v.data=nullptr;
+			}
+		}
+	}
+protected:
+	int open() override {
+		int result=FMOplMidiDriver::open(); if(result) return result;
+		effects=FMOpl_Pentagram::makeAdLibOPL(sample_rate);
+		if(!effects) { FMOplMidiDriver::close(); return 1; }
+		FMOpl_Pentagram::OPLWriteReg(effects,1,32);
+		volumes.fill(127); expressions.fill(127); pans.fill(64); return 0;
+	}
+	void close() override {
+		if(effects) { FMOpl_Pentagram::OPLDestroy(effects); effects=nullptr; }
+		FMOplMidiDriver::close();
+	}
+	void loadTimbreLibrary(IDataSource* source,TimbreLibraryType type) override {
+		if(type!=TIMBRE_LIBRARY_XMIDI_AD) throw std::runtime_error("unsupported SI FM library");
+		source->seek(0); Bytes raw(source->getSize()); source->read(raw.data(),raw.size());
+		std::vector<std::pair<unsigned,Bytes>> fixed;
+		for(size_t at=0;at+6<=raw.size();at+=6) {
+			unsigned patch=raw[at],bank=raw[at+1]; if(patch==255 || bank==255) break;
+			uint32 offset=uint32(raw[at+2])|(uint32(raw[at+3])<<8)|(uint32(raw[at+4])<<16)|(uint32(raw[at+5])<<24);
+			unsigned size=word(raw,offset);
+			if(size<14 || offset>raw.size() || size>raw.size()-offset) throw std::runtime_error("invalid SI FM timbre");
+			Bytes bytes(raw.begin()+offset,raw.begin()+offset+size);
+			if(size==14) fixed.emplace_back((bank<<7)|patch,std::move(bytes));
+			else {
+				if(size<54 || bytes[3]!=2) throw std::runtime_error("unsupported SI TVFX timbre type");
+				timbres.emplace((bank<<7)|patch,std::move(bytes));
+			}
+		}
+		Bytes compatible((fixed.size()+1)*6,255);
+		for(unsigned i=0;i<fixed.size();++i) {
+			compatible[i*6]=uint8(fixed[i].first&127); compatible[i*6+1]=uint8(fixed[i].first>>7);
+			uint32 offset=uint32(compatible.size());
+			for(unsigned b=0;b<4;++b) compatible[i*6+2+b]=uint8(offset>>(8*b));
+			compatible.insert(compatible.end(),fixed[i].second.begin(),fixed[i].second.end());
+		}
+		IBufferDataView bnk(compatible.data(),compatible.size()); FMOplMidiDriver::loadTimbreLibrary(&bnk,type);
+	}
+	void send(uint32 message) override {
+		unsigned channel=message&15,kind=message&240,a=(message>>8)&127,b=(message>>16)&127;
+		if(kind==0xb0) {
+			if(a==114) banks[channel]=b;
+			if(a==7) volumes[channel]=b;
+			if(a==11) expressions[channel]=b;
+			if(a==10) pans[channel]=b;
+			if(a==64) sustain[channel]=b;
+			for(auto& v:voices) if(v.data && v.channel==channel) {
+				v.dirty|=64;
+				if(a==123 || a==121) v.duration=1;
+			}
+		}
+		if(kind==0xc0) programs[channel]=a;
+		auto timbre=timbres.find((banks[channel]<<7)|programs[channel]);
+		if(kind==0x80 || (kind==0x90 && !b)) {
+			bool found=false;
+			for(auto& v:voices) if(v.data && v.channel==channel && v.note==a) { if(sustain[channel]<64) v.duration=1; found=true; }
+			if(found) return;
+		}
+		if(timbre!=timbres.end()) {
+			if(kind==0xc0) return;
+			if(kind==0x90 && b) {
+				unsigned index=0; while(index<voices.size() && voices[index].data) ++index;
+				if(index==voices.size()) index=0;
+				write(index,0xb0,0); auto& v=voices[index]; v=Voice{};
+				v.data=&timbre->second; v.channel=channel; v.note=a; v.velocity=82+3*(b>>3);
+				phase(v); update(index); return;
+			}
+		}
+		FMOplMidiDriver::send(message);
+	}
+	void lowLevelProduceSamples(sint16* output,uint32 frames) override {
+		FMOplMidiDriver::lowLevelProduceSamples(output,frames);
+		std::array<sint16,2> pcm{};
+		for(unsigned i=0;i<frames;++i) {
+			clock+=60; if(clock>=sample_rate) { clock-=sample_rate; tick(); }
+			FMOpl_Pentagram::YM3812UpdateOne_Stereo(effects,pcm.data(),1);
+			for(unsigned c=0;c<2;++c) output[i*2+c]=sint16(std::clamp(int(output[i*2+c])+pcm[c],-32768,32767));
+		}
+	}
+};
+#endif
+
 class SiXmidi final : public Engine {
 	std::shared_ptr<MidiDriver> driver;
 	std::unique_ptr<XMidiFile> sequence;
@@ -268,7 +459,7 @@ class SiXmidi final : public Engine {
 public:
 	SiXmidi(bool fm, int id, unsigned hz) : rate(hz) {
 #ifdef USE_FMOPL_MIDI
-		if (fm) driver = FMOplMidiDriver::getDesc()->createInstance();
+		if (fm) driver = std::make_shared<SiFmDriver>();
 #endif
 #ifdef USE_MT32EMU_MIDI
 		if (!fm) driver = MT32EmuMidiDriver::getDesc()->createInstance();

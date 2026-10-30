@@ -289,6 +289,15 @@ void Background_noise::handle_event(unsigned long curtime, uintptr udata) {
 				config->value("config/audio/effects/driver", driver, "digital");
 				if (driver == "FMOpl" || driver == "MT32Emu") sound = 85;
 			}
+			// For native SI FM, the generic shriek maps to the sustained
+			// "Shreik" event 96. Daytime birds must use "Seaguls" (15),
+			// reached through the existing bird mapping 85. Do not change
+			// event 96 itself or other callers that need its sustained sound.
+			if (sound == 82 && Game::get_game_type() == SERPENT_ISLE) {
+				std::string driver;
+				config->value("config/audio/effects/driver", driver, "digital");
+				if (driver == "FMOpl") sound = 85;
+			}
 			Audio::get_ptr()->play_sound_effect(Audio::game_sfx(sound), AUDIO_MAX_VOLUME - 64);
 			repeats++;    // Count it.
 			if (rand() % (repeats + 1) == 0) {
