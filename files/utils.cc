@@ -777,7 +777,7 @@ string Get_home() {
 		shell32_wrapper shell32;
 		home_directory = shell32.Get_local_appdata();
 		if (!home_directory.empty()) {
-			home_directory += "\\Exult";
+			home_directory += "\\Exult-Fork";
 		} else {
 			home_directory = ".";
 		}
