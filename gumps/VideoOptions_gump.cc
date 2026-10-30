@@ -572,6 +572,7 @@ void VideoOptions_gump::save_settings() {
 			return;
 		}
 	}
+	gwin->get_win()->set_window_settings(window_settings);
 	gwin->resized(
 			resx, resy, fullscreen != 0, gw, gh, scaling + 1, scaler, fill_mode,
 			fill_scaler == 2   ? Image_window::SDLScaler
@@ -592,6 +593,7 @@ void VideoOptions_gump::save_settings() {
 		gh   = get_height(o_game_resolution);
 		bool o_fullscreen;
 		config->value("config/video/fullscreen", o_fullscreen, true);
+		gwin->get_win()->set_window_settings(old_window_settings);
 		if (fullscreen != o_fullscreen) {    // use old settings from the config
 			setup_video(o_fullscreen, TOGGLE_FULLSCREEN);
 		} else {

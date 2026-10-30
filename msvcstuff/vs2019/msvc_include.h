@@ -4,6 +4,11 @@
 #define VERSION       "1.13.1git"
 #define EXULT_DATADIR "data/"
 
+// Keep the fork's CFG beside the executable for native portable launches.
+#ifndef PORTABLE_EXULT_WIN32
+#	define PORTABLE_EXULT_WIN32 1
+#endif
+
 #ifdef _DEBUG
 #	define DEBUG
 #endif

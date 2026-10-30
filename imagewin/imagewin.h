@@ -553,8 +553,16 @@ public:
 	};
 	static WindowSettings read_window_settings();
 	static void save_window_settings(const WindowSettings& settings);
+	void set_window_settings(const WindowSettings& settings) {
+		window_settings = settings;
+	}
 	void apply_window_settings(const WindowSettings& settings);
 
+private:
+	WindowSettings window_settings = read_window_settings();
+	void fit_borderless_window(unsigned int& w, unsigned int& h);
+
+public:
 	inline struct SDL_Window* get_screen_window() const {
 		return screen_window;
 	}
