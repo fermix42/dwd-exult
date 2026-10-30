@@ -377,7 +377,8 @@ void AudioOptions_gump::rebuild_midi_driver_buttons() {
 	const unsigned int       num_midi_drivers = MidiDriver::getDriverCount();
 	std::vector<std::string> midi_drivertext;
 	for (unsigned int i = 0; i < num_midi_drivers; i++) {
-		midi_drivertext.emplace_back(MidiDriver::getDriverName(i));
+		const auto name=MidiDriver::getDriverName(i);
+		midi_drivertext.emplace_back(name=="OPL3Stereo" ? "OPL3 Stereo" : name);
 	}
 	midi_drivertext.emplace_back(Strings::Default());
 

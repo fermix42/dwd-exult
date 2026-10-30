@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "CoreAudioMidiDriver.h"
 #include "CoreMidiDriver.h"
 #include "FMOplMidiDriver.h"
+#include "Opl3StereoMidiDriver.h"
 #include "FluidSynthMidiDriver.h"
 #include "MT32EmuMidiDriver.h"
 #include "TimidityMidiDriver.h"
@@ -73,6 +74,10 @@ static void InitMidiDriverVector() {
 #endif
 #ifdef USE_FLUIDSYNTH_MIDI
 	midi_drivers.push_back(FluidSynthMidiDriver::getDesc());
+#endif
+
+#ifdef USE_FMOPL_MIDI
+	midi_drivers.push_back(Opl3StereoMidiDriver::getDesc());
 #endif
 
 	midi_drivers.push_back(&Disabled_desc);

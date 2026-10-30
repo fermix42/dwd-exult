@@ -54,6 +54,7 @@ public:
 	ExultMenu(Game_window* gw);
 	BaseGameInfo* run();
 	void          setup();
+	void          music_player();
 };
 
 #endif    // EXULTMENU_H

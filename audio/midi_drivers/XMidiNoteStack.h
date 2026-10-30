@@ -85,7 +85,13 @@ public:
 	}
 
 	// Finds the note that has same pitch and channel, and pops it
-	inline XMidiEvent* FindAndPop(XMidiEvent* event) {
+	inline XMidiEvent* FindAndPop(XMidiEvent* event, bool oldest = false) {
+		if (oldest) {
+			XMidiEvent* match = nullptr;
+			for (auto* note = notes; note; note = note->ex.note_on.next_note)
+				if (note->getChannel() == event->getChannel() && note->data[0] == event->data[0]) match = note;
+			return match ? Remove(match) : nullptr;
+		}
 		XMidiEvent* prev = nullptr;
 		XMidiEvent* note = notes;
 		while (note) {

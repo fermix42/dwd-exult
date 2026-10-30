@@ -36,6 +36,8 @@
 #include "gamemgr/modmgr.h"
 #include "gamewin.h"
 #include "gumps/Gamemenu_gump.h"
+#include "gumps/MusicPlayer_gump.h"
+#include "gumps/Gump_manager.h"
 #include "ibuf8.h"
 #include "ignore_unused_variable_warning.h"
 #include "items.h"
@@ -254,6 +256,43 @@ void ExultMenu::setup() {
 	gpal->apply();
 }
 
+void ExultMenu::music_player() {
+	std::vector<ModManager*> games;
+	if(auto* bg=gamemanager->get_bg()) games.push_back(bg);
+	if(auto* si=gamemanager->get_si()) games.push_back(si);
+	if(games.empty()) return;
+	auto* audio=Audio::get_ptr();
+	if(auto* midi=audio->get_midi(); midi && midi->get_current_track()!=-1) audio->stop_music();
+	bool change=false;
+	size_t selected=0;
+	do {
+		// Reuse the launcher's minimal setup context. No save or gameplay is loaded.
+		std::unique_ptr<Game> context(Game::create_game(games[selected]));
+		if(!get_num_text_msgs()) Game::setup_text();
+		if(!context || !Shape_manager::get_instance()->load_gumps_minimal()) {
+			context.reset(); game=nullptr; break;
+		}
+		gwin->clear_screen(true);
+		gwin->get_pal()->fade(0,1,0);
+		gwin->set_in_exult_menu(true);
+		{
+			MusicPlayer_gump player(games.size()>1);
+			gwin->get_gump_man()->do_modal_gump(&player,Mouse::hand);
+			change=player.wants_other_game();
+		}
+		// Reset only playback state, so a second game's GAME timbres load freshly.
+		if(auto* midi=audio->get_midi()) midi->set_timbre_lib(MyMidiPlayer::TIMBRE_LIB_GM);
+		gwin->set_in_exult_menu(false);
+		context.reset();
+		game=nullptr;
+		selected=(selected+1)%games.size();
+	} while(change && quitting_time!=QUIT_TIME_YES);
+	gwin->clear_screen(true);
+	auto* palette=gwin->get_pal();
+	palette->load(BUNDLE_CHECK(BUNDLE_EXULT_FLX,EXULT_FLX),EXULT_FLX_EXULT0_PAL);
+	palette->apply();
+}
+
 std::unique_ptr<MenuList> ExultMenu::create_main_menu(int first) {
 	auto menu = std::make_unique<MenuList>();
 
@@ -291,31 +330,27 @@ std::unique_ptr<MenuList> ExultMenu::create_main_menu(int first) {
 			menu.get(), navfonton, navfont, first, pagesize, num_choices, centerx,
 			gwin->get_win()->get_end_y() - 5 * font->get_text_height());
 
-	const std::array menuchoices{
-			Strings::SETUP(), Strings::CREDITS(), Strings::QUOTES(),
+	std::vector<std::pair<const char*,int>> choices{
+		{Strings::SETUP(),-4}, {Strings::CREDITS(),-3}, {Strings::QUOTES(),-2},
 #if defined(SDL_PLATFORM_IOS) || defined(ANDROID)
-			Strings::HELP()
+		{Strings::HELP(),-1}
 #else
-			Strings::EXIT()
+		{Strings::EXIT(),-1}
 #endif
 	};
-	// Space items based on actual text widths with equal gaps.
-	int total_text_width = 0;
-	for (const auto* choice : menuchoices) {
-		total_text_width += font->get_text_width(choice);
-	}
-	const int count      = static_cast<int>(menuchoices.size());
-	const int gap        = std::max(16, (gwin->get_win()->get_full_width() - total_text_width) / (count + 1));
-	const int total_span = total_text_width + (count - 1) * gap;
-	xpos                 = centerx - total_span / 2;
-	ypos                 = gwin->get_win()->get_end_y() - 3 * font->get_text_height();
-	for (size_t i = 0; i < menuchoices.size(); i++) {
-		const int text_width = font->get_text_width(menuchoices[i]);
-		auto*     entry      = new MenuTextEntry(fonton, font, menuchoices[i], xpos + text_width / 2, ypos);
-		// These commands have negative ids:
-		entry->set_id(i - 4);
+	if(gamemanager->get_bg() || gamemanager->get_si()) choices.insert(choices.begin()+1,{"Music Player",-11});
+	int total_text_width=0;
+	for(const auto& choice:choices) total_text_width+=font->get_text_width(choice.first);
+	const int count=int(choices.size());
+	const int gap=std::max(8,(gwin->get_win()->get_full_width()-total_text_width)/(count+1));
+	xpos=centerx-(total_text_width+(count-1)*gap)/2;
+	ypos=gwin->get_win()->get_end_y()-3*font->get_text_height();
+	for(const auto& choice:choices) {
+		const int width=font->get_text_width(choice.first);
+		auto* entry=new MenuTextEntry(fonton,font,choice.first,xpos+width/2,ypos);
+		entry->set_id(choice.second);
 		menu->add_entry(entry);
-		xpos += text_width + gap;
+		xpos+=width+gap;
 	}
 	menu->set_selection(0);
 	return menu;
@@ -564,10 +599,11 @@ BaseGameInfo* ExultMenu::run() {
 		const int choice = menu->handle_events(gwin);
 
 		switch (choice) {
+		case -11:   // Music Player
 		case -4:    // Setup
 			menu_scene.reset();
 			gpal->fade_out(c_fade_out_time);
-			setup();
+			if(choice==-11) music_player(); else setup();
 			if (quitting_time == QUIT_TIME_YES) {
 				throw quit_exception();
 			}

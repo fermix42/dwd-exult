@@ -1082,6 +1082,14 @@ LowLevelMidiDriver::PlaySeqResult LowLevelMidiDriver::playSequences() {
 }
 
 void LowLevelMidiDriver::sequenceSendEvent(uint16 sequence_id, uint32 message) {
+	dispatchSequenceEvent(sequence_id, message, 0);
+}
+
+void LowLevelMidiDriver::sequenceSendNote(uint16 sequence_id, uint32 message, uint64 identity) {
+	dispatchSequenceEvent(sequence_id, message, identity);
+}
+
+void LowLevelMidiDriver::dispatchSequenceEvent(uint16 sequence_id, uint32 message, uint64 identity) {
 	const int log_chan = int(message & MidiStatus::ChannelMask);
 	message &= ~uint32(MidiStatus::ChannelMask);    // Strip the channel number
 	auto type = message & MidiStatus::TypeMask;
@@ -1135,7 +1143,8 @@ void LowLevelMidiDriver::sequenceSendEvent(uint16 sequence_id, uint32 message) {
 		phys_chan = log_chan;
 	}
 	time_last_send = std::chrono::steady_clock::now();
-	send(message | phys_chan);
+	if (identity) sendNote(message | phys_chan, identity);
+	else send(message | phys_chan);
 }
 
 void LowLevelMidiDriver::sequenceSendSysEx(uint16 sequence_id, uint8 status, const uint8* msg, uint16 length) {

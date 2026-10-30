@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "pent_include.h"
 
 #include "Midi.h"
+#include "midi_drivers/Opl3MusicPan.h"
 #ifdef USE_FMOPL_MIDI
 #include "midi_drivers/FMOplMidiDriver.h"
 #endif
@@ -212,6 +213,23 @@ bool MyMidiPlayer::start_music(int num, bool repeat, ForceType force, std::strin
 
 	XMidiEventList* eventlist = midfile.GetEventList(0);
 	if (eventlist) {
+		// OPL3 gameplay-only pan transfer and guarded source-note recovery.
+		if (midi_driver->getName()=="OPL3Stereo" && flex==MAINMUS_AD) {
+			try {
+				auto partner=open_music_flex(MAINMUS,num);
+				if (partner && partner->good() && partner->getSize()) {
+					XMidiFile roland(partner.get(),XMIDIFILE_CONVERT_NOCONVERSION,midi_driver->getName(),true);
+					mid_data->seek(0);
+					XMidiFile originalFm(mid_data.get(),XMIDIFILE_CONVERT_NOCONVERSION,midi_driver->getName(),true);
+					if (roland.number_of_tracks() && originalFm.number_of_tracks()) {
+						transferOpl3MusicPan(eventlist,originalFm.GetEventList(0),roland.GetEventList(0));
+						recoverOpl3MusicNotes(eventlist,originalFm.GetEventList(0),roland.GetEventList(0));
+					}
+				}
+			} catch (const std::exception& error) {
+				std::cerr << "OPL3 Stereo: MT-32 score enhancement unavailable: " << error.what() << "; retaining the FM score" << std::endl;
+			}
+		}
 		midi_driver->startSequence(SEQ_NUM_MUSIC, eventlist, repeat, 255);
 		return true;
 	}

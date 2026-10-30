@@ -384,6 +384,10 @@ for /f "tokens=* delims=" %%u in ('git ls-remote --get-url') do echo #define GIT
     <ClCompile Include="..\..\audio\midi_drivers\FluidSynthMidiDriver.cpp" />
     <ClCompile Include="..\..\audio\midi_drivers\fmopl.cpp" />
     <ClCompile Include="..\..\audio\midi_drivers\FMOplMidiDriver.cpp" />
+    <ClCompile Include="..\..\audio\midi_drivers\Opl3StereoMidiDriver.cpp" />
+    <ClCompile Include="..\..\audio\midi_drivers\NukedOpl3.cpp" />
+    <ClCompile Include="..\..\audio\midi_drivers\Opl3MusicPan.cpp" />
+
     <ClCompile Include="..\..\audio\midi_drivers\LowLevelMidiDriver.cpp" />
     <ClCompile Include="..\..\audio\midi_drivers\MidiDriver.cpp" />
     <ClCompile Include="..\..\audio\midi_drivers\MT32EmuMidiDriver.cpp" />
@@ -462,6 +466,7 @@ for /f "tokens=* delims=" %%u in ('git ls-remote --get-url') do echo #define GIT
     <ClCompile Include="..\..\gumps\GameEngineOptions_gump.cc" />
     <ClCompile Include="..\..\gumps\misc_buttons.cc" />
     <ClCompile Include="..\..\gumps\Mixer_gump.cc" />
+    <ClCompile Include="..\..\gumps\MusicPlayer_gump.cc" />
     <ClCompile Include="..\..\gumps\Modal_gump.cc" />
     <ClCompile Include="..\..\gumps\Newfile_gump.cc" />
     <ClCompile Include="..\..\gumps\Notebook_gump.cc" />
@@ -607,6 +612,10 @@ for /f "tokens=* delims=" %%u in ('git ls-remote --get-url') do echo #define GIT
     <ClInclude Include="..\..\audio\midi_drivers\FluidSynthMidiDriver.h" />
     <ClInclude Include="..\..\audio\midi_drivers\fmopl.h" />
     <ClInclude Include="..\..\audio\midi_drivers\FMOplMidiDriver.h" />
+    <ClInclude Include="..\..\audio\midi_drivers\Opl3StereoMidiDriver.h" />
+    <ClInclude Include="..\..\audio\midi_drivers\NukedOpl3.h" />
+    <ClInclude Include="..\..\audio\midi_drivers\Opl3MusicPan.h" />
+
     <ClInclude Include="..\..\audio\midi_drivers\LowLevelMidiDriver.h" />
     <ClInclude Include="..\..\audio\midi_drivers\MidiDriver.h" />
     <ClInclude Include="..\..\audio\midi_drivers\MT32EmuMidiDriver.h" />
@@ -699,6 +708,7 @@ for /f "tokens=* delims=" %%u in ('git ls-remote --get-url') do echo #define GIT
     <ClInclude Include="..\..\gumps\GameEngineOptions_gump.h" />
     <ClInclude Include="..\..\gumps\misc_buttons.h" />
     <ClInclude Include="..\..\gumps\Mixer_gump.h" />
+    <ClInclude Include="..\..\gumps\MusicPlayer_gump.h" />
     <ClInclude Include="..\..\gumps\Modal_gump.h" />
     <ClInclude Include="..\..\gumps\Newfile_gump.h" />
     <ClInclude Include="..\..\gumps\Notebook_gump.h" />

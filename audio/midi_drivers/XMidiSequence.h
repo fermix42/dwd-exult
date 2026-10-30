@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "XMidiNoteStack.h"
 #include "XMidiRecyclable.h"
 #include "XMidiSequenceHandler.h"
+#include <list>
 
 class XMidiSequence : public XMidiRecyclable<XMidiSequence> {
 public:
@@ -136,6 +137,18 @@ private:
 	bool                  repeat;         //!< Specifies if repeating is enabled
 	XMidiNoteStack        notes_on;       //!< Note stack of notes currently playing, and
 										  //!< time to stop
+	struct NoteOccurrence {
+		uint64 identity;
+		uint32 deadline;
+		uint8 status, pitch, velocity, pan;
+		bool sounding;
+	};
+	std::list<NoteOccurrence> occurrences;
+	bool instance_notes;
+	uint32 paused_at = 0;
+	void releaseOccurrences();
+	void silenceOccurrences(int channel = -1, bool erase = false);
+	bool hasNotes() { return instance_notes ? !occurrences.empty() : notes_on.GetNotes() != nullptr; }
 	uint32 last_tick;                     //!< The tick of the previously played notes
 	uint32 start;                         //!< XMidi Clock (in 1/6000 seconds)
 	uint32 length;

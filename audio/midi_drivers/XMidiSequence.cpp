@@ -23,6 +23,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "XMidiFile.h"
 #include "XMidiSequenceHandler.h"
+#include <atomic>
+#include <algorithm>
+
+static std::atomic<uint64> next_note_identity{0};
 
 // XMidiRecyclable<XMidiSequence> FreeList
 template <>
@@ -43,6 +47,7 @@ XMidiSequence::XMidiSequence(
 		XMidiSequenceHandler* Handler, uint16 seq_id, XMidiEventList* events, bool Repeat, int volume, int branch)
 		: handler(Handler), sequence_id(seq_id), evntlist(events), event(nullptr), repeat(Repeat), last_tick(0), start(0xFFFFFFFF),
 		  loop_num(-1), vol_multi(volume), vol_changed(true), paused(false), speed(100) {
+	instance_notes = handler->usesNoteInstances();
 	std::memset(loop_event, 0, sizeof(loop_event));
 	std::memset(loop_count, 0, sizeof(loop_count));
 	event = evntlist->events;
@@ -72,11 +77,18 @@ XMidiSequence::XMidiSequence(
 }
 
 XMidiSequence::~XMidiSequence() {
+	if (instance_notes) silenceOccurrences(-1, true);
 	// 'Release' it
 	evntlist->decrementCounter();
 }
 
 void XMidiSequence::finish() {
+	if (instance_notes) {
+		silenceOccurrences(-1, true);
+		event = nullptr;
+		repeat = false;
+		loop_num = -1;
+	}
 	for (int i = 0; i < 16; i++) {
 		// Manually turn off sustain
 		handler->sequenceSendEvent(sequence_id, i | int(MidiStatus::Controller) | (int(MidiController::Sustain) << 8));
@@ -92,14 +104,16 @@ void XMidiSequence::finish() {
 }
 
 int XMidiSequence::playEvent() {
+	if (instance_notes && paused) return 1;
 	if (start == 0xFFFFFFFF) {
 		initClock();
 	}
 
+	if (instance_notes) releaseOccurrences();
 	XMidiEvent* note;
 
 	// Handle note off's here
-	while ((note = notes_on.PopTime(getRealTime())) != nullptr) {
+	while (!instance_notes && (note = notes_on.PopTime(getRealTime())) != nullptr) {
 		handler->sequenceSendEvent(sequence_id, note->status + (note->data[0] << 8));
 	}
 	UpdateVolume();
@@ -107,7 +121,7 @@ int XMidiSequence::playEvent() {
 	// No events left, but we still have notes on, so say we are still playing,
 	// if not report we've finished
 	if (!event) {
-		if (notes_on.GetNotes()) {
+		if (hasNotes()) {
 			return 1;
 		} else {
 			return -1;
@@ -162,8 +176,9 @@ int XMidiSequence::playEvent() {
 	}
 #endif
 
+	if (instance_notes) releaseOccurrences();
 	// Handle note off's here too
-	while ((note = notes_on.PopTime(getRealTime())) != nullptr) {
+	while (!instance_notes && (note = notes_on.PopTime(getRealTime())) != nullptr) {
 		handler->sequenceSendEvent(sequence_id, note->status + (note->data[0] << 8));
 	}
 
@@ -239,7 +254,7 @@ int XMidiSequence::playEvent() {
 		}
 		// If we are not repeating, then return saying we are end
 		else {
-			if (notes_on.GetNotes()) {
+			if (hasNotes()) {
 				return 1;
 			}
 			return -1;
@@ -247,7 +262,7 @@ int XMidiSequence::playEvent() {
 	}
 
 	if (!event) {
-		if (notes_on.GetNotes()) {
+		if (hasNotes()) {
 			return 1;
 		} else {
 			return -1;
@@ -270,7 +285,9 @@ sint32 XMidiSequence::timeTillNext() {
 	sint32 sixthoToNext = 0x7FFFFFFF;    // Int max
 
 	// Time remaining on notes currently being played
-	XMidiEvent* note = notes_on.GetNotes();
+	if (instance_notes && !paused && !occurrences.empty())
+		sixthoToNext = sint32(occurrences.front().deadline - getRealTime());
+	XMidiEvent* note = instance_notes ? nullptr : notes_on.GetNotes();
 	if (note != nullptr) {
 		const sint32 diff = note->ex.note_on.note_time - getRealTime();
 		if (diff < sixthoToNext) {
@@ -391,13 +408,17 @@ void XMidiSequence::sendEvent() {
 	updateShadowForEvent(event);
 
 	if (type == MidiStatus::Controller) {
+		if (instance_notes && (event->data[0] == 120 || event->data[0] == 123)) silenceOccurrences(chan, true);
 		// Channel volume
 		if (event->data[0] == 7) {
-			int actualvolume = (event->data[1] * vol_multi * handler->getGlobalVolume()) / 25500;
+			int actualvolume = (event->data[1] * vol_multi * handler->getSequenceGlobalVolume()) / 25500;
 			data             = event->data[0] | (actualvolume << 8);
 		}
 	} else if (type == MidiStatus::Aftertouch) {
-		notes_on.SetAftertouch(event);
+		if (instance_notes) {
+			for (auto& note : occurrences)
+				if ((note.status & 15) == chan && note.pitch == event->data[0]) note.velocity = event->data[1];
+		} else notes_on.SetAftertouch(event);
 	}
 
 	if ((type != MidiStatus::NoteOn || event->data[1]) && type != MidiStatus::NoteOff) {
@@ -406,6 +427,18 @@ void XMidiSequence::sendEvent() {
 				return;
 			}
 
+			if (instance_notes) {
+				const uint64 identity = ++next_note_identity;
+				const uint32 duration = event->ex.note_on.duration > 0 ? event->ex.note_on.duration - 1 : 0;
+				NoteOccurrence note{identity, uint32(uint64(duration) * 5000 / speed + getStart()),
+					event->status, event->data[0], event->data[1], shadows[chan].balance.coarse, !paused};
+				auto at = std::find_if(occurrences.begin(), occurrences.end(), [&](const NoteOccurrence& other) {
+					return sint32(note.deadline - other.deadline) < 0;
+				});
+				occurrences.insert(at, note);
+				handler->sequenceSendNote(sequence_id, event->status | (data << 8), identity);
+				return;
+			}
 			notes_on.Remove(event);
 
 			handler->sequenceSendEvent(sequence_id, event->status | (data << 8));
@@ -454,7 +487,7 @@ void XMidiSequence::applyShadow(int i) {
 	}
 
 	// Volume - we always send this
-	int actualvolume = (shadows[i].volume.coarse * vol_multi * handler->getGlobalVolume()) / 25500;
+	int actualvolume = (shadows[i].volume.coarse * vol_multi * handler->getSequenceGlobalVolume()) / 25500;
 	handler->sequenceSendEvent(
 			sequence_id, i | int(MidiStatus::Controller) | (int(MidiController::Volume) << 8) | (actualvolume << 16));
 	handler->sequenceSendEvent(
@@ -516,7 +549,7 @@ void XMidiSequence::UpdateVolume() {
 			uint32 message = i;
 			message |= int(MidiStatus::Controller);
 			message |= 7 << 8;
-			int actualvolume = (shadows[i].volume.coarse * vol_multi * handler->getGlobalVolume()) / 25500;
+			int actualvolume = (shadows[i].volume.coarse * vol_multi * handler->getSequenceGlobalVolume()) / 25500;
 			message |= actualvolume << 16;
 			handler->sequenceSendEvent(sequence_id, message);
 		}
@@ -525,6 +558,11 @@ void XMidiSequence::UpdateVolume() {
 }
 
 void XMidiSequence::loseChannel(int i) {
+	if (instance_notes) {
+		silenceOccurrences(i);
+		handler->sequenceSendEvent(sequence_id, int(MidiStatus::Controller) | i | int(MidiController::Sustain) << 8);
+		return;
+	}
 	// If the channel matches, send a note off for any note and release sustain
 	handler->sequenceSendEvent(sequence_id, int(MidiStatus::Controller) | i | int(MidiController::Sustain) << 8);
 	XMidiEvent* note = notes_on.GetNotes();
@@ -538,6 +576,17 @@ void XMidiSequence::loseChannel(int i) {
 
 void XMidiSequence::gainChannel(int i) {
 	applyShadow(i);
+	if (instance_notes) {
+		if (paused) return;
+		releaseOccurrences();
+		for (auto& note : occurrences) if ((note.status & 15) == i && !note.sounding) {
+			handler->sequenceSendEvent(sequence_id, i | int(MidiStatus::Controller) | (10 << 8) | (note.pan << 16));
+			handler->sequenceSendNote(sequence_id, note.status | (note.pitch << 8) | (note.velocity << 16), note.identity);
+			note.sounding = true;
+		}
+		handler->sequenceSendEvent(sequence_id, i | int(MidiStatus::Controller) | (10 << 8) | (shadows[i].balance.coarse << 16));
+		return;
+	}
 
 	// If the channel matches, send a note on for any note
 	XMidiEvent* note = notes_on.GetNotes();
@@ -550,6 +599,8 @@ void XMidiSequence::gainChannel(int i) {
 }
 
 void XMidiSequence::pause() {
+	if (instance_notes && paused) return;
+	if (instance_notes) paused_at = getRealTime();
 	paused = true;
 	for (int i = 0; i < 16; i++) {
 		if (evntlist->chan_mask & (1 << i)) {
@@ -559,6 +610,15 @@ void XMidiSequence::pause() {
 }
 
 void XMidiSequence::unpause() {
+	if (instance_notes) {
+		if (!paused) return;
+		const uint32 delta = getRealTime() - paused_at;
+		if (start != 0xFFFFFFFF) addOffset(delta);
+		for (auto& note : occurrences) note.deadline += delta;
+		paused = false;
+		for (int i = 0; i < 16; ++i) if (evntlist->chan_mask & (1 << i)) gainChannel(i);
+		return;
+	}
 	paused = false;
 	for (int i = 0; i < 16; i++) {
 		if (evntlist->chan_mask & (1 << i)) {
@@ -572,6 +632,8 @@ int XMidiSequence::countNotesOn(int chan) {
 		return 0;
 	}
 
+	if (instance_notes) return std::count_if(occurrences.begin(), occurrences.end(),
+		[&](const NoteOccurrence& note) { return (note.status & 15) == chan && note.sounding; });
 	int         ret  = 0;
 	XMidiEvent* note = notes_on.GetNotes();
 	while (note) {
@@ -584,3 +646,22 @@ int XMidiSequence::countNotesOn(int chan) {
 }
 
 // Protection
+
+void XMidiSequence::releaseOccurrences() {
+	while (!occurrences.empty() && sint32(occurrences.front().deadline - getRealTime()) <= 0) {
+		const auto note = occurrences.front();
+		if (note.sounding) handler->sequenceSendNote(sequence_id, note.status | (note.pitch << 8), note.identity);
+		occurrences.pop_front();
+	}
+}
+
+
+void XMidiSequence::silenceOccurrences(int channel, bool erase) {
+	for (auto at = occurrences.begin(); at != occurrences.end();) {
+		if (channel >= 0 && (at->status & 15) != channel) { ++at; continue; }
+		if (at->sounding) handler->sequenceSendNote(sequence_id, at->status | (at->pitch << 8), at->identity);
+		at->sounding = false;
+		if (erase) at = occurrences.erase(at);
+		else ++at;
+	}
+}

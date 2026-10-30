@@ -34,6 +34,13 @@ public:
 	//! \param message The Event being sent
 	virtual void sequenceSendEvent(uint16 sequence_id, uint32 message) = 0;
 
+	// Opt-in occurrence identity; legacy handlers keep the packed MIDI path.
+	virtual bool usesNoteInstances() const { return false; }
+	virtual void sequenceSendNote(uint16 sequence_id, uint32 message, uint64 identity) {
+		(void)identity;
+		sequenceSendEvent(sequence_id, message);
+	}
+
 	//! Send a SysEx event from a Sequence
 	//! \param sequence_id The id of the sequence that is attempting to send the event
 	//! \param status The Status Byte of the SysEx event
@@ -54,6 +61,9 @@ public:
 	//! Get global volume
 	//! \returns Current Volume [0-100]
 	virtual int getGlobalVolume() = 0;
+	// Drivers with native channel-volume semantics can apply master gain to PCM.
+	// The public music-volume query remains the user's actual setting.
+	virtual int getSequenceGlobalVolume() { return getGlobalVolume(); }
 };
 
 #endif    // SEQUENCEHANDLER_H_INCLUDED

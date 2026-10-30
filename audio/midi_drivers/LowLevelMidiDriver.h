@@ -112,6 +112,7 @@ protected:
 
 	//! Send a message to the Midi Device
 	virtual void send(uint32 message) = 0;
+	virtual void sendNote(uint32 message, uint64 identity) { (void)identity; send(message); }
 
 	//! Send a SysEX message to the Midi Device
 	//
@@ -381,6 +382,8 @@ private:
 
 	// XMidiSequenceHandler implementation
 	void   sequenceSendEvent(uint16 sequence_id, uint32 message) override;
+	void sequenceSendNote(uint16 sequence_id, uint32 message, uint64 identity) override;
+	void dispatchSequenceEvent(uint16 sequence_id, uint32 message, uint64 identity);
 	void   sequenceSendSysEx(uint16 sequence_id, uint8 status, const uint8* msg, uint16 length) override;
 	uint32 getTickCount(uint16 sequence_id) override;
 	void   handleCallbackTrigger(uint16 sequence_id, uint8 data) override;
@@ -398,6 +401,7 @@ private:
 		}));
 	}
 
+protected:
 	//! Get global volume of this driver
 	//! \returns Current Volume [0-100]
 	int getGlobalVolume() override {

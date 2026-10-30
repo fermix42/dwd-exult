@@ -1,0 +1,15 @@
+Nuked OPL3 v1.8, upstream commit 765ec962e473aeb767e4cba74ffdc8f588ffbfe8
+Source: https://github.com/nukeykt/Nuked-OPL3/tree/765ec962e473aeb767e4cba74ffdc8f588ffbfe8
+Copyright (C) 2013-2020 Nuke.YKT. LGPL-2.1-or-later; see LICENSE.
+
+opl3.c, opl3.h and LICENSE are unmodified upstream files. NukedOpl3.cpp
+compiles the optional upstream stereo extension (OPL_ENABLE_STEREOEXT=1).
+The Exult adapter and music driver are GPL-2.0-or-later. No decompiled
+original-game implementation or game instrument data is bundled here.
+
+Source distributions must retain these source files, notices, and license.
+Binary distributions must retain the license/attribution and provide the
+corresponding source and applicable relinking rights under the LGPL/GPL.
+The complete Exult source, including this directory and its adapter, is the
+corresponding-source basis; publish the matching revision with binaries.
+Original game resources remain user-provided runtime inputs.

@@ -65,6 +65,8 @@ libgumps_la_SOURCES = \
 	Modal_gump.h \
 	Mixer_gump.cc \
 	Mixer_gump.h \
+	MusicPlayer_gump.cc \
+	MusicPlayer_gump.h \
 	Gump_ToggleButton.cc	\
 	Gump_ToggleButton.h	\
 	CombatStats_gump.cc	\

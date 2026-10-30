@@ -27,6 +27,12 @@ libmididrv_la_SOURCES =	\
 	fmopl.h			\
 	FMOplMidiDriver.cpp	\
 	FMOplMidiDriver.h	\
+	Opl3StereoMidiDriver.cpp \
+	Opl3StereoMidiDriver.h \
+	NukedOpl3.cpp \
+	NukedOpl3.h \
+	Opl3MusicPan.cpp \
+	Opl3MusicPan.h \
 	LowLevelMidiDriver.cpp	\
 	LowLevelMidiDriver.h	\
 	MidiDriver.cpp		\
@@ -52,6 +58,10 @@ libmididrv_la_SOURCES =	\
 	FluidSynthMidiDriver.h
 
 EXTRA_DIST = 		\
-	README
+	README \
+	nuked-opl3/opl3.c \
+	nuked-opl3/opl3.h \
+	nuked-opl3/LICENSE \
+	nuked-opl3/README.exult
 
 CLEANFILES = *~

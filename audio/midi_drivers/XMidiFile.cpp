@@ -632,10 +632,11 @@ template <>
 std::unique_ptr<std::recursive_mutex> XMidiRecyclable<XMidiEvent>::Mutex{};
 
 // Constructor
-XMidiFile::XMidiFile(IDataSource* source, int pconvert, std::string_view drivername)
-		: num_tracks(0), events(nullptr), convert_type(pconvert), do_reverb(false), do_chorus(false) {
+XMidiFile::XMidiFile(IDataSource* source, int pconvert, std::string_view drivername, bool metadata)
+		: num_tracks(0), events(nullptr), convert_type(pconvert), metadata_only(metadata), do_reverb(false), do_chorus(false) {
 	std::memset(bank127, 0, sizeof(bank127));
 
+	instance_note_pairing = drivername == "OPL3Stereo";
 	ExtractTracks(source, drivername);
 
 	// SysEx data
@@ -758,6 +759,7 @@ int XMidiFile::GetVLQ2(IDataSource* source, uint32& quant) {
 // is a massive optimization. Speed up should be quite impressive
 //
 void XMidiFile::ApplyFirstState(first_state& fs, int chan_mask) {
+	if (metadata_only) return;
 	for (int channel = 0; channel < 16; channel++) {
 		XMidiEvent* patch  = fs.patch[channel];
 		XMidiEvent* vol    = fs.vol[channel];
@@ -874,6 +876,7 @@ void XMidiFile::ApplyFirstState(first_state& fs, int chan_mask) {
 }
 
 void XMidiFile::SpreadEvents() {
+	if (metadata_only) return;
 	int  offset      = 0;
 	bool hit_note_on = false;
 
@@ -979,7 +982,7 @@ void XMidiFile::AdjustTimings(uint32 ppqn) {
 			if (event->getStatusType() == MidiStatus::NoteOn && event->data[1]) {
 				notes.Push(event);
 			} else {
-				XMidiEvent* prev = notes.FindAndPop(event);
+				XMidiEvent* prev = notes.FindAndPop(event, instance_note_pairing);
 				if (prev) {
 					prev->ex.note_on.duration = event->time - prev->time;
 				}
