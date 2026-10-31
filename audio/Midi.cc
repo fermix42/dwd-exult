@@ -212,6 +212,10 @@ bool MyMidiPlayer::start_music(int num, bool repeat, ForceType force, std::strin
 		return false;
 	}
 
+#ifdef USE_FMOPL_MIDI
+    if(auto opl3=std::dynamic_pointer_cast<Opl3StereoMidiDriver>(midi_driver))
+        if(opl3->setEndingContext(false)) timbre_lib_filename.clear();
+#endif
     const int roland_conversion=setup_timbre_for_track(flex, GAME_BG && num >= 0 && num <= 2);
     bool original_roland=false;
 #ifdef USE_MT32EMU_MIDI
@@ -337,6 +341,10 @@ bool MyMidiPlayer::start_music(std::string fname, int num, bool repeat, ForceTyp
 		return false;
 	}
 
+#ifdef USE_FMOPL_MIDI
+    if(auto opl3=std::dynamic_pointer_cast<Opl3StereoMidiDriver>(midi_driver))
+        if(opl3->setEndingContext(GAME_BG && fname==ENDSCORE_XMI,&mid_data,num)) timbre_lib_filename.clear();
+#endif
     const int roland_conversion=setup_timbre_for_track(fname);
     bool original_roland=false;
 #ifdef USE_MT32EMU_MIDI
@@ -417,6 +425,11 @@ int MyMidiPlayer::setup_timbre_for_track(std::string& str, bool bg_intro) {
 	}
 
 	set_timbre_lib(lib);
+#ifdef USE_FMOPL_MIDI
+	// A context change can invalidate the bank without changing its library enum
+	// (the cinematic preloads ENDGAME before start_music activates TVFX).
+	if(GAME_BG && str==ENDSCORE_XMI && midi_driver && midi_driver->getName()=="OPL3Stereo" && timbre_lib_filename.empty()) load_timbres();
+#endif
 	// Nothing if no driver or if the device is real
 	if (!midi_driver || midi_driver->isFMSynth() || midi_driver->isMT32()) {
 		return XMIDIFILE_CONVERT_NOCONVERSION;
@@ -470,7 +483,7 @@ void MyMidiPlayer::load_timbres() {
 	if (GAME_BG && timbre_lib == TIMBRE_LIB_INTRO) {
 		u7voice = INTRO_TIM;
 	} else if (GAME_BG && timbre_lib != TIMBRE_LIB_ENDGAME) {
-		u7voice = U7VOICE_FLX;
+		u7voice = timbre_lib==TIMBRE_LIB_MAINMENU && midi_driver->getName()=="OPL3Stereo" ? INTRO_TIM : U7VOICE_FLX;
 	}
 	// Serpent Isle
 	else if (Game::get_game_type() == SERPENT_ISLE && timbre_lib == TIMBRE_LIB_MAINMENU) {
@@ -516,6 +529,10 @@ void MyMidiPlayer::load_timbres() {
 	}
 
 	bool historical_context_changed=false;
+#ifdef USE_FMOPL_MIDI
+	if(auto opl3=std::dynamic_pointer_cast<Opl3StereoMidiDriver>(midi_driver))
+		historical_context_changed=opl3->setClassicContext(GAME_BG && timbre_lib==TIMBRE_LIB_INTRO,GAME_BG && timbre_lib==TIMBRE_LIB_MAINMENU);
+#endif
 #ifdef USE_MT32EMU_MIDI
     if((GAME_BG || Game::get_game_type()==SERPENT_ISLE))
         if(auto roland=std::dynamic_pointer_cast<MT32EmuMidiDriver>(midi_driver))
@@ -555,9 +572,6 @@ void MyMidiPlayer::load_timbres() {
 	if(auto original=std::dynamic_pointer_cast<OriginalOpl2MidiDriver>(midi_driver)) {
 		original->setContext(GAME_BG,timbre_lib==TIMBRE_LIB_INTRO);
 		if(Game::get_game_type()==SERPENT_ISLE) original->setSerpentContext(timbre_lib==TIMBRE_LIB_MAINMENU,timbre_lib==TIMBRE_LIB_INTRO || timbre_lib==TIMBRE_LIB_ENDGAME);
-	}
-	if(auto opl3=std::dynamic_pointer_cast<Opl3StereoMidiDriver>(midi_driver)) {
-		opl3->setOriginalIntro(GAME_BG && timbre_lib==TIMBRE_LIB_INTRO);
 	}
 #endif
 	midi_driver->loadTimbreLibrary(ds.get(), type);

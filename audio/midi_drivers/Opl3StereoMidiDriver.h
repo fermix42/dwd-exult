@@ -40,7 +40,11 @@ public:
 	Opl3StereoMidiDriver() : LowLevelMidiDriver(std::string(desc.name)) {}
 	~Opl3StereoMidiDriver() override { destroyMidiDriver(); }
 
+	void finishSequence(int sequence) override;
 	void setOriginalIntro(bool enabled) { original_intro=enabled; }
+	bool setClassicContext(bool introduction, bool menu);
+	// Called only by the existing music router, before loading the ending bank.
+	bool setEndingContext(bool black_gate_ending, IDataSource* score=nullptr, unsigned sequence=0);
 
 	static const MidiDriverDesc* getDesc() {
 		return &desc;
@@ -70,6 +74,8 @@ protected:
 
 private:
 	friend class Opl3VoiceRegression;
+	friend class Opl3EndingRegression;
+	friend class Opl3CreditsRegression;
 	static constexpr int VoiceCount = 18;
 	static constexpr unsigned channelRegister(unsigned voice) { return (voice % 9) | ((voice / 9) << 8); }
 	struct xinstrument {
@@ -89,9 +95,10 @@ private:
 		bool native_bg = false;
 		bool native_si = false;
 		unsigned char transpose = 0;
+		int tvfx_program = -1;
 		bool operator==(const xinstrument& b) const {
-			return std::tie(mod_avekm,car_avekm,mod_ksl_tl,car_ksl_tl,mod_ad,car_ad,mod_sr,car_sr,mod_ws,car_ws,fb_c,perc_voice,bg,native_bg,native_si,transpose)
-				==std::tie(b.mod_avekm,b.car_avekm,b.mod_ksl_tl,b.car_ksl_tl,b.mod_ad,b.car_ad,b.mod_sr,b.car_sr,b.mod_ws,b.car_ws,b.fb_c,b.perc_voice,b.bg,b.native_bg,b.native_si,b.transpose);
+			return std::tie(mod_avekm,car_avekm,mod_ksl_tl,car_ksl_tl,mod_ad,car_ad,mod_sr,car_sr,mod_ws,car_ws,fb_c,perc_voice,bg,native_bg,native_si,transpose,tvfx_program)
+				==std::tie(b.mod_avekm,b.car_avekm,b.mod_ksl_tl,b.car_ksl_tl,b.mod_ad,b.car_ad,b.mod_sr,b.car_sr,b.mod_ws,b.car_ws,b.fb_c,b.perc_voice,b.bg,b.native_bg,b.native_si,b.transpose,b.tvfx_program);
 		}
 	};
 
@@ -153,7 +160,7 @@ private:
 	};
 	std::array<xinstrument,256> bg_timbres{};
 	xinstrument bg_default{};
-	bool original_intro=false;
+	bool original_intro=false, original_menu=false;
 	std::array<uint8,88> intro_channels{},intro_keys{};
 	std::array<xinstrument,21> intro_parts{};
 	void loadIntroMapping();
@@ -179,6 +186,31 @@ private:
 	xmidibank*   xmidibanks[128];
 	void         loadXMIDITimbres(IDataSource* ds);
 	void         loadU7VoiceTimbres(IDataSource* ds);
+
+	// One automation state per physical voice, guarded by its occurrence identity.
+	struct EndingVoice {
+		int program=-1;
+		uint64 identity=0;
+		uint8 status=0,type=0,channel=0,key=0,transpose=0,velocity=0;
+		uint8 update=0,block=0,key_shadow=0,feedback=0,scale=2;
+		std::array<uint8,2> ksl{},avekm{},ad{},sr{};
+		std::array<uint16,8> value{},position{},count{},step{};
+		uint16 duration=0;
+	};
+	bool ending_context=false, ending_bank=false;
+	uint64 ending_tick_phase=0;
+	uint8 ending_volume_update=0;
+	std::array<std::vector<uint8>,128> ending_patches{};
+	std::array<EndingVoice,VoiceCount> ending_voices{};
+	void startEndingVoice(unsigned voice,int program,unsigned channel,unsigned key,unsigned velocity);
+	void endingPhase(EndingVoice&);
+	void endingFetch(EndingVoice&,unsigned parameter);
+	void updateEndingVoice(unsigned voice);
+	void tickEndingVoices();
+	unsigned endingByte(const EndingVoice&,unsigned) const;
+	uint16 endingWord(const EndingVoice&,unsigned) const;
+	bool ownsEndingVoice(unsigned voice) const;
+	void releaseEndingVoice(unsigned voice);
 
 	NukedStereo::Chip* opl = nullptr;
 	midi_channel             ch[16];

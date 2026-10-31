@@ -1,6 +1,9 @@
 // Focused regression checks against the actual OPL3 driver, emulator and XMIDI sequencer.
 // Run run-opl3-regression.ps1 after building the fork; no game assets or audio device required.
 #include "pent_include.h"
+#include "game.h"
+#include "Midi.h"
+#include "Audio.h"
 #include "Opl3StereoMidiDriver.h"
 #include "XMidiSequence.h"
 // Inspect actual chip registers without introducing a production debug API.
@@ -8,6 +11,18 @@
 #include <map>
 #include <stdexcept>
 #include <vector>
+// Test-only ordered OPL3 register observation, following the OPL2 oracle hook.
+static std::vector<uint32> ending_opl3_writes;
+namespace NukedStereo {
+static void observedEndingWrite(Chip* chip,int port,int value) {
+    if(port&1) ending_opl3_writes.push_back(chip->address|(unsigned(value)<<16));
+    OPLWrite(chip,port,value);
+}
+}
+#define OPLWrite observedEndingWrite
+#include "../../audio/midi_drivers/Opl3StereoMidiDriver.cpp"
+#undef OPLWrite
+
 #include "OriginalOpl2MidiDriver.h"
 // Test-only interception forwards every real YM3812 write unchanged. Including
 // the production TU permits ordered-write comparison without a debug API.
@@ -322,11 +337,15 @@ void Opl3VoiceRegression::serpentFidelity() {
 #include "original_opl2_checks.h"
 #include "serpent_opl2_checks.h"
 
+#include "opl3_ending_checks.h"
+#include "opl3_credits_checks.h"
+
 #include "roland_model_regression.h"
 #include "roland_music_checks.h"
 
 int wmain(int argc,wchar_t**argv) {
     try {if(argc>1&&std::wstring(argv[1])==L"--legacy-trace"){legacyTrace();return 0;}
-    RolandModelRegression::run();RolandMusicRegression::run();Opl3VoiceRegression::run();Opl3VoiceRegression::fidelity();Opl3VoiceRegression::serpentFidelity();Opl3VoiceRegression::guardian();sequencing();scoreRecovery();OriginalOpl2Regression::run();SerpentOpl2Regression::run();std::cout<<"PASS all OPL3 and Original OPL2 regressions\n";return 0;}
+    if(argc>1&&std::wstring(argv[1])==L"--ending-only"){Opl3CreditsRegression::run();Opl3EndingRegression::run();return 0;}
+    RolandModelRegression::run();RolandMusicRegression::run();Opl3VoiceRegression::run();Opl3VoiceRegression::fidelity();Opl3VoiceRegression::serpentFidelity();Opl3VoiceRegression::guardian();sequencing();scoreRecovery();Opl3CreditsRegression::run();Opl3EndingRegression::run();OriginalOpl2Regression::run();SerpentOpl2Regression::run();std::cout<<"PASS all OPL3 and Original OPL2 regressions\n";return 0;}
     catch(const std::exception&e){std::cerr<<"FAIL "<<e.what()<<"\n";return 1;}
 }

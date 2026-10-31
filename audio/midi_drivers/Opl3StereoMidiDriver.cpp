@@ -252,6 +252,7 @@ int Opl3StereoMidiDriver::open() {
 // Close the device
 //
 void Opl3StereoMidiDriver::close() {
+	ending_voices={}; ending_patches={}; ending_context=ending_bank=false; original_menu=false; ending_tick_phase=0;
 	// Destroy the Opl device
 	if (opl) {
 		NukedStereo::OPLDestroy(opl);
@@ -277,7 +278,7 @@ void Opl3StereoMidiDriver::close() {
 void Opl3StereoMidiDriver::lowLevelProduceSamples(sint16* samples, uint32 num_samples) {
 	if (!opl) { std::fill_n(samples,num_samples*(stereo?2:1),0); return; }
 	while (num_samples) {
-		const uint32 frames=bg_bank?std::min<uint32>(num_samples,(sample_rate-bg_tick_phase+59)/60):num_samples;
+		const uint32 frames=(bg_bank || ending_bank)?std::min<uint32>(num_samples,(sample_rate-(ending_bank?ending_tick_phase:bg_tick_phase)+59)/60):num_samples;
 		if (stereo) NukedStereo::YM3812UpdateOne_Stereo(opl,samples,frames);
 		else NukedStereo::YM3812UpdateOne_Mono(opl,samples,frames);
 		if (bg_bank || si_bank) {
@@ -285,6 +286,7 @@ void Opl3StereoMidiDriver::lowLevelProduceSamples(sint16* samples, uint32 num_sa
 			for (uint32 i=0;i<frames*(stereo?2:1);++i) samples[i]=sint16(int(samples[i])*gain/100);
 		}
 		samples+=frames*(stereo?2:1); num_samples-=frames;
+		if (ending_bank) { ending_tick_phase+=uint64(frames)*60; if(ending_tick_phase>=sample_rate) {ending_tick_phase-=sample_rate;tickEndingVoices();} }
 		if (bg_bank) { bg_tick_phase+=uint64(frames)*60; if(bg_tick_phase>=sample_rate) {bg_tick_phase-=sample_rate;tickBgVoices();} }
 	}
 }
@@ -316,8 +318,8 @@ void Opl3StereoMidiDriver::sendNote(uint32 message, uint64 identity) {
 void Opl3StereoMidiDriver::send(uint32 b) {
 	const auto channel = uint8(b & 0x0F);
 
-	// BG intro trigger notes use validated original mapping, not an XMIDI drum bank.
-	if (channel == 9 && !xmidibanks[127] && !original_intro) {
+	// BG classic introduction/menu triggers use original mapping, not an XMIDI drum bank.
+	if (channel == 9 && !xmidibanks[127] && !original_intro && !original_menu) {
 		return;
 	}
 
@@ -331,7 +333,7 @@ void Opl3StereoMidiDriver::send(uint32 b) {
 		auto note = static_cast<unsigned char>((b >> 8) & 0x7F);
 		auto vel  = static_cast<unsigned char>((b >> 16) & 0x7F);
 		int introPart=-1;
-		if(original_intro && channel==9) {
+		if((original_intro || original_menu) && channel==9) {
 			if(note>=intro_channels.size() || intro_channels[note]<10 || intro_channels[note]>30) return;
 			introPart=intro_channels[note]-10;
 			note=intro_keys[note];
@@ -342,7 +344,10 @@ void Opl3StereoMidiDriver::send(uint32 b) {
 		for (int i = 0; i < VoiceCount; i++) {
 			if ((!note_identity || vel == 0) && (chp[i].channel == channel) && (chp[i].note == note)
 				&& (!note_identity || voice_identity[i] == note_identity)) {
-				if (bg_bank || ch[channel].sustain < 64) {
+				if (ownsEndingVoice(i)) {
+					if(ch[channel].sustain>=64) chp[i].sustained=true;
+					else releaseEndingVoice(i);
+				} else if (bg_bank || ch[channel].sustain < 64) {
 					midi_fm_endnote(i);
 					chp[i].channel = -1;
 				} else {
@@ -389,6 +394,13 @@ void Opl3StereoMidiDriver::send(uint32 b) {
 				midi_fm_endnote(on);
 			}
 
+			if(ending_bank && instrument.tvfx_program>=0) {
+				chp[on]={channel,note,0,vel,false};
+				voice_identity[on]=note_identity;
+				voice_pan[on]=ch[channel].pan;
+				startEndingVoice(on,instrument.tvfx_program,channel,note,vel);
+				return;
+			}
 			midi_fm_instrument(on,instrument);
 
 			// Calculate the adlib volume
@@ -468,7 +480,8 @@ void Opl3StereoMidiDriver::send(uint32 b) {
 			if (vel < 64) {
 				for (int i = 0; i < VoiceCount; i++) {
 					if (chp[i].channel == channel && chp[i].sustained) {
-						midi_fm_endnote(i);
+						if(ownsEndingVoice(i)) {chp[i].sustained=false;releaseEndingVoice(i);}
+						else midi_fm_endnote(i);
 					}
 				}
 			}
@@ -562,7 +575,7 @@ void Opl3StereoMidiDriver::send(uint32 b) {
 	} break;
 
 	case MidiStatus::Program: { /* patch change */
-		if(original_intro && channel==9) break;
+		if((original_intro || original_menu) && channel==9) break;
 		auto instrument  = static_cast<unsigned char>((b >> 8) & 0x7F);
 		ch[channel].inum = instrument;
 		// std::POUT << "Setting instrument: " << static_cast<unsigned
@@ -686,6 +699,7 @@ void Opl3StereoMidiDriver::midi_update_volume(int channel) {
 }
 
 void Opl3StereoMidiDriver::midi_fm_volume(int voice, int volume) {
+	if(ownsEndingVoice(voice)) { ending_voices[voice].update|=0x40; updateEndingVoice(voice); return; }
 	const auto& instrument=voice_timbre[voice];
 	if (instrument.native_si && chp[voice].channel>=0) {
 		const auto& channel=ch[chp[voice].channel];
@@ -1123,8 +1137,17 @@ const double Opl3StereoMidiDriver::bend_coarse[128]
 		   1534.2664467217226};
 
 // Read only the known SI ADLIB.ADV layout. No driver code or tables are bundled.
+// Menu and introduction share the original classic mapping, but keep separate
+// contexts: Guardian-only score enhancement is selected independently by Midi.cc.
+bool Opl3StereoMidiDriver::setClassicContext(bool introduction,bool menu) {
+	{auto lock=LockMutex();if(original_intro==introduction && original_menu==menu)return false;}
+	if(!waitTillNoComMessages()) throw std::runtime_error("OPL3 Stereo: classic context command timeout");
+	auto lock=LockMutex();original_intro=introduction;original_menu=menu;return true;
+}
 void Opl3StereoMidiDriver::loadIntroMapping() {
-	// Same established layout/version checks as the verified FMOpl intro loader.
+	// INTRO.EXE's validated classic mapping and initial part assignments are also
+	// used by MAINMENU's original driver (verified against its local source).
+	// Read original resources; do not embed the mapping or program tables.
 	intro_channels.fill(0);intro_keys.fill(0);
 	IFileDataSource exe("<STATIC>/../intro.exe");
 	if(!exe.good() || exe.getSize()!=116068) throw std::runtime_error("unsupported BG INTRO.EXE for OPL3 intro mapping");
@@ -1175,6 +1198,7 @@ void Opl3StereoMidiDriver::updateSiPitch(int voice,int bend) {
 }
 
 void Opl3StereoMidiDriver::midi_fm_playnote(int voice, int note, int volume, int pitchbend, int pan) {
+	if(ownsEndingVoice(voice)) { ending_voices[voice].update|=1; updateEndingVoice(voice); return; }
 	if (voice_timbre[voice].native_bg) {
 		NukedStereo::OPLSetPan(opl,voice,voice_pan[voice]);
 		updateBgPitch(voice); return;
@@ -1221,6 +1245,7 @@ void Opl3StereoMidiDriver::midi_fm_playnote(int voice, int note, int volume, int
 
 
 void Opl3StereoMidiDriver::applyModulation(int voice) {
+	if(ownsEndingVoice(voice)) {ending_voices[voice].update|=0x80;updateEndingVoice(voice);return;}
 	const int channel=chp[voice].channel;
 	if(channel<0 || voice_timbre[voice].native_bg) return;
 	const auto& ins=voice_timbre[voice];
@@ -1266,6 +1291,7 @@ void Opl3StereoMidiDriver::tickBgVoices() {
 }
 
 void Opl3StereoMidiDriver::midi_fm_endnote(int voice) {
+	ending_voices[voice]={};
 	// Reuse the oldest release, rather than the oldest note-on: its envelope
 	// has had the most time to decay before an instrument is reprogrammed.
 	if (voice_timbre[voice].native_bg) { bg_voice[voice].keyed=false; bg_voice[voice].stage=4; }
@@ -1279,6 +1305,9 @@ void Opl3StereoMidiDriver::midi_fm_endnote(int voice) {
 }
 
 void Opl3StereoMidiDriver::loadTimbreLibrary(IDataSource* ds, TimbreLibraryType type) {
+	auto lock=LockMutex();
+	for(unsigned v=0;v<VoiceCount;++v) if(ending_voices[v].status) midi_fm_endnote(v);
+	ending_patches={}; ending_bank=false; ending_tick_phase=0; ending_volume_update=0;
 	bg_bank = type==TIMBRE_LIBRARY_U7VOICE_AD;
 	si_bank = false;
 	if(type==TIMBRE_LIBRARY_XMIDI_AD) loadSiFrequencies();
@@ -1296,10 +1325,15 @@ void Opl3StereoMidiDriver::loadTimbreLibrary(IDataSource* ds, TimbreLibraryType 
 	}
 
 	if (type == TIMBRE_LIBRARY_XMIDI_AD) {
+		if(ending_context && si_bank && ds && ds->getSize()==2538) {
+			std::vector<uint8> bytes(ds->getSize()); ds->seek(0); ds->read(bytes.data(),bytes.size()); ds->seek(0);
+			ending_bank=std::string(sha1::toHexString(sha1::calc(bytes.data(),int(bytes.size()))).data())=="a1d5af1540a1ac23f259899bafd2b9013e9f449b";
+		}
+		if(ending_context && !ending_bank) std::cerr<<"OPL3 Stereo: unsupported Black Gate ending TVFX bank; retaining generic FM interpretation"<<std::endl;
 		loadXMIDITimbres(ds);
 	} else if (type == TIMBRE_LIBRARY_U7VOICE_AD) {
 		loadU7VoiceTimbres(ds);
-		if(original_intro) loadIntroMapping();
+		if(original_intro || original_menu) loadIntroMapping();
 	}
 }
 
@@ -1335,6 +1369,12 @@ void Opl3StereoMidiDriver::loadXMIDITimbres(IDataSource* ds) {
 		// Get len of the entry
 		const uint16 len = ds->read2();
 
+		// The ending's seven validated definitions are parameter programs, not patches.
+		if(ending_bank && bank==2 && (patch==53 || patch==54 || patch==58 || (patch>=60 && patch<=63))) {
+			auto& bytes=ending_patches[patch]; bytes.resize(len); ds->seek(offset); ds->read(bytes.data(),len);
+			auto& ins=xmidibanks[bank]->insbank[patch]; ins.tvfx_program=int(patch); ins.perc_voice=0x80;
+			continue;
+		}
 		// Only accept lens that are 0xC
 		if (len != 0xE) {
 			POUT("Invalid Patch " << bank << ":" << patch << " len was " << len << " " << std::hex << len << std::dec);
@@ -1539,5 +1579,147 @@ void Opl3StereoMidiDriver::loadU7VoiceTimbres(IDataSource* ds) {
 	}
 }
 
+
+
+// Black Gate ending TVFX: adapted from the accepted GPL OriginalOpl2Ending
+// interpreter. Scheduling and physical-voice selection remain those of OPL3.
+void Opl3StereoMidiDriver::finishSequence(int sequence) {
+	LowLevelMidiDriver::finishSequence(sequence);
+	{auto lock=LockMutex();if(sequence!=0 || !ending_context)return;}
+	if(!waitTillNoComMessages()) std::cerr<<"OPL3 Stereo: ending stop command timeout"<<std::endl;
+	auto lock=LockMutex();
+	// A naturally completed sequencer may already be gone while TVFX is releasing.
+	for(unsigned v=0;v<VoiceCount;++v) if(ending_voices[v].status)midi_fm_endnote(v);
+}
+bool Opl3StereoMidiDriver::setEndingContext(bool requested,IDataSource* score,unsigned sequence) {
+	{auto lock=LockMutex();if(!requested && !ending_context)return false;}
+	bool enabled=false;
+	if(requested && score && (sequence==3 || sequence==4) && score->getSize()==18346) {
+		const auto position=score->getPos(); std::vector<uint8> bytes(score->getSize());
+		score->seek(0); score->read(bytes.data(),bytes.size()); score->seek(position);
+		enabled=std::string(sha1::toHexString(sha1::calc(bytes.data(),int(bytes.size()))).data())=="5b364cd61b2c431b4f8ddd835652fb7447d7e5db";
+	}
+	if(requested && !enabled) std::cerr<<"OPL3 Stereo: unsupported Black Gate ending score; TVFX correction not activated"<<std::endl;
+	// Drain the previous score's queued finish before changing bank context.
+	if(!waitTillNoComMessages()) throw std::runtime_error("OPL3 Stereo: ending context command timeout");
+	auto lock=LockMutex();
+	if(enabled==ending_context) return false;
+	for(unsigned v=0;v<VoiceCount;++v) if(ending_voices[v].status) midi_fm_endnote(v);
+	ending_context=enabled; ending_bank=false; ending_patches={}; ending_tick_phase=0;
+	return true;
+}
+bool Opl3StereoMidiDriver::ownsEndingVoice(unsigned v) const {
+	const auto& s=ending_voices[v];
+	return s.status && chp[v].channel==s.channel && voice_identity[v]==s.identity;
+}
+unsigned Opl3StereoMidiDriver::endingByte(const EndingVoice& s,unsigned at) const {
+	const auto& bytes=ending_patches[s.program]; return at<bytes.size()?bytes[at]:0;
+}
+uint16 Opl3StereoMidiDriver::endingWord(const EndingVoice& s,unsigned at) const {
+	return uint16(endingByte(s,at)|(endingByte(s,uint16(at+1))<<8));
+}
+void Opl3StereoMidiDriver::endingPhase(EndingVoice& s) {
+	s.feedback=0; s.ksl={}; s.avekm={32,32}; s.scale=2; s.type=endingByte(s,3); s.block=s.type==1?32:40;
+	uint16 e0=0xff0f,e1=0xff0f;
+	if(uint16(endingWord(s,8)+2)!=54) {
+		e0=endingWord(s,s.status==2?58:54); e1=endingWord(s,s.status==2?60:56);
+	}
+	s.ad={uint8(e1>>8),uint8(e0>>8)}; s.sr={uint8(e1),uint8(e0)};
+	if(s.status!=2) s.duration=s.type==1?65535:uint16(endingWord(s,4)+1);
+	for(unsigned p=0;p<8;++p) {
+		unsigned at=6+6*p;
+		if(s.status!=2) s.value[p]=endingWord(s,at);
+		s.position[p]=uint16(endingWord(s,at+(s.status==2?4:2))+2); s.count[p]=1; s.step[p]=0;
+	}
+	s.update=0xf9;
+}
+void Opl3StereoMidiDriver::endingFetch(EndingVoice& s,unsigned p) {
+	for(unsigned n=0;n<10;++n) {
+		unsigned at=s.position[p]; uint16 op=endingWord(s,at),operand=endingWord(s,uint16(at+2));
+		if(!op) {s.position[p]+=operand;continue;}
+		s.position[p]+=4;
+		if(op==65535) {s.value[p]=operand;continue;}
+		if(op!=65534) {s.count[p]=op;s.step[p]=operand;return;}
+		if(p==5 || p==6) s.avekm[p-5]=uint8(operand);
+		else if(p==1 || p==2) s.ksl[p-1]=uint8(operand);
+		else if(p==0) {s.block=uint8(operand>>8);if(s.type==1)s.block&=0xe0;}
+		else if(p==4) {s.feedback=uint8(operand>>8);s.scale=uint8((operand>>8)|2);}
+	}
+	s.step[p]=0;s.count[p]=65535;
+}
+void Opl3StereoMidiDriver::startEndingVoice(unsigned v,int program,unsigned channel,unsigned key,unsigned velocity) {
+	auto& s=ending_voices[v]; s={};s.program=program;s.identity=voice_identity[v];
+	s.channel=uint8(channel);s.key=uint8(key);s.transpose=endingByte(s,2);
+	s.velocity=uint8(82+3*(velocity>>3));s.status=1;
+	// TVFX writes all operator parameters itself; invalidate the ordinary cache.
+	timbre_valid[v]=false;voice_timbre[v]={};bg_voice[v]={};
+	NukedStereo::OPLSetPan(opl,v,voice_pan[v]);
+	endingPhase(s);updateEndingVoice(v);
+}
+void Opl3StereoMidiDriver::releaseEndingVoice(unsigned v) {
+	if(ownsEndingVoice(v) && ending_voices[v].status==1) ending_voices[v].duration=1;
+}
+void Opl3StereoMidiDriver::updateEndingVoice(unsigned v) {
+	if(!ownsEndingVoice(v)) return;
+	auto& s=ending_voices[v];const auto& channel=ch[s.channel];
+	unsigned m=adlib_opadd[v],c=m+3,r=channelRegister(v);
+	auto put=[&](unsigned reg,uint8 value) {if(adlib_data[reg]!=value)midi_write_adlib(reg,value);};
+	auto scaled=[](unsigned x,unsigned y) {unsigned result=uint16((x*y)<<1)>>8;return result?result+1:0;};
+	unsigned gain=scaled(scaled(channel.vol,channel.expression),s.velocity);
+	if(s.update&0x80) {
+		unsigned vib=channel.modulation>=64?64:0;
+		put(0x20+m,uint8((s.value[5]>>12)|vib|s.avekm[0]));
+		put(0x20+c,uint8((s.value[6]>>12)|vib|s.avekm[1]));
+	}
+	if(s.update&0x40) for(unsigned op=0;op<2;++op) {
+		unsigned level=s.value[op+1]>>10;
+		if(s.scale&(1<<op))level=uint8(level*gain/127);
+		put(0x40+(op?c:m),uint8((~level&63)|s.ksl[op]));
+	}
+	if(s.update&0x20) {put(0x60+m,s.ad[0]);put(0x60+c,s.ad[1]);put(0x80+m,s.sr[0]);put(0x80+c,s.sr[1]);}
+	if(s.update&0x10) {put(0xe0+c,uint8(s.value[7]));put(0xe0+m,uint8(s.value[7]>>8));}
+	if(s.update&8) put(0xc0+r,uint8(((s.value[4]>>12)&14)|s.feedback));
+	if(s.update&1) {
+		unsigned frequency;
+		if(s.type==2)frequency=s.value[0]>>6;
+		else if(!(s.block&32)) {put(0xb0+r,s.key_shadow&~32);s.update=0;return;}
+		else {
+			int bend=((channel.pitchbend-8192)>>5)*12;
+			int note=int(s.key)+sint8(s.transpose)-24;
+			do {note+=12;}while(note<0);
+			note+=12;do {note-=12;}while(note>95);
+			int pitch=sint16(sint16(bend+(note<<8))+8)>>4;
+			pitch-=192;do {pitch+=192;}while(pitch<0);
+			pitch+=192;do {pitch-=192;}while(pitch>1535);
+			int block=pitch/192-1;uint16 raw=si_frequencies[((pitch>>4)%12)*16+(pitch&15)];
+			if(sint16(raw)<0)++block;
+			if(block<0){++block;raw=uint16(sint16(raw)>>1);}
+			frequency=(raw&1023)|(uint8(block<<2)<<8);
+		}
+		put(0xa0+r,uint8(frequency));s.key_shadow=uint8((frequency>>8)|s.block);put(0xb0+r,s.key_shadow);
+	}
+	s.update=0;
+}
+void Opl3StereoMidiDriver::tickEndingVoices() {
+	ending_volume_update^=0x40;
+	for(unsigned v=0;v<VoiceCount;++v) {
+		auto& s=ending_voices[v];
+		if(!ownsEndingVoice(v)) {s={};continue;}
+		auto step=[&](unsigned p,uint8 flag,bool level=false) {
+			if(s.step[p]) {
+				uint16 old=s.value[p],now=uint16(old+s.step[p]);s.value[p]=now;
+				if(level && s.status==2 && ((now^old)&0x8000) && !((now^s.step[p])&0x8000))s.value[p]=0;
+				s.update|=flag;
+			}
+			if(--s.count[p]==0) {endingFetch(s,p);s.update|=level?0x40:flag;}
+		};
+		step(0,1);step(4,8);step(5,0x80);step(6,0x80);
+		step(1,ending_volume_update,true);step(2,ending_volume_update,true);step(7,0x10);
+		s.value[3]+=s.step[3];if(--s.count[3]==0)endingFetch(s,3);
+		if(s.update&0xf9)updateEndingVoice(v);
+		if(s.status!=2) {if(--s.duration==0){s.status=2;endingPhase(s);}}
+		else if(s.value[1]<1024 && s.value[2]<1024)midi_fm_endnote(v);
+	}
+}
 
 #endif // USE_FMOPL_MIDI

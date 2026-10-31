@@ -1,6 +1,6 @@
 # Run after the normal Release/x64 fork build. Reuses its objects and dependencies.
 # Uses a separate CRT entry point; the application's main is never called.
-param([string]$BuildDirectory = '')
+param([string]$BuildDirectory = '',[switch]$EndingOnly)
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $workspace = Split-Path $repo -Parent
@@ -36,13 +36,13 @@ try {
     & git -C $repo show HEAD:audio/midi_drivers/XMidiSequence.cpp | Set-Content "$scratch/baseline.cpp"
     & $compiler @options "$scratch/baseline.cpp" "/Fo$scratch/baseline.obj" > "$scratch/baseline-compile.log" 2>&1
     if ($LASTEXITCODE) { Get-Content "$scratch/baseline-compile.log"; throw 'Baseline compilation failed' }
-    foreach ($mode in @('current','baseline')) {
+    foreach ($mode in $(if($EndingOnly){@('current')}else{@('current','baseline')})) {
         $args = @('/NOLOGO','/SUBSYSTEM:CONSOLE','/ENTRY:wmainCRTStartup','/OPT:REF','/OPT:ICF','/LTCG','/MACHINE:X64',"/OUT:`"$scratch/$mode.exe`"", "`"$scratch/check.obj`"")
         $args += "`"$scratch/original-opl2-reference.obj`""
         $args += "`"$scratch/serpent-opl2-reference.obj`""
         $args += "`"$scratch/roland-reference.obj`""
         foreach ($obj in Get-ChildItem -LiteralPath $objects -Filter '*.obj') {
-            if ($obj.Name -in @('NukedOpl3.obj','OriginalOpl2MidiDriver.obj')) { continue } # Emulator included in test TU for register checks.
+            if ($obj.Name -in @('NukedOpl3.obj','OriginalOpl2MidiDriver.obj','Opl3StereoMidiDriver.obj')) { continue } # Emulator included in test TU for register checks.
             if ($mode -eq 'baseline' -and $obj.Name -eq 'XMidiSequence.obj') { continue }
             $args += "`"$($obj.FullName)`""
         }
@@ -56,9 +56,11 @@ try {
         foreach ($duplicate in $duplicates) { if ($duplicate.Line -notmatch '\bmain\b') { throw "Unexpected duplicate symbol: $duplicate" } }
     }
     $env:PATH = (Join-Path $BuildDirectory 'bin') + ';' + $env:PATH
-    & "$scratch/current.exe" > "$scratch/results.log" 2>&1
+    if($EndingOnly){ & "$scratch/current.exe" --ending-only > "$scratch/results.log" 2>&1 }
+    else { & "$scratch/current.exe" > "$scratch/results.log" 2>&1 }
     if ($LASTEXITCODE) { Get-Content "$scratch/results.log"; throw 'OPL3 regression failed' }
     Get-Content "$scratch/results.log"
+    if($EndingOnly){$success=$true;return}
     & "$scratch/current.exe" --legacy-trace > "$scratch/current-trace.log" 2>&1
     if ($LASTEXITCODE) { throw 'Current legacy trace failed' }
     & "$scratch/baseline.exe" --legacy-trace > "$scratch/baseline-trace.log" 2>&1
