@@ -623,6 +623,7 @@ for /f "tokens=* delims=" %%u in ('git ls-remote --get-url') do echo #define GIT
     <ClInclude Include="..\..\audio\midi_drivers\LowLevelMidiDriver.h" />
     <ClInclude Include="..\..\audio\midi_drivers\MidiDriver.h" />
     <ClInclude Include="..\..\audio\midi_drivers\MT32EmuMidiDriver.h" />
+    <ClInclude Include="..\..\audio\midi_drivers\OriginalRolandMusic.h" />
     <ClInclude Include="..\..\audio\midi_drivers\WindowsMidiDriver.h" />
     <ClInclude Include="..\..\audio\midi_drivers\XMidiEvent.h" />
     <ClInclude Include="..\..\audio\midi_drivers\XMidiEventList.h" />

@@ -21,6 +21,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "Midi.h"
 #include "midi_drivers/Opl3MusicPan.h"
+#ifdef USE_MT32EMU_MIDI
+#include "midi_drivers/MT32EmuMidiDriver.h"
+#endif
 #ifdef USE_FMOPL_MIDI
 #include "midi_drivers/FMOplMidiDriver.h"
 #include "midi_drivers/Opl3StereoMidiDriver.h"
@@ -209,7 +212,15 @@ bool MyMidiPlayer::start_music(int num, bool repeat, ForceType force, std::strin
 		return false;
 	}
 
-	XMidiFile midfile(mid_data.get(), setup_timbre_for_track(flex, GAME_BG && num >= 0 && num <= 2), (midi_driver->getName()=="OriginalOPL2" && !GAME_BG && Game::get_game_type()!=SERPENT_ISLE)?"FMOpl":midi_driver->getName(), (GAME_BG || Game::get_game_type()==SERPENT_ISLE) && midi_driver->getName()=="OriginalOPL2", Game::get_game_type()==SERPENT_ISLE && midi_driver->getName()=="OriginalOPL2");
+    const int roland_conversion=setup_timbre_for_track(flex, GAME_BG && num >= 0 && num <= 2);
+    bool original_roland=false;
+#ifdef USE_MT32EMU_MIDI
+    if(auto roland=std::dynamic_pointer_cast<MT32EmuMidiDriver>(midi_driver)) {
+        original_roland=roland->hasOriginalMusic();
+        roland->prepareMusicTrack(mid_data.get(),0,flex==MAINMUS?num:-1);
+    }
+#endif
+	XMidiFile midfile(mid_data.get(), roland_conversion, (midi_driver->getName()=="OriginalOPL2" && !GAME_BG && Game::get_game_type()!=SERPENT_ISLE)?"FMOpl":midi_driver->getName(), original_roland || ((GAME_BG || Game::get_game_type()==SERPENT_ISLE) && midi_driver->getName()=="OriginalOPL2"), original_roland || (Game::get_game_type()==SERPENT_ISLE && midi_driver->getName()=="OriginalOPL2"));
 
 #ifdef USE_FMOPL_MIDI
 	if(auto original=std::dynamic_pointer_cast<OriginalOpl2MidiDriver>(midi_driver)) original->setSerpentTrack(flex==MAINMUS_AD?num:-1);
@@ -326,7 +337,14 @@ bool MyMidiPlayer::start_music(std::string fname, int num, bool repeat, ForceTyp
 		return false;
 	}
 
-	XMidiFile midfile(&mid_data, setup_timbre_for_track(fname), (midi_driver->getName()=="OriginalOPL2" && !GAME_BG && Game::get_game_type()!=SERPENT_ISLE)?"FMOpl":midi_driver->getName(), (GAME_BG || Game::get_game_type()==SERPENT_ISLE) && midi_driver->getName()=="OriginalOPL2", Game::get_game_type()==SERPENT_ISLE && midi_driver->getName()=="OriginalOPL2");
+    const int roland_conversion=setup_timbre_for_track(fname);
+    bool original_roland=false;
+#ifdef USE_MT32EMU_MIDI
+    if(auto roland=std::dynamic_pointer_cast<MT32EmuMidiDriver>(midi_driver)) {
+        original_roland=roland->hasOriginalMusic();roland->prepareMusicTrack(&mid_data,num,-1);
+    }
+#endif
+	XMidiFile midfile(&mid_data, roland_conversion, (midi_driver->getName()=="OriginalOPL2" && !GAME_BG && Game::get_game_type()!=SERPENT_ISLE)?"FMOpl":midi_driver->getName(), original_roland || ((GAME_BG || Game::get_game_type()==SERPENT_ISLE) && midi_driver->getName()=="OriginalOPL2"), original_roland || (Game::get_game_type()==SERPENT_ISLE && midi_driver->getName()=="OriginalOPL2"));
 
 #ifdef USE_FMOPL_MIDI
 	if(auto original=std::dynamic_pointer_cast<OriginalOpl2MidiDriver>(midi_driver)) original->setSerpentTrack(-1);
@@ -498,6 +516,11 @@ void MyMidiPlayer::load_timbres() {
 	}
 
 	bool historical_context_changed=false;
+#ifdef USE_MT32EMU_MIDI
+    if((GAME_BG || Game::get_game_type()==SERPENT_ISLE))
+        if(auto roland=std::dynamic_pointer_cast<MT32EmuMidiDriver>(midi_driver))
+            historical_context_changed=roland->setMusicContext(GAME_BG,timbre_lib==TIMBRE_LIB_MAINMENU,timbre_lib==TIMBRE_LIB_INTRO,timbre_lib==TIMBRE_LIB_ENDGAME);
+#endif
 #ifdef USE_FMOPL_MIDI
 	if(Game::get_game_type()==SERPENT_ISLE) {
 		if(auto original=std::dynamic_pointer_cast<OriginalOpl2MidiDriver>(midi_driver))

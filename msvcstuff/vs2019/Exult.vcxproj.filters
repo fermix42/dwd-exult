@@ -1501,6 +1501,9 @@
     <ClInclude Include="..\..\audio\midi_drivers\MT32EmuMidiDriver.h">
       <Filter>audio\midi_drivers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\audio\midi_drivers\OriginalRolandMusic.h">
+      <Filter>audio\midi_drivers</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\headers\span.h">
       <Filter>headers</Filter>
     </ClInclude>

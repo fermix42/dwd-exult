@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef USE_MT32EMU_MIDI
 
 #	include "LowLevelMidiDriver.h"
+#	include <array>
 
 #	ifdef __GNUC__
 #		pragma GCC diagnostic push
@@ -46,11 +47,14 @@ namespace MT32Emu {
 	class SampleRateConverter;
 }    // namespace MT32Emu
 
+class OriginalRolandMusic;
+
 class MT32EmuMidiDriver : public LowLevelMidiDriver {
 public:
 	enum class Model { LegacyAuto, Early, Later, CM32L };
 private:
 	friend class RolandModelRegression;
+	friend class RolandMusicRegression;
 	static const MidiDriverDesc desc;
 	static const MidiDriverDesc early_desc, later_desc, cm32l_desc;
 
@@ -64,6 +68,15 @@ private:
 	std::unique_ptr<ROMSet> roms;
 	Model requested_model;
 	std::string active_machine, rom_identification, initialization_error;
+
+    bool score_sysex=false;
+    std::atomic_bool original_music{false};
+    bool music_classic=false, music_new_ail=false, music_ready=false;
+    std::unique_ptr<OriginalRolandMusic> music;
+    uint64 music_frames=0, music_wait=0;
+    std::vector<uint8> music_sysex;
+    std::array<uint8,71> music_volumes{};
+    void renderSynth(sint16*,uint32);
 	int openExplicit();
 	int initializeSynth(const MT32Emu::ROMImage*,const MT32Emu::ROMImage*);
 	int failure(int code,const std::string& message);
@@ -76,6 +89,10 @@ public:
 	MT32EmuMidiDriver();
 	explicit MT32EmuMidiDriver(Model);
 	~MT32EmuMidiDriver() override;
+    bool setMusicContext(bool black_gate,bool menu,bool introduction,bool ending);
+    bool hasOriginalMusic() const { return original_music; }
+    void prepareMusicTrack(IDataSource*,int sequence,int track);
+    void startSequence(int,XMidiEventList*,bool,int,int=-1) override;
 	static const char* identifier(Model);
 	static const char* modelLabel(Model);
 	static bool isExplicitDriver(std::string_view);
@@ -91,6 +108,13 @@ public:
 	}
 
 protected:
+    void loadTimbreLibrary(IDataSource*,TimbreLibraryType) override;
+    void sequenceSendSysEx(uint16,uint8,const uint8*,uint16) override;
+    bool usesOriginalRolandTiming() const override { return original_music; }
+    bool usesNoteInstances() const override { return original_music; }
+    bool isRolandWaiting() const override;
+    uint32 getTickCount(uint16) override;
+    int getSequenceGlobalVolume() override { return original_music?100:LowLevelMidiDriver::getGlobalVolume(); }
 	// LowLevelMidiDriver implementation
 	int  open() override;
 	void close() override;

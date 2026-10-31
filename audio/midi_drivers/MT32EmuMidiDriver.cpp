@@ -23,6 +23,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #	include "MT32EmuMidiDriver.h"
 
 #	include "utils.h"
+#	include "OriginalRolandMusic.h"
+#	include "databuf.h"
+#	include "sha1/sha1.h"
+#	include "XMidiEventList.h"
+#	include "XMidiFile.h"
 
 #	include <cstring>
 #	include <algorithm>
@@ -30,6 +35,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #	include <set>
 #	include <vector>
 #	include <stdexcept>
+#	include <functional>
 
 using namespace MT32Emu;
 
@@ -298,13 +304,39 @@ void MT32EmuMidiDriver::close() {
 		mt32 = nullptr;
 	}
 	roms.reset(); active_machine.clear(); rom_identification.clear();
+    music.reset();music_ready=false;music_wait=0;music_frames=0;music_sysex.clear();
 }
 
 void MT32EmuMidiDriver::send(uint32 b) {
+    if(original_music){
+        auto lock=LockMutex();
+        if(music && music_ready){
+            size_t first=music->output.size();music->event(b);
+            // In AIL's service, XmidiWait defers the stall until the complete
+            // channel event returns (e.g. patch write AND program resend).
+            // Main-thread bank initialization retains waits between blocks.
+            if(!music_classic && music->output.size()>first){
+                unsigned wait=0;for(size_t i=first;i<music->output.size();++i){wait+=music->output[i].retraces;music->output[i].retraces=0;}
+                music->output.back().retraces=wait;
+            }
+        }
+        return;
+    }
 	if(mt32) mt32->playMsg(b);
 }
 
 void MT32EmuMidiDriver::send_sysex(uint8 status, const uint8* msg, uint16 length) {
+    if(original_music) {
+        auto lock=LockMutex();
+        if(!score_sysex || !music || !music_ready || !msg || !length)return;
+        if(status==0xf0)music_sysex={0xf0};
+        if(status!=0xf0 && status!=0xf7)return;
+        if(music_sysex.empty()) { if(msg[0]!=0xf0)return; }
+        music_sysex.insert(music_sysex.end(),msg,msg+length);
+        if(music_sysex.size()>65536){music_sysex.clear();std::cerr<<"Original Roland: oversized SysEx ignored\n";return;}
+        if(music_sysex.back()==0xf7){music->output.push_back({std::move(music_sysex),0});music_sysex.clear();}
+        return;
+    }
 	if (!msg || !length) {
 		return;
 	}
@@ -316,7 +348,7 @@ void MT32EmuMidiDriver::send_sysex(uint8 status, const uint8* msg, uint16 length
 	if(mt32) mt32->playSysexWithoutFraming(msg, length - 1);
 }
 
-void MT32EmuMidiDriver::lowLevelProduceSamples(sint16* samples, uint32 num_samples) {
+void MT32EmuMidiDriver::renderSynth(sint16* samples, uint32 num_samples) {
 	if (mt32src) {
 		mt32src->getOutputSamples(samples, num_samples);
 	} else if(mt32) {
@@ -324,6 +356,124 @@ void MT32EmuMidiDriver::lowLevelProduceSamples(sint16* samples, uint32 num_sampl
 	} else {
 		std::fill_n(samples,num_samples*(stereo?2:1),0);
 	}
+}
+
+namespace {
+std::vector<uint8> rolandBytes(IDataSource* source) {
+    if(!source || !source->good() || source->getSize()>16*1024*1024)throw std::runtime_error("missing or oversized original music resource");
+    std::vector<uint8> bytes(source->getSize());source->seek(0);source->read(bytes.data(),unsigned(bytes.size()));source->seek(0);return bytes;
+}
+std::vector<uint8> rolandValidated(IDataSource* source,unsigned size,const char* hash) {
+    auto data=rolandBytes(source);
+    if(data.size()!=size || std::string(sha1::toHexString(sha1::calc(data.data(),int(data.size()))).data())!=hash)
+        throw std::runtime_error("unrecognized original Roland driver/data version");
+    return data;
+}
+}
+bool MT32EmuMidiDriver::setMusicContext(bool bg,bool menu,bool intro,bool ending) {
+    auto lock=LockMutex();
+    bool old_original=original_music,old_classic=music_classic,old_ail=music_new_ail;
+    original_music=requested_model!=Model::LegacyAuto;
+    music_classic=(bg && !ending) || (!bg && menu);
+    music_new_ail=!bg && !menu && !intro && !ending;
+    return old_original!=original_music || old_classic!=music_classic || old_ail!=music_new_ail;
+}
+void MT32EmuMidiDriver::loadTimbreLibrary(IDataSource* source,TimbreLibraryType type) {
+    if(!original_music){LowLevelMidiDriver::loadTimbreLibrary(source,type);return;}
+    for(int i=0;i<maxSequences();++i)finishSequence(i);
+    if(!waitTillNoComMessages())return;
+    auto lock=LockMutex();music_ready=false;music.reset();music_frames=0;music_wait=0;music_sysex.clear();
+    try {
+        auto policy=std::make_unique<OriginalRolandMusic>(music_classic);
+        auto bank=rolandBytes(source);
+        if(music_classic) {
+            if(type!=TIMBRE_LIBRARY_U7VOICE_MT)throw std::runtime_error("unsupported classic Roland bank");
+            policy->initializeClassic(bank);
+        } else {
+            if(type!=TIMBRE_LIBRARY_XMIDI_MT)throw std::runtime_error("unsupported AIL Roland bank");
+            std::vector<uint8> driver;
+            if(music_new_ail){
+                IExultDataSource data("<STATIC>/snddrvrs.dat",1);driver=rolandValidated(&data,10707,"cea64dbdc3c655f5677f892d7e5b33173903d4f4");
+                IFileDataSource executable("<STATIC>/../si.exe");auto bytes=rolandValidated(&executable,754240,"aae950c362e041d175c244815f1c74609e7dc5a8");
+                std::copy_n(bytes.begin()+306240,71,music_volumes.begin());
+            } else {IFileDataSource data("<STATIC>/mt32mpu.adv");driver=rolandValidated(&data,10424,"e71da3eefe6c4806495fd334a554ad41dbf7d19a");}
+            policy->loadAilBank(bank);policy->initializeAil(driver,music_new_ail);
+            policy->relativeVolume=90;
+        }
+        music=std::move(policy);music_ready=true;
+        if(music_new_ail){
+            IExultDataSource initialization("<STATIC>/mt32mus.dat",70);
+            prepareMusicTrack(&initialization,0,-1);
+            XMidiFile score(&initialization,XMIDIFILE_CONVERT_NOCONVERSION,getName(),true,true);
+            auto* events=score.GetEventList(0);if(!events)throw std::runtime_error("missing SI Roland initialization sequence 70");
+            uploading_timbres=false;
+            LowLevelMidiDriver::startSequence(3,events,false,255);
+            uploading_timbres=true;
+        }
+    } catch(const std::exception& e){music_ready=false;std::cerr<<"Original Roland music unavailable: "<<e.what()<<"; no substitute music profile activated\n";}
+}
+void MT32EmuMidiDriver::prepareMusicTrack(IDataSource* source,int sequence,int track) {
+    if(!original_music || !music || !music_ready)return;
+    if(!waitTillNoComMessages()){music_ready=false;std::cerr<<"Original Roland: previous sequence did not stop; refusing replacement\n";return;}
+    auto lock=LockMutex();
+    if(music_new_ail)music->relativeVolume=track>=0 && unsigned(track)<music_volumes.size()?music_volumes[track]:90;
+    if(music_classic)return;
+    // Read only the existing IFF TIMB directory; event parsing remains XMidiFile's job.
+    auto bytes=rolandBytes(source);
+    auto be=[&](unsigned at){return (unsigned(bytes[at])<<24)|(unsigned(bytes[at+1])<<16)|(unsigned(bytes[at+2])<<8)|bytes[at+3];};
+    int form=-1;
+    std::function<void(unsigned,unsigned)> walk=[&](unsigned begin,unsigned end){
+        for(unsigned at=begin;at+8<=end;){
+            unsigned size=be(at+4);if(size>end-at-8)return;
+            bool container=!std::memcmp(bytes.data()+at,"FORM",4)||!std::memcmp(bytes.data()+at,"CAT ",4);
+            if(container && size>=4){if(!std::memcmp(bytes.data()+at,"FORM",4)&&!std::memcmp(bytes.data()+at+8,"XMID",4))++form;walk(at+12,at+8+size);}
+            else if(form==sequence && !std::memcmp(bytes.data()+at,"TIMB",4) && size>=2){
+                unsigned count=bytes[at+8]|(unsigned(bytes[at+9])<<8);
+                if(count>(size-2)/2)throw std::runtime_error("invalid Roland TIMB count");
+                for(unsigned i=0;i<count;++i)music->install(bytes[at+11+i*2],bytes[at+10+i*2]);
+            }
+            at+=8+size+(size&1);
+        }
+    };
+    walk(0,unsigned(bytes.size()));
+}
+void MT32EmuMidiDriver::startSequence(int index,XMidiEventList* list,bool repeat,int volume,int branch) {
+    if(original_music && !music_ready){std::cerr<<"Original Roland: music start rejected because original bank initialization failed\n";return;}
+    LowLevelMidiDriver::startSequence(index,list,repeat,volume,branch);
+}
+bool MT32EmuMidiDriver::isRolandWaiting() const {
+    if(!original_music)return false;
+    auto lock=const_cast<MT32EmuMidiDriver*>(this)->LockMutex();
+    return music_wait || (music && std::any_of(music->output.begin(),music->output.end(),[](const auto& c){return c.retraces!=0;}));
+}
+uint32 MT32EmuMidiDriver::getTickCount(uint16 sequence) {return original_music?uint32(music_frames*6000/sample_rate):LowLevelMidiDriver::getTickCount(sequence);}
+void MT32EmuMidiDriver::sequenceSendSysEx(uint16 sequence,uint8 status,const uint8* bytes,uint16 size) {
+    if(original_music){if(status!=0xff){score_sysex=true;send_sysex(status,bytes,size);score_sysex=false;}}
+    else LowLevelMidiDriver::sequenceSendSysEx(sequence,status,bytes,size);
+}
+void MT32EmuMidiDriver::lowLevelProduceSamples(sint16* samples,uint32 frames) {
+    if(!original_music){renderSynth(samples,frames);return;}
+    auto lock=LockMutex();
+    if(!music || !music_ready){std::fill_n(samples,frames*2,0);return;}
+    unsigned remaining=frames;
+    while(remaining){
+        while(!music_wait && !music->output.empty()){
+            auto command=std::move(music->output.front());music->output.pop_front();
+            auto& b=command.bytes;
+            if(mt32 && b.size()>=2){
+                if(b[0]==0xf0 && b.back()==0xf7)mt32->playSysexWithoutFraming(b.data()+1,unsigned(b.size()-2));
+                else mt32->playMsg(unsigned(b[0])|(unsigned(b[1])<<8)|(b.size()>2?unsigned(b[2])<<16:0));
+            }
+            // Original AIL retrace waits are 14,286 microseconds, not arbitrary host sleeps.
+            music_wait=(uint64(command.retraces)*14286*sample_rate+999999)/1000000;
+        }
+        unsigned count=music_wait?unsigned(std::min<uint64>(remaining,music_wait)):remaining;
+        renderSynth(samples,count);
+        if(music_wait)music_wait-=count;else music_frames+=count;
+        int gain=LowLevelMidiDriver::getGlobalVolume();
+        if(gain!=100)for(unsigned i=0;i<count*2;++i)samples[i]=sint16(int(samples[i])*gain/100);
+        samples+=count*2;remaining-=count;
+    }
 }
 
 #endif    // USE_MT32EMU_MIDI

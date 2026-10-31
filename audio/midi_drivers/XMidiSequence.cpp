@@ -104,6 +104,7 @@ void XMidiSequence::finish() {
 }
 
 int XMidiSequence::playEvent() {
+	if (handler->isRolandWaiting()) return 1;
 	if (instance_notes && paused) return 1;
 	if (start == 0xFFFFFFFF) {
 		initClock();
@@ -141,7 +142,7 @@ int XMidiSequence::playEvent() {
 #ifdef NON_CRIT_ADJUSTMENT
 	int nc_ticks = event->time - last_tick;
 
-	if (!event->is_time_critical() && nc_ticks > NON_CRIT_ADJUSTMENT) {
+	if (!handler->usesOriginalRolandTiming() && !event->is_time_critical() && nc_ticks > NON_CRIT_ADJUSTMENT) {
 		if (event->next) {
 			// time this event at NON_CRIT_ADJUSTMENT or halfway between last
 			// and next which is smaller we do not want any simultaneous events
@@ -164,7 +165,7 @@ int XMidiSequence::playEvent() {
 	addOffset(aim);
 
 #ifdef NON_CRIT_ADJUSTMENT
-	if (event->is_time_critical()) {
+	if (!handler->usesOriginalRolandTiming() && event->is_time_critical()) {
 		last_tick += nc_ticks;
 	} else
 #endif
@@ -221,7 +222,7 @@ int XMidiSequence::playEvent() {
 		sendEvent();
 	}
 	// Ignore sysex events on anything but track 0
-	else if (event->getChannel() == 0) {
+	else if (event->getChannel() == 0 || (handler->usesOriginalRolandTiming() && event->status == 0xf7)) {
 		handler->sequenceSendSysEx(sequence_id, event->status, event->ex.sysex_data.buffer(), event->ex.sysex_data.len);
 	}
 
@@ -270,18 +271,19 @@ int XMidiSequence::playEvent() {
 	}
 
 	aim = ((event->time - last_tick) * 5000) / speed;
-	if (!event->is_time_critical()) {
+	if (!handler->usesOriginalRolandTiming() && !event->is_time_critical()) {
 		aim = getTime();
 	}
 	diff = aim - getTime();
 
-	if (diff < 0) {
+	if (diff < 0 || (handler->usesOriginalRolandTiming() && diff == 0)) {
 		return 0;    // Next event is ready now!
 	}
 	return 1;
 }
 
 sint32 XMidiSequence::timeTillNext() {
+	if (handler->isRolandWaiting()) return 1;
 	sint32 sixthoToNext = 0x7FFFFFFF;    // Int max
 
 	// Time remaining on notes currently being played
@@ -299,7 +301,7 @@ sint32 XMidiSequence::timeTillNext() {
 	if (speed > 0 && event && !paused) {
 		sint32 aim = ((event->time - last_tick) * 5000) / speed;
 #ifdef NON_CRIT_ADJUSTMENT
-		if (!event->is_time_critical() && (event->time - last_tick) > NON_CRIT_ADJUSTMENT) {
+		if (!handler->usesOriginalRolandTiming() && !event->is_time_critical() && (event->time - last_tick) > NON_CRIT_ADJUSTMENT) {
 			int ticks = NON_CRIT_ADJUSTMENT;
 			if (event->next) {
 				// time this event at NON_CRIT_ADJUSTMENT or halfway between
@@ -429,7 +431,7 @@ void XMidiSequence::sendEvent() {
 
 			if (instance_notes) {
 				const uint64 identity = ++next_note_identity;
-				const uint32 duration = event->ex.note_on.duration > 0 ? event->ex.note_on.duration - 1 : 0;
+				const uint32 duration = handler->usesOriginalRolandTiming() ? uint32(std::max(0, event->ex.note_on.duration)) : (event->ex.note_on.duration > 0 ? event->ex.note_on.duration - 1 : 0);
 				NoteOccurrence note{identity, uint32(uint64(duration) * 5000 / speed + getStart()),
 					event->status, event->data[0], event->data[1], shadows[chan].balance.coarse, !paused};
 				auto at = std::find_if(occurrences.begin(), occurrences.end(), [&](const NoteOccurrence& other) {

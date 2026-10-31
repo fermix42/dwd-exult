@@ -35,6 +35,9 @@ public:
 	virtual void sequenceSendEvent(uint16 sequence_id, uint32 message) = 0;
 
 	// Opt-in occurrence identity; legacy handlers keep the packed MIDI path.
+	// Original Roland hardware waits and event times are opt-in; legacy/FM paths are unchanged.
+	virtual bool usesOriginalRolandTiming() const { return false; }
+	virtual bool isRolandWaiting() const { return false; }
 	virtual bool usesNoteInstances() const { return false; }
 	virtual void sequenceSendNote(uint16 sequence_id, uint32 message, uint64 identity) {
 		(void)identity;

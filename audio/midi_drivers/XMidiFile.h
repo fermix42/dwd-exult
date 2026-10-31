@@ -63,7 +63,7 @@ private:
 
 	bool instance_note_pairing = false;
 	bool metadata_only=false; // Compare source events without hardware setup/spreading.
-	bool original_dynamics=false; // Opt-in SI policy: preserve source velocity and CC7.
+	bool original_dynamics=false; // Opt-in original-driver policy: preserve source velocity and CC7.
 	bool do_reverb;
 	bool do_chorus;
 	int  chorus_value;

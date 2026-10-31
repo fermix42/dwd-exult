@@ -2,7 +2,8 @@ if BUILD_MT32EMU
 MT32EMUFLAGS=-DMT32EMU_EXPORTS_TYPE=0 -DMT32EMU_API_TYPE=0
 MT32EMUDRV=	\
 	MT32EmuMidiDriver.cpp	\
-	MT32EmuMidiDriver.h
+	MT32EmuMidiDriver.h \
+	OriginalRolandMusic.h
 endif
 
 AM_CPPFLAGS = -I$(top_srcdir)/headers -I$(top_srcdir)/conf -I$(top_srcdir) \

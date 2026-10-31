@@ -220,7 +220,9 @@ private:
 		}
 	};
 
+protected:
 	bool uploading_timbres;    // Set in 'uploading' timbres mode
+private:
 
 	// Communications
 	std::queue<ComMessage>                       messages;
@@ -235,7 +237,9 @@ private:
 	// Don't treat it as fatal but Midi playback is probably non functional if the default
 	// timeout expires.
 	// Returns false if timeout expired
+protected:
 	bool waitTillNoComMessages(std::chrono::milliseconds timeout = std::chrono::seconds(10));
+private:
 
 	// State Readable by main game thread
 	std::atomic_bool     playing[LLMD_NUM_SEQ];          // Only set by thread
@@ -384,8 +388,10 @@ private:
 	void   sequenceSendEvent(uint16 sequence_id, uint32 message) override;
 	void sequenceSendNote(uint16 sequence_id, uint32 message, uint64 identity) override;
 	void dispatchSequenceEvent(uint16 sequence_id, uint32 message, uint64 identity);
+protected:
 	void   sequenceSendSysEx(uint16 sequence_id, uint8 status, const uint8* msg, uint16 length) override;
 	uint32 getTickCount(uint16 sequence_id) override;
+private:
 	void   handleCallbackTrigger(uint16 sequence_id, uint8 data) override;
 
 	int protectChannel(uint16 sequence_id, int chan, bool protect);

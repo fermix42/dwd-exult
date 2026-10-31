@@ -869,7 +869,7 @@ LowLevelMidiDriver::PlaySeqResult LowLevelMidiDriver::playSequences() {
 			playing[message.sequence].store(false);
 			callback_data[message.sequence].store(-1);
 			unlockAndUnprotectChannel(message.sequence);
-			start_track_delay_until = xmidi_clock + after_stop_delay;
+			start_track_delay_until = xmidi_clock + (usesOriginalRolandTiming() ? decltype(xmidi_clock)(0) : after_stop_delay);
 		} break;
 
 		case LLMD_MSG_THREAD_EXIT: {
@@ -965,7 +965,7 @@ LowLevelMidiDriver::PlaySeqResult LowLevelMidiDriver::playSequences() {
 				sequences[message.sequence] = nullptr;
 			}
 			if (playing[message.sequence].load()) {
-				start_track_delay_until = xmidi_clock + after_stop_delay;
+				start_track_delay_until = xmidi_clock + (usesOriginalRolandTiming() ? decltype(xmidi_clock)(0) : after_stop_delay);
 			}
 			playing[message.sequence].store(false);
 			callback_data[message.sequence].store(-1);
