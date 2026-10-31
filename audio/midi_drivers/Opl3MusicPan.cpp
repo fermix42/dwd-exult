@@ -192,3 +192,18 @@ unsigned recoverOpl3MusicNotes(XMidiEventList* playback, XMidiEventList* fm, XMi
     }
     return recovered;
 }
+
+unsigned recoverOpl3GuardianNotes(XMidiEventList* candidate,XMidiEventList* fm,XMidiEventList* roland) {
+    if(!candidate || !fm || !roland) return 0;
+    const auto source=describe(fm),partner=describe(roland);
+    if(source.channels[4].programs!=std::set<int>{43} || partner.channels[4].programs!=std::set<int>{43}
+       || source.channels[4].notes.size()!=20 || partner.channels[4].notes.size()!=30) return 0;
+    std::set<XMidiEvent*> originals;for(auto* e=candidate->events;e;e=e->next)originals.insert(e);
+    if(recoverOpl3MusicNotes(candidate,fm,roland)!=10) return 0;
+    unsigned notes=0;
+    for(auto* e=candidate->events;e;e=e->next)if(!originals.count(e)) {
+        if(e->getStatusType()!=MidiStatus::NoteOn || !e->data[1] || e->getChannel()!=4) return 0;
+        ++notes;
+    }
+    return notes==10?10:0;
+}

@@ -29,6 +29,7 @@
 #	include "XMidiEvent.h"
 #	include "databuf.h"
 #	include "utils.h"
+#	include "sha1/sha1.h"
 #	include <stdexcept>
 
 #	include <algorithm>
@@ -315,8 +316,8 @@ void Opl3StereoMidiDriver::sendNote(uint32 message, uint64 identity) {
 void Opl3StereoMidiDriver::send(uint32 b) {
 	const auto channel = uint8(b & 0x0F);
 
-	// Discard everything on channel 9 for now
-	if (channel == 9 && !xmidibanks[127]) {
+	// BG intro trigger notes use validated original mapping, not an XMIDI drum bank.
+	if (channel == 9 && !xmidibanks[127] && !original_intro) {
 		return;
 	}
 
@@ -329,6 +330,13 @@ void Opl3StereoMidiDriver::send(uint32 b) {
 	case MidiStatus::NoteOn: { /*note on */
 		auto note = static_cast<unsigned char>((b >> 8) & 0x7F);
 		auto vel  = static_cast<unsigned char>((b >> 16) & 0x7F);
+		int introPart=-1;
+		if(original_intro && channel==9) {
+			if(note>=intro_channels.size() || intro_channels[note]<10 || intro_channels[note]>30) return;
+			introPart=intro_channels[note]-10;
+			note=intro_keys[note];
+		}
+
 
 		// First send a note off, if it's found
 		for (int i = 0; i < VoiceCount; i++) {
@@ -392,7 +400,7 @@ void Opl3StereoMidiDriver::send(uint32 b) {
 			voice_pan[on]=ch[channel].pan;
 			bg_voice[on]={};
 			if (voice_timbre[on].native_bg) {
-				bg_voice[on].channel=channel; bg_voice[on].keyed=true; bg_voice[on].stage=0;
+				bg_voice[on].channel=channel; bg_voice[on].intro_part=introPart; bg_voice[on].keyed=true; bg_voice[on].stage=0;
 				bg_voice[on].pitch=int(note)*256;
 				bg_voice[on].slide=sint16(voice_timbre[on].bg[18]|(voice_timbre[on].bg[19]<<8));
 			}
@@ -400,7 +408,7 @@ void Opl3StereoMidiDriver::send(uint32 b) {
 			if (voice_timbre[on].native_bg) midi_fm_volume(on,nv*2);
 			midi_fm_playnote(on, note + ch[channel].nshift, nv * 2, ch[channel].pitchbend, ch[channel].pan);
 			};
-			xinstrument instrument=channel==9 && xmidibanks[127]?xmidibanks[127]->insbank[note]:ch[channel].ins;
+			xinstrument instrument=introPart>=0 ? intro_parts[introPart] : channel==9 && xmidibanks[127]?xmidibanks[127]->insbank[note]:ch[channel].ins;
 			std::array<bool,256> visited{};
 			bool secondary=false;
 			for (;;) {
@@ -554,6 +562,7 @@ void Opl3StereoMidiDriver::send(uint32 b) {
 	} break;
 
 	case MidiStatus::Program: { /* patch change */
+		if(original_intro && channel==9) break;
 		auto instrument  = static_cast<unsigned char>((b >> 8) & 0x7F);
 		ch[channel].inum = instrument;
 		// std::POUT << "Setting instrument: " << static_cast<unsigned
@@ -1114,6 +1123,23 @@ const double Opl3StereoMidiDriver::bend_coarse[128]
 		   1534.2664467217226};
 
 // Read only the known SI ADLIB.ADV layout. No driver code or tables are bundled.
+void Opl3StereoMidiDriver::loadIntroMapping() {
+	// Same established layout/version checks as the verified FMOpl intro loader.
+	intro_channels.fill(0);intro_keys.fill(0);
+	IFileDataSource exe("<STATIC>/../intro.exe");
+	if(!exe.good() || exe.getSize()!=116068) throw std::runtime_error("unsupported BG INTRO.EXE for OPL3 intro mapping");
+	std::vector<uint8> bytes(exe.getSize());exe.read(bytes.data(),bytes.size());
+	if(std::string(sha1::toHexString(sha1::calc(bytes.data(),int(bytes.size()))).data())!="c8ea335ef7392865389c55f13b8ef1102fc4d427")
+		throw std::runtime_error("unrecognized BG INTRO.EXE for OPL3 intro mapping");
+	constexpr unsigned offsets[]={59199,59208,59216,59225,59233,59242,59251,59260,59269,59278,59287,59296,59305,59314,59323,59332,59341,59350,59359,59368,59377};
+	for(unsigned i=0;i<intro_parts.size();++i) {
+		const auto& part=bg_timbres[bytes[offsets[i]]];
+		intro_parts[i]=part.native_bg?part:bg_default;
+	}
+	std::copy_n(bytes.begin()+111707,88,intro_keys.begin());
+	std::copy_n(bytes.begin()+111619,88,intro_channels.begin());
+}
+
 void Opl3StereoMidiDriver::loadSiFrequencies() {
 	try {
 		IFileDataSource source("<STATIC>/adlib.adv");
@@ -1214,7 +1240,7 @@ void Opl3StereoMidiDriver::updateBgPitch(int voice) {
 	int keyShift=sint8(data[39]);relative=keyShift<0?bgShift(-relative,uint8(~data[39])):bgShift(relative,data[39]);
 	unsigned phase=state.phase;int triangle=sint8(phase);
 	if(triangle>63||triangle< -64)triangle=sint8(128-triangle);
-	const auto& channelData=channel.ins.bg;
+	const auto& channelData=state.intro_part>=0 ? intro_parts[state.intro_part].bg : channel.ins.bg;
 	const int depth=channelData[17]+bgShift(channel.modulation*channelData[15],7);
 	int fixed=60*256+relative+bgShift((channel.pitchbend-8192)*channelData[14],8)+state.slide
 		+bgShift(depth*triangle,4)+bgWord(data,36)+channel.nshift*256;
@@ -1233,7 +1259,8 @@ void Opl3StereoMidiDriver::tickBgVoices() {
 		if(at){int rate=uint16(bgWord(data,at)),target=bgWord(data,at+2);int distance=std::abs(target-state.slide);
 			if(distance<rate){state.slide=target;++state.stage;}else if(state.slide<target)state.slide+=rate;else state.slide-=rate;
 		}
-		state.phase=(state.phase+ch[state.channel].ins.bg[16])&255;
+		const auto& root=state.intro_part>=0 ? intro_parts[state.intro_part] : ch[state.channel].ins;
+		state.phase=(state.phase+root.bg[16])&255;
 		updateBgPitch(v);
 	}
 }
@@ -1272,6 +1299,7 @@ void Opl3StereoMidiDriver::loadTimbreLibrary(IDataSource* ds, TimbreLibraryType 
 		loadXMIDITimbres(ds);
 	} else if (type == TIMBRE_LIBRARY_U7VOICE_AD) {
 		loadU7VoiceTimbres(ds);
+		if(original_intro) loadIntroMapping();
 	}
 }
 

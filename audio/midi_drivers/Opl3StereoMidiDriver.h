@@ -40,6 +40,8 @@ public:
 	Opl3StereoMidiDriver() : LowLevelMidiDriver(std::string(desc.name)) {}
 	~Opl3StereoMidiDriver() override { destroyMidiDriver(); }
 
+	void setOriginalIntro(bool enabled) { original_intro=enabled; }
+
 	static const MidiDriverDesc* getDesc() {
 		return &desc;
 	}
@@ -144,12 +146,17 @@ private:
 
 	struct BgVoice {
 		int channel = -1;
+		int intro_part = -1;
 		int pitch = 0, slide = 0;
 		unsigned phase = 0, stage = 3;
 		bool keyed = false;
 	};
 	std::array<xinstrument,256> bg_timbres{};
 	xinstrument bg_default{};
+	bool original_intro=false;
+	std::array<uint8,88> intro_channels{},intro_keys{};
+	std::array<xinstrument,21> intro_parts{};
+	void loadIntroMapping();
 	BgVoice bg_voice[VoiceCount];
 	xinstrument voice_timbre[VoiceCount]{};
 	bool timbre_valid[VoiceCount]{};

@@ -6,4 +6,6 @@ class XMidiEventList;
 unsigned transferOpl3MusicPan(XMidiEventList* playback, XMidiEventList* fm, XMidiEventList* roland);
 // Adds only validated source MT-32 notes missing from an aligned FM channel.
 unsigned recoverOpl3MusicNotes(XMidiEventList* playback, XMidiEventList* fm, XMidiEventList* roland);
+// Candidate list must be disposable if this rejects; original playback is retained.
+unsigned recoverOpl3GuardianNotes(XMidiEventList* candidate, XMidiEventList* fm, XMidiEventList* roland);
 #endif

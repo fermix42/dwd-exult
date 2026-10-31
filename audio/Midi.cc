@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "midi_drivers/Opl3MusicPan.h"
 #ifdef USE_FMOPL_MIDI
 #include "midi_drivers/FMOplMidiDriver.h"
+#include "midi_drivers/Opl3StereoMidiDriver.h"
 #endif
 
 #include "../conf/Configuration.h"
@@ -228,6 +229,25 @@ bool MyMidiPlayer::start_music(int num, bool repeat, ForceType force, std::strin
 				}
 			} catch (const std::exception& error) {
 				std::cerr << "OPL3 Stereo: MT-32 score enhancement unavailable: " << error.what() << "; retaining the FM score" << std::endl;
+			}
+		}
+		// Guardian only: transact on a freshly parsed list, leaving the original
+		// playback untouched unless exactly the authorized channel-5 notes qualify.
+		if(GAME_BG && midi_driver->getName()=="OPL3Stereo" && flex==INTROMUS_AD && num==2) {
+			try {
+				auto partner=open_music_flex(INTROMUS,2);
+				if(!partner || !partner->good() || !partner->getSize()) throw std::runtime_error("missing Guardian MT-32 score");
+				XMidiFile roland(partner.get(),XMIDIFILE_CONVERT_NOCONVERSION,"OPL3Stereo",true);
+				mid_data->seek(0);
+				XMidiFile fm(mid_data.get(),XMIDIFILE_CONVERT_NOCONVERSION,"OPL3Stereo",true);
+				mid_data->seek(0);
+				XMidiFile candidate(mid_data.get(),XMIDIFILE_CONVERT_NOCONVERSION,"OPL3Stereo");
+				if(recoverOpl3GuardianNotes(candidate.GetEventList(0),fm.GetEventList(0),roland.GetEventList(0))==10) {
+					midi_driver->startSequence(SEQ_NUM_MUSIC,candidate.GetEventList(0),repeat,255);
+					return true;
+				}
+			} catch(const std::exception& error) {
+				std::cerr<<"OPL3 Guardian recovery unavailable: "<<error.what()<<"; retaining FM score"<<std::endl;
 			}
 		}
 		midi_driver->startSequence(SEQ_NUM_MUSIC, eventlist, repeat, 255);
@@ -492,6 +512,9 @@ void MyMidiPlayer::load_timbres() {
 #ifdef USE_FMOPL_MIDI
 	if (auto fm=std::dynamic_pointer_cast<FMOplMidiDriver>(midi_driver)) {
 		fm->setOriginalIntro(GAME_BG && timbre_lib==TIMBRE_LIB_INTRO);
+	}
+	if(auto opl3=std::dynamic_pointer_cast<Opl3StereoMidiDriver>(midi_driver)) {
+		opl3->setOriginalIntro(GAME_BG && timbre_lib==TIMBRE_LIB_INTRO);
 	}
 #endif
 	midi_driver->loadTimbreLibrary(ds.get(), type);
