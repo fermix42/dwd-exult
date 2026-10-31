@@ -47,17 +47,44 @@ namespace MT32Emu {
 }    // namespace MT32Emu
 
 class MT32EmuMidiDriver : public LowLevelMidiDriver {
+public:
+	enum class Model { LegacyAuto, Early, Later, CM32L };
+private:
+	friend class RolandModelRegression;
 	static const MidiDriverDesc desc;
+	static const MidiDriverDesc early_desc, later_desc, cm32l_desc;
 
 	static std::shared_ptr<MidiDriver> createInstance() {
 		return std::make_shared<MT32EmuMidiDriver>();
 	}
+	static std::shared_ptr<MidiDriver> createEarly() { return std::make_shared<MT32EmuMidiDriver>(Model::Early); }
+	static std::shared_ptr<MidiDriver> createLater() { return std::make_shared<MT32EmuMidiDriver>(Model::Later); }
+	static std::shared_ptr<MidiDriver> createCM32L() { return std::make_shared<MT32EmuMidiDriver>(Model::CM32L); }
+	struct ROMSet;
+	std::unique_ptr<ROMSet> roms;
+	Model requested_model;
+	std::string active_machine, rom_identification, initialization_error;
+	int openExplicit();
+	int initializeSynth(const MT32Emu::ROMImage*,const MT32Emu::ROMImage*);
+	int failure(int code,const std::string& message);
+	static const MT32Emu::MachineConfiguration* compatibleMachine(Model,const MT32Emu::ROMInfo*,const MT32Emu::ROMInfo*);
 
 	MT32Emu::Synth*               mt32;
 	MT32Emu::SampleRateConverter* mt32src;
 
 public:
-	MT32EmuMidiDriver() : LowLevelMidiDriver(std::string(desc.name)), mt32(nullptr), mt32src(nullptr) {}
+	MT32EmuMidiDriver();
+	explicit MT32EmuMidiDriver(Model);
+	~MT32EmuMidiDriver() override;
+	static const char* identifier(Model);
+	static const char* modelLabel(Model);
+	static bool isExplicitDriver(std::string_view);
+	const std::string& getActiveMachineID() const { return active_machine; }
+	const std::string& getROMIdentification() const { return rom_identification; }
+	const std::string& getInitializationError() const { return initialization_error; }
+	static const MidiDriverDesc* getEarlyDesc() { return &early_desc; }
+	static const MidiDriverDesc* getLaterDesc() { return &later_desc; }
+	static const MidiDriverDesc* getCM32LDesc() { return &cm32l_desc; }
 
 	static const MidiDriverDesc* getDesc() {
 		return &desc;

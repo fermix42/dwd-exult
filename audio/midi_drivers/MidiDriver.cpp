@@ -82,6 +82,11 @@ static void InitMidiDriverVector() {
 	midi_drivers.push_back(OriginalOpl2MidiDriver::getDesc());
 #endif
 
+#ifdef USE_MT32EMU_MIDI
+	midi_drivers.push_back(MT32EmuMidiDriver::getEarlyDesc());
+	midi_drivers.push_back(MT32EmuMidiDriver::getLaterDesc());
+	midi_drivers.push_back(MT32EmuMidiDriver::getCM32LDesc());
+#endif
 	midi_drivers.push_back(&Disabled_desc);
 }
 
@@ -134,7 +139,16 @@ std::shared_ptr<MidiDriver> MidiDriver::createInstance(const std::string& desire
 		// Uh oh, we didn't manage to load a driver!
 		// Search for the first working one
 		if (!new_driver) {
+#ifdef USE_MT32EMU_MIDI
+			if (MT32EmuMidiDriver::isExplicitDriver(desired_driver)) {
+				perr << "Requested Roland model unavailable; music disabled without substituting another backend." << std::endl;
+				return nullptr;
+			}
+#endif
 			for (const auto* midi_driver : midi_drivers) {
+#ifdef USE_MT32EMU_MIDI
+				if (MT32EmuMidiDriver::isExplicitDriver(midi_driver->name)) continue;
+#endif
 				pout << "Trying: `" << midi_driver->name << "'" << std::endl;
 
 				new_driver = midi_driver->createInstance();
