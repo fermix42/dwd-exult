@@ -632,8 +632,8 @@ template <>
 std::unique_ptr<std::recursive_mutex> XMidiRecyclable<XMidiEvent>::Mutex{};
 
 // Constructor
-XMidiFile::XMidiFile(IDataSource* source, int pconvert, std::string_view drivername, bool metadata)
-		: num_tracks(0), events(nullptr), convert_type(pconvert), metadata_only(metadata), do_reverb(false), do_chorus(false) {
+XMidiFile::XMidiFile(IDataSource* source, int pconvert, std::string_view drivername, bool metadata, bool native_dynamics)
+		: num_tracks(0), events(nullptr), convert_type(pconvert), metadata_only(metadata), original_dynamics(native_dynamics), do_reverb(false), do_chorus(false) {
 	std::memset(bank127, 0, sizeof(bank127));
 
 	instance_note_pairing = drivername == "OPL3Stereo" || drivername == "OriginalOPL2";
@@ -1147,7 +1147,7 @@ int XMidiFile::ConvertEvent(const int time, const unsigned char status, IDataSou
 	current->data[1] = source->read1();
 
 	// Volume modify the volume controller, only if converting
-	if (convert_type && current->getStatusType() == MidiStatus::Controller && current->data[0] == 7) {
+	if (!original_dynamics && convert_type && current->getStatusType() == MidiStatus::Controller && current->data[0] == 7) {
 		current->data[1] = VolumeCurve[current->data[1]];
 	}
 
@@ -1167,7 +1167,7 @@ int XMidiFile::ConvertNote(const int time, const unsigned char status, IDataSour
 	current->data[1] = source->read1();
 
 	// Volume modify the note on's, only if converting
-	if (convert_type && current->getStatusType() == MidiStatus::NoteOn && current->data[1]) {
+	if (!original_dynamics && convert_type && current->getStatusType() == MidiStatus::NoteOn && current->data[1]) {
 		current->data[1] = VolumeCurve[current->data[1]];
 	}
 

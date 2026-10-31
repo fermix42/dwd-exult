@@ -63,6 +63,7 @@ private:
 
 	bool instance_note_pairing = false;
 	bool metadata_only=false; // Compare source events without hardware setup/spreading.
+	bool original_dynamics=false; // Opt-in SI policy: preserve source velocity and CC7.
 	bool do_reverb;
 	bool do_chorus;
 	int  chorus_value;
@@ -73,7 +74,7 @@ private:
 
 public:
 	XMidiFile() = delete;    // No default constructor
-	XMidiFile(IDataSource* source, int pconvert, std::string_view drivername = {}, bool metadata_only = false);
+	XMidiFile(IDataSource* source, int pconvert, std::string_view drivername = {}, bool metadata_only = false, bool original_dynamics = false);
 	~XMidiFile();
 
 	int number_of_tracks() {

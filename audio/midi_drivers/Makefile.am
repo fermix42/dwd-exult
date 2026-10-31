@@ -30,6 +30,7 @@ libmididrv_la_SOURCES =	\
 	OriginalOpl2MidiDriver.cpp \
 	OriginalOpl2MidiDriver.h \
 	OriginalOpl2Ending.cpp \
+	OriginalOpl2Serpent.cpp \
 	Opl3StereoMidiDriver.cpp \
 	Opl3StereoMidiDriver.h \
 	NukedOpl3.cpp \

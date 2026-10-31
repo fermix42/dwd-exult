@@ -60,7 +60,7 @@ void OriginalOpl2MidiDriver::close() {
 	chip=nullptr;
 }
 void OriginalOpl2MidiDriver::loadClassicBank(IDataSource* source) {
-	auto driver=originalData("<STATIC>/u7strax.drv",5379,"5aae6e31b61ee26b38e8d21a020bf7a698da86c7");
+	auto driver=originalData(si_menu?"<STATIC>/mainmenu.drv":"<STATIC>/u7strax.drv",5379,"5aae6e31b61ee26b38e8d21a020bf7a698da86c7");
 	for(unsigned i=0;i<13;++i) frequencies[i]=driver[1351+0x215+i*2]|(uint16(driver[1352+0x215+i*2])<<8);
 	for(unsigned i=0;i<24;++i) {
 		unsigned at=1351+0x215-22+i*2;
@@ -73,7 +73,13 @@ void OriginalOpl2MidiDriver::loadClassicBank(IDataSource* source) {
 	bank.resize(count);
 	for(auto& timbre:bank) source->read(timbre.data(),48);
 	std::vector<uint8> executable;
-	if(intro) {
+	if(si_menu) {
+		executable=originalData("<STATIC>/../mainmenu.exe",132080,"0638d773ad604acc9b1f7763807052279338ef0e");
+		std::copy_n(executable.begin()+115599,88,percussion_channel.begin());
+		std::copy_n(executable.begin()+115687,88,percussion_key.begin());
+		constexpr unsigned offsets[]={83236,83245,83253,83262,83270,83279,83288,83297,83306,83315,83324,83333,83342,83351,83360,83369,83378,83387,83396,83405,83414};
+		for(unsigned c=0;c<21;++c) program(c+9,executable[offsets[c]]);
+	} else if(intro) {
 		executable=originalData("<STATIC>/../intro.exe",116068,"c8ea335ef7392865389c55f13b8ef1102fc4d427");
 		std::copy_n(executable.begin()+111619,88,percussion_channel.begin());
 		std::copy_n(executable.begin()+111707,88,percussion_key.begin());
@@ -89,10 +95,16 @@ void OriginalOpl2MidiDriver::loadClassicBank(IDataSource* source) {
 }
 void OriginalOpl2MidiDriver::loadTimbreLibrary(IDataSource* source,TimbreLibraryType type) {
 	reset();
+	if(serpent) {
+		legacy.reset();
+		try { loadSerpentBank(source,type); }
+		catch(const std::exception& error) { reset(); bank.clear(); std::cerr<<error.what()<<"; Serpent Isle historical music unavailable\n"; }
+		return;
+	}
 	if(!bg) {
 		if(!legacy) legacy=std::make_unique<Legacy>(sample_rate,stereo);
 		legacy->loadTimbreLibrary(source,type);
-		std::cerr<<"Original OPL2: Serpent Isle uses unvalidated legacy FMOpl playback\n";
+		std::cerr<<"Original OPL2: generic launcher score uses legacy FMOpl playback\n";
 		return;
 	}
 	legacy.reset();

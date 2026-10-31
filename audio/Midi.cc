@@ -209,7 +209,11 @@ bool MyMidiPlayer::start_music(int num, bool repeat, ForceType force, std::strin
 		return false;
 	}
 
-	XMidiFile midfile(mid_data.get(), setup_timbre_for_track(flex, GAME_BG && num >= 0 && num <= 2), (midi_driver->getName()=="OriginalOPL2" && !GAME_BG)?"FMOpl":midi_driver->getName(), GAME_BG && midi_driver->getName()=="OriginalOPL2");
+	XMidiFile midfile(mid_data.get(), setup_timbre_for_track(flex, GAME_BG && num >= 0 && num <= 2), (midi_driver->getName()=="OriginalOPL2" && !GAME_BG && Game::get_game_type()!=SERPENT_ISLE)?"FMOpl":midi_driver->getName(), (GAME_BG || Game::get_game_type()==SERPENT_ISLE) && midi_driver->getName()=="OriginalOPL2", Game::get_game_type()==SERPENT_ISLE && midi_driver->getName()=="OriginalOPL2");
+
+#ifdef USE_FMOPL_MIDI
+	if(auto original=std::dynamic_pointer_cast<OriginalOpl2MidiDriver>(midi_driver)) original->setSerpentTrack(flex==MAINMUS_AD?num:-1);
+#endif
 
 	// Now give the xmidi object to the midi device
 
@@ -322,7 +326,11 @@ bool MyMidiPlayer::start_music(std::string fname, int num, bool repeat, ForceTyp
 		return false;
 	}
 
-	XMidiFile midfile(&mid_data, setup_timbre_for_track(fname), (midi_driver->getName()=="OriginalOPL2" && !GAME_BG)?"FMOpl":midi_driver->getName(), GAME_BG && midi_driver->getName()=="OriginalOPL2");
+	XMidiFile midfile(&mid_data, setup_timbre_for_track(fname), (midi_driver->getName()=="OriginalOPL2" && !GAME_BG && Game::get_game_type()!=SERPENT_ISLE)?"FMOpl":midi_driver->getName(), (GAME_BG || Game::get_game_type()==SERPENT_ISLE) && midi_driver->getName()=="OriginalOPL2", Game::get_game_type()==SERPENT_ISLE && midi_driver->getName()=="OriginalOPL2");
+
+#ifdef USE_FMOPL_MIDI
+	if(auto original=std::dynamic_pointer_cast<OriginalOpl2MidiDriver>(midi_driver)) original->setSerpentTrack(-1);
+#endif
 
 	// Now give the xmidi object to the midi device
 	XMidiEventList* eventlist = midfile.GetEventList(num);
@@ -489,7 +497,14 @@ void MyMidiPlayer::load_timbres() {
 		}
 	}
 
-	if (timbre_lib_filename == filename && timbre_lib_index == index && timbre_lib_game == Game::get_game_type()) {
+	bool historical_context_changed=false;
+#ifdef USE_FMOPL_MIDI
+	if(Game::get_game_type()==SERPENT_ISLE) {
+		if(auto original=std::dynamic_pointer_cast<OriginalOpl2MidiDriver>(midi_driver))
+			historical_context_changed=!original->hasSerpentContext(timbre_lib==TIMBRE_LIB_MAINMENU,timbre_lib==TIMBRE_LIB_INTRO || timbre_lib==TIMBRE_LIB_ENDGAME);
+	}
+#endif
+	if (!historical_context_changed && timbre_lib_filename == filename && timbre_lib_index == index && timbre_lib_game == Game::get_game_type()) {
 		return;
 	}
 
@@ -516,6 +531,7 @@ void MyMidiPlayer::load_timbres() {
 	}
 	if(auto original=std::dynamic_pointer_cast<OriginalOpl2MidiDriver>(midi_driver)) {
 		original->setContext(GAME_BG,timbre_lib==TIMBRE_LIB_INTRO);
+		if(Game::get_game_type()==SERPENT_ISLE) original->setSerpentContext(timbre_lib==TIMBRE_LIB_MAINMENU,timbre_lib==TIMBRE_LIB_INTRO || timbre_lib==TIMBRE_LIB_ENDGAME);
 	}
 	if(auto opl3=std::dynamic_pointer_cast<Opl3StereoMidiDriver>(midi_driver)) {
 		opl3->setOriginalIntro(GAME_BG && timbre_lib==TIMBRE_LIB_INTRO);

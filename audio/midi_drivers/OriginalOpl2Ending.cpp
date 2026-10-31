@@ -23,6 +23,9 @@ void OriginalOpl2MidiDriver::loadEndingBank(IDataSource* source) {
 	if(std::string(sha1::toHexString(sha1::calc(bytes.data(),int(bytes.size()))).data())!="3f663b98310b7c938c47f4cec580a0b36359979d")
 		throw std::runtime_error("Original OPL2: unrecognized ending ADLIB.ADV");
 	for(unsigned i=0;i<192;++i) ail_frequencies[i]=bytes[2720+i*2]|(uint16(bytes[2721+i*2])<<8);
+	loadAilBank(source);
+}
+void OriginalOpl2MidiDriver::loadAilBank(IDataSource* source) {
 	if(!source) throw std::runtime_error("Original OPL2: missing ending XMIDI.AD");
 	ail_patches.clear();
 	for(unsigned i=0;i*6+6<=source->getSize();++i) {
@@ -50,7 +53,7 @@ void OriginalOpl2MidiDriver::ailUpdate(unsigned index) {
 	auto& s=slots[index]; if(s.voice<0) return;
 	unsigned v=s.voice,m=(v/3)*8+v%3,c=m+3;
 	const auto& ch=ail_channels[s.channel];
-	auto put=[this](unsigned reg,uint8 value) { if(registers[reg]!=value) write(reg,value); };
+	auto put=[this](unsigned reg,uint8 value) { if(si_new_ail || registers[reg]!=value) write(reg,value); };
 	unsigned gain=scaled(scaled(ch.volume,ch.expression),s.velocity);
 	if(s.update&0x80) {
 		unsigned vib=ch.modulation>=64?64:0;
@@ -66,7 +69,7 @@ void OriginalOpl2MidiDriver::ailUpdate(unsigned index) {
 		put(0x60+m,s.ad[0]); put(0x60+c,s.ad[1]); put(0x80+m,s.sr[0]); put(0x80+c,s.sr[1]);
 	}
 	if(s.update&0x10) { put(0xe0+c,uint8(s.value[7])); put(0xe0+m,uint8(s.value[7]>>8)); }
-	if(s.update&8) put(0xc0+v,uint8(((s.value[4]>>12)&14)|s.feedback));
+	if(s.update&8) put(0xc0+v,uint8(((s.value[4]>>12)&14)|(si_new_ail?(s.feedback&1):s.feedback)));
 	if(s.update&frequency_update) {
 		unsigned f;
 		if(s.type==2) f=s.value[0]>>6;
@@ -92,6 +95,7 @@ void OriginalOpl2MidiDriver::ailUpdate(unsigned index) {
 void OriginalOpl2MidiDriver::ailRelease(unsigned index) {
 	auto& s=slots[index]; if(s.voice<0) return;
 	s.block&=~32; s.update|=frequency_update; ailUpdate(index); owners[s.voice]=-1; s.voice=-1;
+	if(si_new_ail && s.type==0) s.status=0;
 }
 void OriginalOpl2MidiDriver::ailPriority() {
 	std::array<unsigned,16> priorities{}; unsigned active=0;
@@ -101,7 +105,7 @@ void OriginalOpl2MidiDriver::ailPriority() {
 		++active; auto& s=slots[i]; unsigned p=ail_channels[s.channel].protection>=64?65535:s.value[3];
 		priorities[i]=p<count[s.channel]?0:p-count[s.channel];
 	}
-	if(active<=9) return;
+	if(!si_new_ail && active<=9) return;
 	// The original bounds this reassignment pass by the number of active slots.
 	while(active--) {
 		int high=-1,low=-1; unsigned highest=0,lowest=65535;
@@ -109,15 +113,19 @@ void OriginalOpl2MidiDriver::ailPriority() {
 			if(slots[i].voice<0) { if(priorities[i]>=highest) { highest=priorities[i]; high=i; } }
 			else if(priorities[i]<=lowest) { lowest=priorities[i]; low=i; }
 		}
-		if(high<0 || low<0 || highest<lowest) return;
+		if(high<0 || low<0 || highest<lowest || (si_new_ail && !highest)) return;
 		int voice=slots[low].voice; ailRelease(low);
 		if(slots[low].type==0) slots[low].status=0;
 		slots[high].voice=voice; owners[voice]=high; slots[high].update=all; ailUpdate(high);
 	}
 }
 void OriginalOpl2MidiDriver::ailAssign(unsigned index) {
-	for(unsigned v=0;v<9;++v) if(owners[v]<0) {
-		slots[index].voice=v; owners[v]=index; slots[index].update=all; ailUpdate(index); return;
+	for(unsigned attempt=0;attempt<9;++attempt) {
+		unsigned v=si_new_ail?(ail_rover+1)%9:attempt;
+		if(si_new_ail) ail_rover=v;
+		if(owners[v]<0) {
+			slots[index].voice=v; owners[v]=index; slots[index].update=all; ailUpdate(index); return;
+		}
 	}
 	ailPriority();
 }
@@ -201,11 +209,16 @@ void OriginalOpl2MidiDriver::endingSend(uint32 message) {
 		if(a==114) { ch.bank=b; return; }
 		if(a==112) { ch.protection=b; return; }
 		if(a==1) { ch.modulation=b; flags=0x80; }
-		else if(a==7) { ch.volume=b; flags=amplitude; }
+		else if(a==7) {
+			if(serpent) { serpent_raw_volume[channel]=b; ch.volume=std::min(127u,b*serpent_relative/100); }
+			else ch.volume=b;
+			flags=amplitude;
+		}
 		else if(a==11) { ch.expression=b; flags=amplitude; }
 		else if(a==10) flags=amplitude;
 		else if(a==64 || a==121) {
 			if(a==64) ch.sustain=b;
+			if(a==121 && si_new_ail) ch.sustain=0;
 			if(ch.sustain<64) for(unsigned i=0;i<16;++i) if(slots[i].status && slots[i].channel==channel && slots[i].sustained) ailOff(channel,slots[i].note);
 			if(a==121) { ch.modulation=0; ch.expression=127; ch.bend=8192; flags=0xc1; }
 		} else if(a==123) {

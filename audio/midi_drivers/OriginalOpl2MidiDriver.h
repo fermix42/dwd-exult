@@ -18,7 +18,10 @@ public:
 	OriginalOpl2MidiDriver() : LowLevelMidiDriver(std::string(desc.name)) {}
 	~OriginalOpl2MidiDriver() override { destroyMidiDriver(); }
 	static const MidiDriverDesc* getDesc() { return &desc; }
-	void setContext(bool black_gate, bool introduction) { bg=black_gate; intro=introduction; }
+	void setContext(bool black_gate, bool introduction) { bg=black_gate; intro=introduction; serpent=false; si_new_ail=false; si_menu=false; }
+	void setSerpentContext(bool menu, bool cinematic) { bg=false; intro=false; serpent=true; si_menu=menu; si_new_ail=!menu && !cinematic; }
+	bool hasSerpentContext(bool menu,bool cinematic) const { return serpent && si_menu==menu && si_new_ail==(!menu && !cinematic); }
+	void setSerpentTrack(int track);
 protected:
 	int open() override;
 	void close() override;
@@ -27,15 +30,23 @@ protected:
 	void loadTimbreLibrary(IDataSource*, TimbreLibraryType) override;
 	bool isSampleProducer() override { return true; }
 	bool isFMSynth() override { return true; }
-	bool usesNoteInstances() const override { return bg; }
-	int getSequenceGlobalVolume() override { return bg?100:LowLevelMidiDriver::getGlobalVolume(); }
+	bool usesNoteInstances() const override { return bg || serpent; }
+	int getSequenceGlobalVolume() override { return (bg || serpent)?100:LowLevelMidiDriver::getGlobalVolume(); }
 private:
 	friend class OriginalOpl2Regression;
+	friend class SerpentOpl2Regression;
 	static const MidiDriverDesc desc;
 	static std::shared_ptr<MidiDriver> createInstance() { return std::make_shared<OriginalOpl2MidiDriver>(); }
 	FMOpl_Pentagram::FM_OPL* chip=nullptr;
 	bool bg=true, intro=false, ready=false;
-	// Explicit transitional SI fallback: the existing FMOpl implementation.
+	bool serpent=false, si_menu=false, si_new_ail=false;
+	unsigned ail_rover=8, serpent_relative=100;
+	std::array<uint8,71> serpent_track_volumes{};
+	std::array<uint8,16> serpent_raw_volume{};
+	void loadSerpentBank(IDataSource*,TimbreLibraryType);
+	void initializeSerpentAil();
+	std::vector<uint8> serpent_driver;
+	// Compatibility for generic launcher scores outside the original game policies.
 	class Legacy : public FMOplMidiDriver {
 	public:
 		Legacy(uint32 rate,bool stereo_output) { sample_rate=rate; stereo=stereo_output; open(); }
@@ -96,6 +107,7 @@ private:
 	unsigned priority_clock=0;
 	uint8 volume_update=0;
 	void loadEndingBank(IDataSource*);
+	void loadAilBank(IDataSource*);
 	void endingSend(uint32);
 	void endingTick();
 	void ailOn(unsigned,unsigned,unsigned);

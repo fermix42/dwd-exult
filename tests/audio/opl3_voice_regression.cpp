@@ -8,6 +8,21 @@
 #include <map>
 #include <stdexcept>
 #include <vector>
+#include "OriginalOpl2MidiDriver.h"
+// Test-only interception forwards every real YM3812 write unchanged. Including
+// the production TU permits ordered-write comparison without a debug API.
+static std::vector<uint32> authentic_opl2_writes;
+namespace FMOpl_Pentagram {
+static void observedOriginalWrite(FM_OPL* chip,int port,int value) {
+    static unsigned address=0;
+    if(port==0) address=value;
+    else authentic_opl2_writes.push_back(address|(unsigned(value)<<8));
+    OPLWrite(chip,port,value);
+}
+}
+#define OPLWrite observedOriginalWrite
+#include "../../audio/midi_drivers/OriginalOpl2MidiDriver.cpp"
+#undef OPLWrite
 
 static void require(bool value, const char* message) {
     if (!value) throw std::runtime_error(message);
@@ -305,9 +320,10 @@ void Opl3VoiceRegression::serpentFidelity() {
 
 #include "opl3_guardian_checks.h"
 #include "original_opl2_checks.h"
+#include "serpent_opl2_checks.h"
 
 int wmain(int argc,wchar_t**argv) {
     try {if(argc>1&&std::wstring(argv[1])==L"--legacy-trace"){legacyTrace();return 0;}
-    Opl3VoiceRegression::run();Opl3VoiceRegression::fidelity();Opl3VoiceRegression::serpentFidelity();Opl3VoiceRegression::guardian();sequencing();scoreRecovery();OriginalOpl2Regression::run();std::cout<<"PASS all OPL3 regressions\n";return 0;}
+    Opl3VoiceRegression::run();Opl3VoiceRegression::fidelity();Opl3VoiceRegression::serpentFidelity();Opl3VoiceRegression::guardian();sequencing();scoreRecovery();OriginalOpl2Regression::run();SerpentOpl2Regression::run();std::cout<<"PASS all OPL3 and Original OPL2 regressions\n";return 0;}
     catch(const std::exception&e){std::cerr<<"FAIL "<<e.what()<<"\n";return 1;}
 }

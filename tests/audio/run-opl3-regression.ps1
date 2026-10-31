@@ -28,6 +28,8 @@ try {
     # Execute the read-only local BG original driver as the OPL2 register oracle.
     & $compiler @options ("/I"+(Join-Path $PSScriptRoot 'original-opl2-reference')) (Join-Path $PSScriptRoot 'original_opl2_reference.cpp') "/Fo$scratch/original-opl2-reference.obj" > "$scratch/reference-compile.log" 2>&1
     if ($LASTEXITCODE) { Get-Content "$scratch/reference-compile.log"; throw 'Original OPL2 reference compilation failed' }
+    & $compiler @options ("/I"+(Join-Path $PSScriptRoot 'original-opl2-reference')) ("/I"+(Join-Path $workspace 'ultima7-modern/game/include')) ("/I"+(Join-Path $workspace 'ultima7-modern/game/sound')) (Join-Path $PSScriptRoot 'serpent_opl2_reference.cpp') "/Fo$scratch/serpent-opl2-reference.obj" > "$scratch/serpent-reference-compile.log" 2>&1
+    if ($LASTEXITCODE) { Get-Content "$scratch/serpent-reference-compile.log"; throw 'SI OPL2 reference compilation failed' }
     # Compile the original shared sequencer solely for legacy event-trace comparison.
     & git -C $repo show HEAD:audio/midi_drivers/XMidiSequence.cpp | Set-Content "$scratch/baseline.cpp"
     & $compiler @options "$scratch/baseline.cpp" "/Fo$scratch/baseline.obj" > "$scratch/baseline-compile.log" 2>&1
@@ -35,8 +37,9 @@ try {
     foreach ($mode in @('current','baseline')) {
         $args = @('/NOLOGO','/SUBSYSTEM:CONSOLE','/ENTRY:wmainCRTStartup','/OPT:REF','/OPT:ICF','/LTCG','/MACHINE:X64',"/OUT:`"$scratch/$mode.exe`"", "`"$scratch/check.obj`"")
         $args += "`"$scratch/original-opl2-reference.obj`""
+        $args += "`"$scratch/serpent-opl2-reference.obj`""
         foreach ($obj in Get-ChildItem -LiteralPath $objects -Filter '*.obj') {
-            if ($obj.Name -eq 'NukedOpl3.obj') { continue } # Emulator included in test TU for register checks.
+            if ($obj.Name -in @('NukedOpl3.obj','OriginalOpl2MidiDriver.obj')) { continue } # Emulator included in test TU for register checks.
             if ($mode -eq 'baseline' -and $obj.Name -eq 'XMidiSequence.obj') { continue }
             $args += "`"$($obj.FullName)`""
         }
