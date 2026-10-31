@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef USE_FMOPL_MIDI
 #include "midi_drivers/FMOplMidiDriver.h"
 #include "midi_drivers/Opl3StereoMidiDriver.h"
+#include "midi_drivers/OriginalOpl2MidiDriver.h"
 #endif
 
 #include "../conf/Configuration.h"
@@ -208,7 +209,7 @@ bool MyMidiPlayer::start_music(int num, bool repeat, ForceType force, std::strin
 		return false;
 	}
 
-	XMidiFile midfile(mid_data.get(), setup_timbre_for_track(flex, GAME_BG && num >= 0 && num <= 2), midi_driver->getName());
+	XMidiFile midfile(mid_data.get(), setup_timbre_for_track(flex, GAME_BG && num >= 0 && num <= 2), (midi_driver->getName()=="OriginalOPL2" && !GAME_BG)?"FMOpl":midi_driver->getName(), GAME_BG && midi_driver->getName()=="OriginalOPL2");
 
 	// Now give the xmidi object to the midi device
 
@@ -321,7 +322,7 @@ bool MyMidiPlayer::start_music(std::string fname, int num, bool repeat, ForceTyp
 		return false;
 	}
 
-	XMidiFile midfile(&mid_data, setup_timbre_for_track(fname), midi_driver->getName());
+	XMidiFile midfile(&mid_data, setup_timbre_for_track(fname), (midi_driver->getName()=="OriginalOPL2" && !GAME_BG)?"FMOpl":midi_driver->getName(), GAME_BG && midi_driver->getName()=="OriginalOPL2");
 
 	// Now give the xmidi object to the midi device
 	XMidiEventList* eventlist = midfile.GetEventList(num);
@@ -512,6 +513,9 @@ void MyMidiPlayer::load_timbres() {
 #ifdef USE_FMOPL_MIDI
 	if (auto fm=std::dynamic_pointer_cast<FMOplMidiDriver>(midi_driver)) {
 		fm->setOriginalIntro(GAME_BG && timbre_lib==TIMBRE_LIB_INTRO);
+	}
+	if(auto original=std::dynamic_pointer_cast<OriginalOpl2MidiDriver>(midi_driver)) {
+		original->setContext(GAME_BG,timbre_lib==TIMBRE_LIB_INTRO);
 	}
 	if(auto opl3=std::dynamic_pointer_cast<Opl3StereoMidiDriver>(midi_driver)) {
 		opl3->setOriginalIntro(GAME_BG && timbre_lib==TIMBRE_LIB_INTRO);

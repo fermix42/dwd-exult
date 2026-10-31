@@ -27,6 +27,9 @@ libmididrv_la_SOURCES =	\
 	fmopl.h			\
 	FMOplMidiDriver.cpp	\
 	FMOplMidiDriver.h	\
+	OriginalOpl2MidiDriver.cpp \
+	OriginalOpl2MidiDriver.h \
+	OriginalOpl2Ending.cpp \
 	Opl3StereoMidiDriver.cpp \
 	Opl3StereoMidiDriver.h \
 	NukedOpl3.cpp \

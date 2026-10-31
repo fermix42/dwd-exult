@@ -384,6 +384,8 @@ for /f "tokens=* delims=" %%u in ('git ls-remote --get-url') do echo #define GIT
     <ClCompile Include="..\..\audio\midi_drivers\FluidSynthMidiDriver.cpp" />
     <ClCompile Include="..\..\audio\midi_drivers\fmopl.cpp" />
     <ClCompile Include="..\..\audio\midi_drivers\FMOplMidiDriver.cpp" />
+    <ClCompile Include="..\..\audio\midi_drivers\OriginalOpl2MidiDriver.cpp" />
+    <ClCompile Include="..\..\audio\midi_drivers\OriginalOpl2Ending.cpp" />
     <ClCompile Include="..\..\audio\midi_drivers\Opl3StereoMidiDriver.cpp" />
     <ClCompile Include="..\..\audio\midi_drivers\NukedOpl3.cpp" />
     <ClCompile Include="..\..\audio\midi_drivers\Opl3MusicPan.cpp" />
@@ -612,6 +614,7 @@ for /f "tokens=* delims=" %%u in ('git ls-remote --get-url') do echo #define GIT
     <ClInclude Include="..\..\audio\midi_drivers\FluidSynthMidiDriver.h" />
     <ClInclude Include="..\..\audio\midi_drivers\fmopl.h" />
     <ClInclude Include="..\..\audio\midi_drivers\FMOplMidiDriver.h" />
+    <ClInclude Include="..\..\audio\midi_drivers\OriginalOpl2MidiDriver.h" />
     <ClInclude Include="..\..\audio\midi_drivers\Opl3StereoMidiDriver.h" />
     <ClInclude Include="..\..\audio\midi_drivers\NukedOpl3.h" />
     <ClInclude Include="..\..\audio\midi_drivers\Opl3MusicPan.h" />

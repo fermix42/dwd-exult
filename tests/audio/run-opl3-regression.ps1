@@ -25,12 +25,16 @@ try {
     foreach ($dir in $includeDirs) { $options += "/I$repo/$dir" }
     & $compiler @options (Join-Path $PSScriptRoot 'opl3_voice_regression.cpp') "/Fo$scratch/check.obj" > "$scratch/compile.log" 2>&1
     if ($LASTEXITCODE) { Get-Content "$scratch/compile.log"; throw 'Regression compilation failed' }
+    # Execute the read-only local BG original driver as the OPL2 register oracle.
+    & $compiler @options ("/I"+(Join-Path $PSScriptRoot 'original-opl2-reference')) (Join-Path $PSScriptRoot 'original_opl2_reference.cpp') "/Fo$scratch/original-opl2-reference.obj" > "$scratch/reference-compile.log" 2>&1
+    if ($LASTEXITCODE) { Get-Content "$scratch/reference-compile.log"; throw 'Original OPL2 reference compilation failed' }
     # Compile the original shared sequencer solely for legacy event-trace comparison.
     & git -C $repo show HEAD:audio/midi_drivers/XMidiSequence.cpp | Set-Content "$scratch/baseline.cpp"
     & $compiler @options "$scratch/baseline.cpp" "/Fo$scratch/baseline.obj" > "$scratch/baseline-compile.log" 2>&1
     if ($LASTEXITCODE) { Get-Content "$scratch/baseline-compile.log"; throw 'Baseline compilation failed' }
     foreach ($mode in @('current','baseline')) {
         $args = @('/NOLOGO','/SUBSYSTEM:CONSOLE','/ENTRY:wmainCRTStartup','/OPT:REF','/OPT:ICF','/LTCG','/MACHINE:X64',"/OUT:`"$scratch/$mode.exe`"", "`"$scratch/check.obj`"")
+        $args += "`"$scratch/original-opl2-reference.obj`""
         foreach ($obj in Get-ChildItem -LiteralPath $objects -Filter '*.obj') {
             if ($obj.Name -eq 'NukedOpl3.obj') { continue } # Emulator included in test TU for register checks.
             if ($mode -eq 'baseline' -and $obj.Name -eq 'XMidiSequence.obj') { continue }

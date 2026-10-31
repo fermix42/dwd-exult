@@ -304,9 +304,10 @@ void Opl3VoiceRegression::serpentFidelity() {
 }
 
 #include "opl3_guardian_checks.h"
+#include "original_opl2_checks.h"
 
 int wmain(int argc,wchar_t**argv) {
     try {if(argc>1&&std::wstring(argv[1])==L"--legacy-trace"){legacyTrace();return 0;}
-    Opl3VoiceRegression::run();Opl3VoiceRegression::fidelity();Opl3VoiceRegression::serpentFidelity();Opl3VoiceRegression::guardian();sequencing();scoreRecovery();std::cout<<"PASS all OPL3 regressions\n";return 0;}
+    Opl3VoiceRegression::run();Opl3VoiceRegression::fidelity();Opl3VoiceRegression::serpentFidelity();Opl3VoiceRegression::guardian();sequencing();scoreRecovery();OriginalOpl2Regression::run();std::cout<<"PASS all OPL3 regressions\n";return 0;}
     catch(const std::exception&e){std::cerr<<"FAIL "<<e.what()<<"\n";return 1;}
 }

@@ -378,7 +378,7 @@ void AudioOptions_gump::rebuild_midi_driver_buttons() {
 	std::vector<std::string> midi_drivertext;
 	for (unsigned int i = 0; i < num_midi_drivers; i++) {
 		const auto name=MidiDriver::getDriverName(i);
-		midi_drivertext.emplace_back(name=="OPL3Stereo" ? "OPL3 Stereo" : name);
+		midi_drivertext.emplace_back(name=="OriginalOPL2" ? "Original OPL2 - AdLib / Sound Blaster" : name=="OPL3Stereo" ? "OPL3 Stereo" : name);
 	}
 	midi_drivertext.emplace_back(Strings::Default());
 
