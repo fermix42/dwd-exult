@@ -14,7 +14,7 @@ was performed. Accepted gameplay/audio/art code remains frozen and unchanged.
 | --- | --- | --- |
 | Ordinary Windows Release/x64 compilation | PASS | Existing MSVC solution/build facilities; Exult, expack and exconfig built. Known manifest namespace/debug-option warnings and optional DLL post-copy missing-path messages remain; explicit payload copies are hash checked. |
 | Inno installer compilation | PASS | Official Inno Setup 6.7.4, SHA-256 a549929319f9120716677c685535ca4671e4b937b5fdc87e2585f32d8eb30e8c; download Authenticode signature valid, Pyrsys B.V. |
-| DWD installer identity | PASS | DWD filename, version, publisher, AppId DWDExult, HKCU registry, independent uninstall key/group and writable per-user default directory. Exult.exe retains its name. |
+| DWD installer identity | PASS | DWD filename, version, publisher, AppId DWDExult, HKCU registry, independent uninstall key/group and {sd}\Games\DWDExult default. Exult.exe retains its name. |
 | Independent installer manifest inspection | PASS | innounp 2.71.3 listed the actual compiled DWD installer, including helper, all three mod ZIPs, engine, runtime DLLs, FLX files, original/DWD docs and license notices. |
 | Official distribution comparison | PASS | Actual official Exult 1.12.1-1 manifest inspected, SHA-256 90f5495e7810d1ef847191779420f2abb93e56ebb99bd198ad3a374dd74c56db. All 30 upstream nonbinary application paths are present; 33 application paths common after architecture-name normalization. Binary differences are intentional (below). |
 | Fresh silent installation/file integrity | PASS | Every installed payload file checked against staging hashes; correct installed version output and independent uninstall entry. |
@@ -29,7 +29,7 @@ was performed. Accepted gameplay/audio/art code remains frozen and unchanged.
 | Authenticode signing | PASS (unsigned policy) | Publicly trusted signing is not required. Engine/installer intentionally unsigned; SHA-256 and provenance retained. No purchase/subscription initiated. |
 | Workflow source assessment | PASS | Prepared standard windows-2022 MSVC/vcpkg build, parser tools, pinned verified Inno compiler, source mod builds, dependency collection, packaging, available Defender scan and restricted manual release gates. YAML/PowerShell/Python syntax checked. Hosted behavior still unverified. |
 | Fresh disposable Windows VM/clean OS | NOT TESTED | No usable disposable VM was established. vmcompute was stopped; feature query required an elevated Windows token. No Windows feature/security settings were changed. Local tests were host-isolated with an already installed MSVC runtime. |
-| Interactive wizard/downloads/Start Menu | NOT TESTED | Silent tests suppress UI/icons and exclude remote audio/third-party downloads. Upstream download logic retained; interactive path browsing, shortcut appearance and live remote downloads need human verification. |
+| Human wizard appearance/browse clicks | NOT TESTED | Automated inputs use the same validation controls; human visual review remains outstanding. |
 | Human visual/audio/gameplay review | NOT TESTED | Existing accepted feature evidence is preserved. This pass did not perform new listening, visual inspection or full campaign testing. |
 | Hosted GitHub Actions execution | NOT TESTED | Requires an approved push/run. No branch or tag pushed, no hosted run claimed. |
 | GitHub public artifact attestations | NOT TESTED (prepared) | Dedicated public/tagged actions/attest@v4 job prepared, free for public repositories. No attestation generated; it is provenance, not Authenticode or a SmartScreen bypass. |
@@ -54,7 +54,7 @@ gameplay/audio. Failed test logs remain as historical evidence.
   Registry changes are tracked for uninstall. Official Exult is not overwritten.
 - Mod ZIPs come from checked-in accepted sources rather than copying player mods.
   They are embedded as upstream expects; portable users also receive optional ZIPs.
-  Remote audio/third-party download handling remains upstream behavior and untested.
+  Actual audio/third-party downloads use pinned hashes and owned destinations.
 - Source ZIP additionally includes external dependency source archives, installed
   SPDX/ABI inventory, exact vcpkg port patches/build options and the complete pinned
   vcpkg source/scripts. Ordinary versioned registry rebuilding uses Git, Visual
@@ -79,7 +79,7 @@ The final committed snapshot is rebuilt and its exact results are retained in th
 final evidence files rather than embedding a future self-referential SHA here.
 
 Human/environment work: clean Windows VM with documented runtime prerequisite,
-interactive wizard/Start Menu, live optional downloads and final visual/listening
+human wizard appearance/browse clicks and final visual/listening
 review. Signing is intentionally not a gate. Approval-dependent GitHub work:
 push/run prepared workflow, inspect hosted outputs, generate free attestations
 once public/tagged and approved, configure environment reviewers, then separately
@@ -96,3 +96,37 @@ Primary tooling references:
 [official Exult downloads](https://exult.info/download.html),
 [GitHub attestations](https://github.com/actions/attest),
 [Microsoft runtime deployment](https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files).
+
+## Executable-root follow-up evidence
+
+Evidence root: `../test-output/dwd-paths/`. Exact final revision, rebuilt assets and
+final reruns are recorded in final-review.json beside the final assets. Earlier
+runs: installer-1 passed 186 assertions plus all 34 runtime assertions; portable-3
+passed 39; default-3 passed 16; download-install-2 passed 10 actual network-download
+assertions. Final reruns supersede these snapshots.
+
+The installer regression retains the previous 167 checks and adds owned paths,
+remembered upgrades, package bytes, mod update/removal save preservation and obsolete
+file removal. Portable tests use no -p and cover unrelated CWD, relocation, external
+assets, mod override rebasing, all optional package bytes, traversal rejection,
+overlap rejection before writes and a disposable deny-write ACL fixture.
+Default tests install at C:\Games\DWDExult without /DIR, launch the actual Start
+Menu shortcut with temporary verifier arguments and unrelated working directory,
+restore it, then test desktop-style and Explorer-style shell launches. These run
+the ordinary executable's --verify-files; visible gameplay from these surfaces
+remains NOT TESTED. Actual Inno downloads include all-in-one audio, original
+Ultima VI Remake and Glimmerscape, compared against every original package file.
+
+Protected original games, official engine and official profiles are compared by
+files AND directories. Official registry/uninstall state is preserved. Original
+game-tree ACLs were not changed; ACL-enforced read-only original-tree gameplay is
+NOT TESTED to preserve supplied source permissions. Runtime write guards and
+unchanged-source snapshots are tested. Inno's own transient Windows bootstrap and
+download staging is outside the selected root; persistent data/runtime temp is owned.
+
+Clean-machine runtime prerequisites, human wizard/audio/visual/gameplay review,
+hosted Actions and public attestations remain NOT TESTED. Unsigned status is accepted.
+No push/publication occurred. Earlier failures retained in logs: inherited native
+installation skipped Ultima VI Remake's root changelog (now preserved unchanged);
+an overly broad disposable ACL prevented Windows loading the executable (fixture
+corrected to deny creation only). Neither is reported as a passing run.

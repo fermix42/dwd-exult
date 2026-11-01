@@ -27,3 +27,15 @@ DWD revision: Recorded per build in release-metadata.json and Exult version outp
       installer and optional mods, verified isolated install/upgrade/uninstall,
       and added matching external dependency sources. Downloads are unsigned
       under the free project policy; publication still requires approval.
+
+      Installer and portable-path follow-up (November 1, 2026):
+    - Defaulted installation to Games\DWDExult on the system drive, retaining
+      directory selection and remembered DWD upgrade locations.
+    - Made installed and ZIP builds store configuration, mods, saves, patches
+      and runtime temporary files beside the executable without requiring -p.
+    - Kept original game folders read-only and rejected overlapping destinations.
+    - Separated mod packages from saves so updates and removal preserve saves.
+      Moving the portable folder retains owned relative paths.
+    - Preserved automatic audio and original optional mod downloads with verified
+      hashes, owned destinations and original documentation and credits.
+      Keyring and SI Fixes remain original editions, not modified DWD editions.

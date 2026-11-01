@@ -64,8 +64,8 @@ application paths are present in DWD; binary/toolchain differences below are int
 | Engine | Exult.exe and architecture DLLs | Same executable name; MSVC x64 only |
 | Resources | exult, exult_bg, exult_si FLX | Same three generated engine archives |
 | Docs | Original text, HTML, images, keys, licenses | Preserved; adds DWD README/history, INSTALL, metadata, notices |
-| Installer | Inno, architecture macros, paths, optional mods/downloads, uninstall | Generated from full upstream script; separate AppId, HKCU registry, group, writable per-user directory |
-| Profile | Official profile | Accepted portable beside-executable behavior retained |
+| Installer | Inno, architecture macros, paths, optional mods/downloads, uninstall | Generated from full upstream script; separate AppId, HKCU registry, group, ordinary-user {sd}\Games\DWDExult default |
+| Profile | Official profile | Executable-root storage mandatory; owned paths relocatable |
 | Mod support | Source-built optional mod ZIPs and exconfig | All three built from committed sources; embedded in installer and supplied under portable mods/ |
 | Platforms | Multiple upstream builds | Only local Windows Release/x64 evidence; no ARM/x86/Linux/macOS support claim |
 | Publishing | Exult infrastructure, snapshots, notifications | Inherited YAML renamed .disabled; only manual DWD review workflow active |
@@ -119,5 +119,23 @@ the included source archive is not a Git repository. No offline build is claimed
 
 The local install regression uses `installer-check.py`, same installed executable,
 disposable mods/configs/saves and protected-file hashes. It is a host-isolated test,
-not a fresh Windows VM. Interactive controls/downloads, clean-OS prerequisites and
+not a fresh Windows VM. Human interactive controls, clean-OS prerequisites and
 hosted Actions remain separately recorded as NOT TESTED. See VALIDATION.md.
+
+## Mandatory storage and additional tests
+
+Normal operation anchors storage to the physical executable directory before any
+writes. Preflight rejects roots inside original game trees and asset sources
+inside managed subtrees. Original game/static roots are protected read-only inputs.
+Installer and configuration helper share validation. Mod saves/gamedat use separate
+owned game/ID directories. Nonwritable roots fail without fallback. Inno itself
+uses Windows-managed transient bootstrap/download staging; persistent application
+content and engine runtime temp belong to DWD. System permissions are not loosened.
+
+Run portable-check.py for ordinary startup, relocation, package bytes, overlap and
+nonwritable-root checks; download-check.py for actual installer downloads; and
+default-shortcuts-check.ps1 for no-/DIR default and actual shell shortcut launches.
+Use fresh work folders and protect both game trees, official install and profiles.
+Run installer/download/default tests sequentially (shared DWD registry identity).
+Use --downloads with verified archive cache for byte comparison, not substitution
+for actual Inno downloads. Protected snapshots include files AND directories.

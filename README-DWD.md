@@ -23,25 +23,55 @@ renaming and publication have not been approved.
 
 ## 2. Installation and upgrading
 
-The locally prepared Windows x64 ZIP is for review. Extract its entire `DWD Exult`
-folder to a writable location and keep `Exult.exe`, DLLs and `data` together. This
-Windows build keeps `exult.cfg` beside the executable; its configuration and save
-paths must remain separate from an official installation. Configure paths to your
-own BG/SI game installations using Exult's normal setup. The MSVC v14 x64 runtime (including MSVCP140 and VCRUNTIME140 DLLs) is required;
-this review ZIP does not install it. No game files, soundfonts
-or Roland ROMs are supplied. Do not extract over an official Exult installation.
+The Windows x64 installer defaults to `C:\Games\DWDExult` on the Windows
+system drive. Keep the standard directory page to choose another writable location;
+upgrades remember the previous DWD location. Installation uses ordinary-user
+privileges without weakening permissions. The MSVC v14 x64 runtime is required
+and is not bundled. No proprietary game files, soundfonts or Roland ROMs are supplied.
 
-The prepared Inno installer uses its own DWD application, registry, Start Menu and
-uninstall identity and defaults to a writable per-user directory. Installer compilation and automated host-isolated install/upgrade/uninstall checks
-are covered in [release validation](packaging/dwd/VALIDATION.md). Clean-OS and
-interactive wizard testing remain separately identified there. It
-retains upstream path setup and optional mod/audio installation code. These options
-can write to selected game/mod directories; review your paths and back up mods.
+Use the wizard to browse for and validate your existing Black Gate and Serpent Isle
+directories. These are read-only asset sources shared with official Exult. DWD has
+its own registry/uninstall identity. Never install over official Exult or inside an
+original game folder. No original assets are duplicated for separation.
 
-Back up your configuration and saves before upgrading. Copy saves deliberately
-into a disposable profile first; do not assume that a save written by this fork
-can be safely taken back to every upstream version. Uninstall must preserve player
-saves and external game data; automated preservation checks are recorded in the validation report.
+Extract the portable ZIP's complete `DWDExult` folder into a writable location.
+Use the accompanying installer in **Setup Paths Only** mode, targeting the extracted
+folder, to select game sources without manual configuration editing.
+
+Both distributions always use the executable directory as their root, including
+Explorer, shortcuts and unrelated working directories. No `-p` is needed. A
+nonwritable root reports an error without profile/CWD fallback. Owned configuration
+paths use relocatable `<HOME>` values:
+
+| Location below DWDExult | Contents |
+| --- | --- |
+| `exult.cfg`, root logs | Configuration and redirected diagnostics |
+| `data/`, `temp/` | Resources/downloaded audio and runtime temporary files |
+| `mods/<game>/` | Installed mods and their patches |
+| `patches/<game>/` | Base patches and source workspace |
+| `saves/<game>/`, `gamedat/<game>/` | Base saves and working state |
+| `saves/<game>/mods/<id>/`, `gamedat/<game>/mods/<id>/` | Separate mod saves/state |
+
+Games include `blackgate`, `serpentisle` and expansion/custom game identities.
+Mod overrides cannot redirect writable state into original assets or mod packages.
+Moving DWD preserves owned relative paths; moving original assets requires rerunning
+path setup. Explicit developer CLI runs keep their disposable test-root contract.
+
+The installer retains automatic all-in-one digital music/effects download into
+`data`. Original Keyring and SourceForge Island install under `mods/blackgate`;
+original SI Fixes installs under `mods/serpentisle`. These three are built from
+accepted checked-in sources and also supplied as optional ZIPs under `mods`.
+Original Ultima VI Remake and Glimmerscape retain their upstream download sources
+and install under the respective game mod roots. Download hashes, original package
+bytes, documentation and credits are preserved. Inno's transient bootstrap/download
+staging uses Windows temporary storage; persistent data and engine runtime temp
+belong to DWD. Extracting the ZIP does not automatically enable its optional mods.
+
+Back up configuration and saves before upgrading. Reinstallation, mod updates and
+mod removal preserve separate saves. Uninstall retains configuration and saves.
+Legacy external writable overrides are rebased; old saves are not automatically
+copied. Import backups deliberately into a disposable installation and evaluate
+compatibility. Original game directories are never migration targets.
 
 ## 3. Features and enhancements
 
@@ -152,7 +182,9 @@ testing. Optional source-built Keyring, SI Fixes and SourceForge Island ZIPs are
 in the installer and supplied with the portable ZIP under `mods`. Install them
 through the installer or ordinary `Exult.exe --installmod <ZIP>` workflow using
 your intended configuration. They are not automatically enabled by the portable
-ZIP. No mod is merged into original game data by this release preparation.
+ZIP. Current Keyring and SI Fixes remain original editions. Future DWD editions
+require independent acceptance, versions, identities and save compatibility review.
+The planned Virtue Stone case is not implemented. No mod is merged into original game data by this release preparation.
 
 ## 7. Known limitations
 
@@ -162,7 +194,7 @@ unsigned, as permitted by this free project’s zero-budget policy. Windows may 
 SmartScreen or unknown-publisher warnings. Verify SHA-256 before running it.
 Free GitHub provenance attestations are prepared for approved public releases;
 they are not Windows Authenticode signatures and do not prevent SmartScreen warnings. The corresponding-source ZIP includes matching dependency archives, patches and
-vcpkg recipes. A clean Windows VM test and interactive installer/download checks
+vcpkg recipes. A clean Windows VM test and human wizard checks
 remain publication review items. Native quiz encounters, some late-game Orb story states and
 natural SI Fixes Batlin vision have the unperformed-test limits recorded in the
 feature documents. Fresh listening and human gameplay review of the final package

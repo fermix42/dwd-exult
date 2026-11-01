@@ -19,6 +19,8 @@ function Check([string]$Label,[bool]$OK){
 }
 $setup=(Get-ChildItem -LiteralPath $artifactRoot -Filter '*-Setup.exe' | Select-Object -First 1).FullName
 $arguments="/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /COMPONENTS=`"Exult,Docs,GPL,Icons`" /GROUP=`"$group`" /BGDIR=`"$BG`" /SIDIR=`"$SI`" /LOG=`"$proofRoot/install.log`""
+$parentRoot=Split-Path $expectedRoot -Parent
+$parentExisted=Test-Path -LiteralPath $parentRoot
 $created=$false
 try {
  $p=Start-Process -FilePath $setup -ArgumentList $arguments -WindowStyle Hidden -Wait -PassThru
@@ -36,15 +38,19 @@ try {
  $unrelated=Join-Path $proofRoot 'unrelated';New-Item -ItemType Directory $unrelated | Out-Null
  foreach($kind in @('StartMenu','Desktop')){
    $folder=Join-Path $proofRoot $kind;New-Item -ItemType Directory $folder | Out-Null
-   $variant=Join-Path $folder 'DWD validation.lnk'
-   Copy-Item -LiteralPath $link -Destination $variant
+   $variant=if($kind -eq 'StartMenu'){$link}else{Join-Path $folder 'DWD validation.lnk'}
+   if($kind -ne 'StartMenu'){Copy-Item -LiteralPath $link -Destination $variant}
    $copy=$shell.CreateShortcut($variant)
    $copy.Arguments='--bg --verify-files'
    $copy.WorkingDirectory=$unrelated
    $copy.Save()
    $exit=$shell.Run('"'+$variant+'"',0,$true)
    Check "$kind shell shortcut startup without portable flag" ($exit -eq 0)
+   if($kind -eq 'StartMenu'){$copy.Arguments='';$copy.WorkingDirectory=$expectedRoot;$copy.Save()}
  }
+ $shell.CurrentDirectory=$unrelated
+ $exit=$shell.Run('"'+$expectedRoot+'\Exult.exe" --bg --verify-files',0,$true)
+ Check 'Explorer-style shell startup without portable flag' ($exit -eq 0)
  Check 'shortcut does not create CWD config' (!(Test-Path "$unrelated/exult.cfg"))
  Check 'configuration beside executable' (Test-Path "$expectedRoot/exult.cfg")
  Check 'base saves inside default root' (Test-Path "$expectedRoot/saves/blackgate")
@@ -63,6 +69,7 @@ try {
    $resolved=(Resolve-Path -LiteralPath $expectedRoot).Path
    if($resolved -ne [IO.Path]::GetFullPath("$env:SystemDrive\Games\DWDExult")){throw 'Unexpected cleanup target'}
    Remove-Item -LiteralPath $resolved -Recurse -Force
+   if(!$parentExisted -and (Test-Path -LiteralPath $parentRoot) -and @(Get-ChildItem -LiteralPath $parentRoot -Force).Count -eq 0){Remove-Item -LiteralPath $parentRoot}
  }
 }
 "PASS: $($checks.Count) default-directory and native shell shortcut assertions"
