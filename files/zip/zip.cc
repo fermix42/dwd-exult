@@ -7,6 +7,7 @@
 */
 
 /* Added by Ryan Nunn */
+#include "utils.h"
 #ifdef HAVE_CONFIG_H
 #	include <config.h>
 #endif
@@ -259,6 +260,9 @@ static uLong ziplocal_TmzDateToDosDate(const tm_zip* ptm, uLong uLongdosDate) {
 /****************************************************************************/
 
 extern zipFile ZEXPORT zipOpen(const char* pathname, int append) {
+    try { dwd_require_write_path(pathname); }
+    catch (const std::exception& error) { std::cerr << error.what() << std::endl; return {}; }
+
 	// Allocate memory at the start assuming everything will succeed. Eliminates
 	// a copy at the end and make_unique will value initialize the object
 	std::unique_ptr<zip_internal> ziinit;

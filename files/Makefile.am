@@ -59,3 +59,6 @@ EXTRA_DIST = 		\
 	README
 
 CLEANFILES = *~
+
+# Shared DWD executable-root storage policy used by the engine and installer helper.
+EXTRA_DIST += dwd_paths.h

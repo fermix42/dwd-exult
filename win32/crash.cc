@@ -187,6 +187,8 @@ static void HandlerWorkerThreadFunc() {
 	// CreateMidiDump
 	auto minidumpfn = get_system_path("<HOME>/minidump.dmp");
 	std::cerr << "Writing a minidump to: " << minidumpfn << std::endl;
+    try {
+        dwd_require_write_path(minidumpfn);
 	HANDLE hminidumpfile
 			= CreateFileA(minidumpfn.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 	MINIDUMP_EXCEPTION_INFORMATION mdei;
@@ -202,6 +204,9 @@ static void HandlerWorkerThreadFunc() {
 	MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hminidumpfile, miniDump_Type, &mdei, nullptr, &mdci);
 
 	CloseHandle(hminidumpfile);
+    } catch (const std::exception& error) {
+        std::cerr << "Cannot write DWD crash dump: " << error.what() << std::endl;
+    }
 
 	if (GAME_BG || GAME_SI) {
 		std::cerr << " Verifying game files look in stdout for verification "

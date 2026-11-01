@@ -155,3 +155,38 @@ Prepare free GitHub artifact attestations for approved public-repository release
 where supported. Attestations establish provenance; they are not Authenticode
 signatures and do not prevent Windows SmartScreen warnings. Do not publish or push
 to obtain an attestation without the owner's explicit publication approval.
+
+### DWD installation, portable paths and mod distribution
+
+- Windows installer default: `{sd}\Games\DWDExult` (normally
+  `C:\Games\DWDExult`). Keep directory selection enabled, preserve an existing DWD
+  location on upgrade and never inherit official Exult identity/location. Prefer
+  ordinary-user installation into a writable root; never loosen system-directory
+  permissions. If the selected root is not writable, report the error.
+- Both installed and ZIP builds are mandatory portable applications: executable
+  directory is the normal application root regardless of CWD, shortcut or `-p`.
+  Config/logs/data downloads/mods/patches/saves/gamedat/generated files stay beneath
+  that root with relocatable owned paths. No user-profile/CWD fallback. Preserve the
+  explicitly activated CLI's separate disposable run-root contract for tests.
+- Original Ultima VII directories are read-only asset inputs shared with official
+  Exult. Preserve the validated BG/SI browse wizard. Never put DWD files there,
+  including through upstream defaults, mod-supplied paths or installer fallbacks.
+  Base and mod saves/gamedat belong in separate root-owned trees, outside mod
+  install/patch directories; mod update/removal and uninstall preserve saves/config.
+- Preserve automated optional audio (including all-in-one), Keyring, SI Fixes,
+  SourceForge Island, Ultima VI Remake and Glimmerscape installation/downloads,
+  integrity/error handling and original attribution. All destinations are DWD-owned.
+- Current Keyring/SI Fixes packages remain the original approved upstream editions.
+  Future DWD editions require independently modified, accepted, documented and
+  versioned releases, distinct package identities and isolated saves. Recommend
+  actual accepted DWD editions by default when available without overwriting an
+  original edition; evaluate compatibility before save migration. Do not relabel
+  upstream mods, alter other third-party mods, or assume the uninvestigated Virtue
+  Stone case needs engine/mod changes.
+- For path/packaging releases test default/alternative/remembered installation,
+  wizard validation, optional downloads, unrelated-CWD startup, relocation,
+  nonwritable roots, base/mod save separation, updates/removal and coexistence.
+  Compare files AND directories before/after in original game/official profile/
+  mod/patch/install trees; use read-only resources where practical. Rerun existing
+  installer/runtime regressions, report actual totals, rebuild exact-source assets
+  and new checksums, retain Defender/provenance and genuine NOT TESTED gates.

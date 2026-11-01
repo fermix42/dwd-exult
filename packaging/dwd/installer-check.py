@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 def digest(path): return hashlib.sha256(path.read_bytes()).hexdigest()
-def tree(root): return {p.relative_to(root).as_posix():digest(p) for p in sorted(root.rglob('*')) if p.is_file()}
+def tree(root): return {p.relative_to(root).as_posix():digest(p) if p.is_file() else '<DIRECTORY>' for p in sorted(root.rglob('*'))}
 def registry(hive,path):
     try:
         with winreg.OpenKey(hive,path) as key:
@@ -62,30 +62,44 @@ def main(a):
         cfg=app/'exult.cfg';doc=ET.parse(cfg)
         for game in ['blackgate','serpentisle']:
             g=doc.getroot().find('disk/game/'+game)
-            ET.SubElement(g,'mods').text=(work/'mods').as_posix()
-            ET.SubElement(g,'savegame_path').text=(work/'saves').as_posix()
-        doc.write(cfg,encoding='utf-8')
-        save=app/'saves/preserve.sav';save.parent.mkdir();save.write_bytes(b'DWD disposable preservation sentinel\n')
+            for field,folder in [('mods','mods'),('patch','patches'),('savegame_path','saves'),('gamedat_path','gamedat')]:
+                check('owned config '+game+'/'+field,g.findtext(field)=='<HOME>/'+folder+'/'+game)
+        save=app/'saves/preserve.sav';save.parent.mkdir(exist_ok=True);save.write_bytes(b'DWD disposable preservation sentinel\n')
         external=work/'saves/external.sav';external.parent.mkdir();external.write_bytes(b'external disposable save\n')
         for mod,game in [('bgkeyring','bg'),('sifixes','si'),('islefaq','bg')]:
-            run([app/'Exult.exe','-p','-c',cfg,'--'+game,'--installmod',candidate/(mod+'.zip')],'install-'+mod)
+            run([app/'Exult.exe','--'+game,'--installmod',candidate/(mod+'.zip')],'install-'+mod)
             import zipfile
             with zipfile.ZipFile(candidate/(mod+'.zip')) as archive:
                 for info in archive.infolist():
                     if info.is_dir():continue
                     # Native installer normalizes names to the selected game's case.
-                    target=work/'mods'/info.filename
-                    matches=[p for p in (work/'mods').rglob('*') if p.is_file() and p.relative_to(work/'mods').as_posix().lower()==info.filename.lower()]
+                    modroot=app/'mods'/('blackgate' if game=='bg' else 'serpentisle')
+                    matches=[p for p in modroot.rglob('*') if p.is_file() and p.relative_to(modroot).as_posix().lower()==info.filename.lower()]
                     check('mod file '+mod+'/'+info.filename,len(matches)==1 and matches[0].read_bytes()==archive.read(info))
         if a.quiz_header:
             env=os.environ.copy()
-            env.update(EXULT_TEST_EXE=str(app/'Exult.exe'),EXULT_TEST_RUNTIME_DIR=str(app),EXULT_TEST_DATA_PATH=str(app/'data'),EXULT_TEST_BG_PATH=str(a.bg),EXULT_TEST_SI_PATH=str(a.si),EXULT_TEST_MODS_PATH=str(work/'mods'),EXULT_TEST_OUTPUT=str(work/'runtime'))
+            env.update(EXULT_TEST_EXE=str(app/'Exult.exe'),EXULT_TEST_RUNTIME_DIR=str(app),EXULT_TEST_DATA_PATH=str(app/'data'),EXULT_TEST_BG_PATH=str(a.bg),EXULT_TEST_SI_PATH=str(a.si),EXULT_TEST_MODS_PATH=str(app/'mods/blackgate'),EXULT_TEST_OUTPUT=str(work/'runtime'))
             for game,mod in [('bg',''),('si',''),('bg','Keyring'),('si','sifixes')]:
+                env['EXULT_TEST_MODS_PATH']=str(app/'mods'/('blackgate' if game=='bg' else 'serpentisle'))
                 command=[sys.executable,str(Path(__file__).resolve().parents[2]/'tools/quiz/integration.py'),'--game',game,'--header',str(a.quiz_header.resolve()),'--run','installed-'+game+'-'+(mod or 'vanilla')]
                 if mod:command+=['--mod',mod]
                 result=subprocess.run(command,env=env,capture_output=True,creationflags=subprocess.CREATE_NO_WINDOW,timeout=120)
                 (work/('runtime-'+game+'-'+(mod or 'vanilla')+'.log')).write_bytes(result.stdout+result.stderr)
                 check('installed runtime '+game+'/'+(mod or 'vanilla'),result.returncode==0)
+        import shutil
+        mod_saves=[]
+        for mod,game,archive in [('Keyring','blackgate','bgkeyring.zip'),('sifixes','serpentisle','sifixes.zip')]:
+            sentinel=app/'saves'/game/'mods'/mod/'preserve.sav'
+            sentinel.parent.mkdir(parents=True,exist_ok=True);sentinel.write_bytes(b'isolated mod save sentinel')
+            mod_saves.append(sentinel)
+            run([app/'Exult.exe','--'+('bg' if game=='blackgate' else 'si'),'--installmod',candidate/archive],'update-'+mod)
+            check('mod update retains save '+mod,sentinel.read_bytes()==b'isolated mod save sentinel')
+            target=(app/'mods'/game/mod).resolve()
+            assert (app/'mods').resolve() in target.parents
+            shutil.rmtree(target)
+            check('mod removal retains save '+mod,sentinel.read_bytes()==b'isolated mod save sentinel')
+            run([app/'Exult.exe','--'+('bg' if game=='blackgate' else 'si'),'--installmod',candidate/archive],'restore-'+mod)
+        check('no mod saves inside installation trees',not any((app/'mods').rglob('*.sav')))
         def config_values():
             def walk(node,prefix=''):
                 path=prefix+'/'+node.tag
@@ -93,12 +107,13 @@ def main(a):
                 return {k:v for child in node for k,v in walk(child,path).items()}
             return walk(ET.parse(cfg).getroot())
         cfg_tree=config_values()
-        saves_before={str(p):digest(p) for p in [save,external]}
-        run(args[:-1]+['/LOG='+str(work/'upgrade.log')],'upgrade')
+        saves_before={str(p):digest(p) for p in [save,external,*mod_saves]}
+        run([v for v in args[:-1] if not str(v).startswith('/DIR=')]+['/LOG='+str(work/'upgrade.log')],'upgrade')
         check('upgrade retains config values',config_values()==cfg_tree)
         check('upgrade retains saves',all(Path(p).is_file() and digest(Path(p))==h for p,h in saves_before.items()))
         # Paths-only uses the existing valid paths and does not install the engine.
-        run([setup,'/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOICONS','/DIR='+str(app),'/TYPE=pathsonly','/COMPONENTS=GPL,Paths','/LOG='+str(work/'paths-only.log')],'paths-only')
+        run([setup,'/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOICONS','/TYPE=pathsonly','/COMPONENTS=GPL,Paths','/LOG='+str(work/'paths-only.log')],'paths-only')
+        check('upgrade remembers DWD location',registry(winreg.HKEY_CURRENT_USER,dwd)['Path'][0]==str(app))
         check('paths-only retains binary',digest(app/'Exult.exe')==manifest['x86_64\\Exult.exe'] if 'x86_64\\Exult.exe' in manifest else digest(app/'Exult.exe')==manifest['x86_64/Exult.exe'])
     finally:
         if installed and (app/'unins000.exe').is_file():

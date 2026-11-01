@@ -33,6 +33,7 @@
 #include "fnames.h"
 #include "listfiles.h"
 #include "utils.h"
+#include "dwd_paths.h"
 
 #include <cstdlib>
 #include <fstream>
@@ -147,6 +148,10 @@ ModInfo::ModInfo(
 	ReplaceMacro(sourcedir, mod_path_macro, data_directory);
 	add_system_path("<" + system_path_tag + "_SOURCE>", get_system_path(sourcedir));
 
+    if (dwd_portable_runtime() && !dwd_developer_run()) {
+        dwd_require_write_path(get_system_path(patchdir));
+        dwd_require_write_path(get_system_path(sourcedir));
+    }
 	cli_require_write_path(get_system_path(mods_save_dir));
 	U7mkdir(mods_save_dir.c_str(), 0755);
 	cli_require_write_path(get_system_path(savedata_directory));
@@ -160,9 +165,12 @@ ModInfo::ModInfo(
 	// Path 'macros' for relative paths:
 	ReplaceMacro(gamedatdir, mods_macro, mods_save_dir);
 	ReplaceMacro(gamedatdir, mod_path_macro, savedata_directory);
+    if (dwd_portable_runtime() && !dwd_developer_run()) {
+        gamedatdir = dwd_owned_path("gamedat/" + dwd_path_component(cfgname) + "/mods/" + dwd_path_component(mod_title));
+    }
 	add_system_path("<" + system_path_tag + "_GAMEDAT>", get_system_path(gamedatdir));
 	cli_require_write_path(get_system_path(gamedatdir));
-	U7mkdir(gamedatdir.c_str(), 0755);
+	U7mkdir(gamedatdir.c_str(), 0755, true);
 
 	config_path = "mod_info/savegame_path";
 	string savedir;
@@ -170,9 +178,12 @@ ModInfo::ModInfo(
 	// Path 'macros' for relative paths:
 	ReplaceMacro(savedir, mods_macro, mods_save_dir);
 	ReplaceMacro(savedir, mod_path_macro, savedata_directory);
+    if (dwd_portable_runtime() && !dwd_developer_run()) {
+        savedir = dwd_owned_path("saves/" + dwd_path_component(cfgname) + "/mods/" + dwd_path_component(mod_title));
+    }
 	add_system_path("<" + system_path_tag + "_SAVEGAME>", get_system_path(savedir));
 	cli_require_write_path(get_system_path(savedir));
-	U7mkdir(savedir.c_str(), 0755);
+	U7mkdir(savedir.c_str(), 0755, true);
 
 	config_path = "mod_info/skip_splash";
 	string skip_splash_str;
@@ -594,6 +605,8 @@ ModManager::ModManager(const string& name, const string& menu, bool needtitle, b
 
 	menustring = needtitle ? new_title : menu;
 	// NOW we can store the path.
+	dwd_protect_game_path(game_path);
+    dwd_protect_game_path(static_dir);
 	add_system_path("<" + path_prefix + "_PATH>", game_path);
 	add_system_path("<" + path_prefix + "_STATIC>", static_dir);
 
@@ -907,6 +920,7 @@ int ModManager::InstallModZip(std::string& zipfilename, ModManager* game_overrid
 
 		U7mkdir(game_mod_path.c_str());
 
+        dwd_require_path_within(get_system_path(game_mod_path + "/" + patch_path), get_system_path(game_mod_path + "/" + moddir));
 		// Delete mod patch directory and cfg
 		U7remove((game_mod_path + "/" + cfgname).c_str());
 		U7rmdir((game_mod_path + "/" + patch_path).c_str(), true);
@@ -1020,6 +1034,7 @@ int ModManager::InstallModZip(std::string& zipfilename, ModManager* game_overrid
 						std::cerr << "InstallMod: error trying to extract file \"" << filepath << "\" from mod zip" << std::endl;
 						return -16;
 					}
+                    dwd_require_path_within(get_system_path(outpath), get_system_path(game_mod_path));
 					// Write out the buffer
 					std::unique_ptr<std::ostream> outfile;
 
@@ -1104,6 +1119,7 @@ ModInfo* ModManager::get_mod(const string& name, bool checkversion) {
  *  game is selected.
  */
 void ModManager::get_game_paths(const string& game_path) {
+	dwd_configure_paths(*config);
 	string       saveprefix(get_system_path("<SAVEHOME>") + "/" + cfgname);
 	string       default_dir;
 	string       config_path;

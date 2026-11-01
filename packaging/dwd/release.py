@@ -70,7 +70,7 @@ def installer(stage, meta):
         'AppUpdatesURL=https://exult.info/': 'AppUpdatesURL=' + meta['source_url'] + '/releases',
         'VersionInfoVersion=1.13.1': 'VersionInfoVersion=' + meta['version'].split('-')[0] + '.0',
         'DefaultDirName={code:GetExultInstDir|{autopf}\\Exult}':
-            'PrivilegesRequired=lowest\nDefaultDirName={code:GetExultInstDir|{localappdata}\\Programs\\DWD Exult}',
+            'PrivilegesRequired=lowest\nDefaultDirName={code:GetExultInstDir|{sd}\\Games\\DWDExult}',
         'DefaultGroupName={code:GetExultGroupDir|Exult}': 'DefaultGroupName={code:GetExultGroupDir|DWD Exult}',
         'OutputBaseFilename=Exult': 'OutputBaseFilename=DWD-Exult-' + meta['version'] + '-Setup',
         'Software\\Exult': 'Software\\DWDExult',
@@ -81,8 +81,50 @@ def installer(stage, meta):
     for before, after in replacements.items():
         assert before in text, f'Upstream installer changed: {before}'
         text = text.replace(before, after)
+    text = text.replace("sBGmods := BGPath + '\\mods';", "sBGmods := ExpandConstant('{app}\\mods\\blackgate');")
+    text = text.replace("sSImods := SIPath + '\\mods';", "sSImods := ExpandConstant('{app}\\mods\\serpentisle');")
+    text = text.replace("Log('SetExultGamePaths failed: '+  IntToStr(ResultCode));", "RaiseException('Could not write DWD configuration in the selected installation directory: '+IntToStr(ResultCode));")
+    text = text.replace('if (ResultCode < 0) then begin', 'if (ResultCode <> 0) then begin')
+    downloads = json.loads((ROOT / 'packaging/dwd/downloads.json').read_text())
+    text = text.replace("https://downloads.sourceforge.net/project/exult/exult-data/exult_audio.zip", downloads['exult_audio.zip']['url'])
+    for name in ['Ultima6-1.3.zip', 'Glimmerscape_SI_mod_by_Donfrow.zip']:
+        text = text.replace("'" + name + "', ''", "'" + name + "', '" + downloads[name]['sha256'] + "'")
+    text = text.replace('Description: "Keyring mod for The Black Gate"', "Description: \"Marzo's Keyring (original) for The Black Gate\"")
+    text = text.replace('Description: "SIFixes mod for Serpent Isle"', 'Description: "SI Fixes (original) for Serpent Isle"')
+    # Command-line equivalents use the same edit controls/validation as the wizard.
+    # They make unattended installs useful without replacing the browse page.
+    text = text.replace("  BGPath := '';", "  BGPath := ExpandConstant('{param:BGDIR|}');\n  BGEdit.Text := BGPath;")
+    text = text.replace("  SIPath := '';", "  SIPath := ExpandConstant('{param:SIDIR|}');\n  SIEdit.Text := SIPath;")
+    text = text.replace("      BGEdit.Text := sBGPath;\n      SIEdit.Text := sSIPath;", "      if BGEdit.Text = '' then BGEdit.Text := sBGPath;\n      if SIEdit.Text = '' then SIEdit.Text := sSIPath;")
+    # Silent setup does not visit custom pages. Load/validate their real values
+    # at the ready boundary before deciding which requested downloads to fetch.
+    ready = "      DownloadPage.Clear;"
+    text = text.replace(ready, """      if BGEdit.Text = '' then GetExultGamePaths(ExpandConstant('{app}'), BGPath, SIPath)
+      else begin BGPath := BGEdit.Text; SIPath := SIEdit.Text; end;
+      iBGVerified := VerifyBGDirectory(BGPath);
+      iSIVerified := VerifySIDirectory(SIPath);
+""" + ready)
+    text = text.replace('  PrevItemAChecked: Boolean;', '  PrevItemAChecked: Boolean;\n  DwdDownloadsReady: Boolean;')
+    text = text.replace('          DownloadPage.Download;', '          DownloadPage.Download;\n          DwdDownloadsReady := True;')
+    text = text.replace('        BGEdit.Text := sBGPath;', "        if BGEdit.Text = '' then BGEdit.Text := sBGPath;")
+    text = text.replace('        SIEdit.Text := sSIPath;', "        if SIEdit.Text = '' then SIEdit.Text := sSIPath;")
+    text += """
+// Preserve the same download page and validation in unattended installations.
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  Result := '';
+  if WizardSilent and not DwdDownloadsReady then begin
+    if not NextButtonClick(wpReady) then
+      Result := 'The requested optional DWD downloads could not be prepared.';
+  end;
+end;
+"""
+    # Initialize from command line or existing config even when no download step runs.
+    text = text.replace("    SetExultGamePaths(ExpandConstant('{app}'), BGPath, SIPath );", """    if BGEdit.Text <> '' then BGPath := BGEdit.Text;
+    if SIEdit.Text <> '' then SIPath := SIEdit.Text;
+    SetExultGamePaths(ExpandConstant('{app}'), BGPath, SIPath );""")
     extra = '\n'.join('Source: Exult\\' + name + '; DestDir: {app}; Flags: ignoreversion; Components: GPL'
-                      for name in ['README-DWD.md', 'ChangeLog-DWD.txt', 'release-metadata.json', 'dependency-sources.json', 'INSTALL.txt'])
+                      for name in ['README-DWD.md', 'ChangeLog-DWD.txt', 'release-metadata.json', 'dependency-sources.json', 'mod-distribution.json', 'INSTALL.txt'])
     extra += '\nSource: Exult\\licenses\\*; DestDir: {app}\\licenses; Flags: ignoreversion recursesubdirs; Components: GPL\n'
     text = text.replace("HKEY_CURRENT_USER, 'Software\\Wine'", "HKEY_LOCAL_MACHINE, 'Software\\Wine'")
     # Track only DWD registry values in Inno's uninstall log; upstream's raw
@@ -126,6 +168,7 @@ def package(args):
             'docs/faq.html': 'faq.html', 'win32/README-SDL.txt': 'README-SDL.txt',
             'README-DWD.md': 'README-DWD.md', 'ChangeLog-DWD.txt': 'ChangeLog-DWD.txt',
             'data/bg/defaultkeys.txt': 'bgdefaultkeys.txt', 'data/si/defaultkeys.txt': 'sidefaultkeys.txt'}
+    copy(ROOT / 'packaging/dwd/mods.json', payload / 'mod-distribution.json')
     for src, dst in docs.items():
         copy(ROOT / src, payload / dst)
     for pattern in ['*.gif', '*.svg', 'docs*.png']:
@@ -185,7 +228,7 @@ def package(args):
                 rel = path.relative_to(payload)
                 if rel.parts[0] == 'x86_64':
                     rel = Path(*rel.parts[1:])
-                archive.write(path, 'DWD Exult/' + rel.as_posix())
+                archive.write(path, 'DWDExult/' + rel.as_posix())
     blockers = []
     if not sources: blockers.append('Corresponding external dependency sources were not supplied.')
     if args.installer_tools:

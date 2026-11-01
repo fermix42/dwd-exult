@@ -1,0 +1,17 @@
+{
+  "exult_audio.zip": {
+    "url": "https://pilotfiber.dl.sourceforge.net/project/exult/exult-data/exult_audio.zip?viasf=1",
+    "sha256": "72e10efa8664a645470ceb99f6b749ce99c3d5fd1c8387c63640499cfcdbbc68",
+    "bytes": 48439905
+  },
+  "Ultima6-1.3.zip": {
+    "url": "https://exult.info/snapshots/Ultima6-1.3.zip",
+    "sha256": "215cb465acdefed6ebfebbcbdd353287138a39f8dc45a2d051ff2bfe7a04b9f2",
+    "bytes": 51812103
+  },
+  "Glimmerscape_SI_mod_by_Donfrow.zip": {
+    "url": "https://exult.info/snapshots/Glimmerscape_SI_mod_by_Donfrow.zip",
+    "sha256": "cb3c51db0620996fef3a43a1edf5fa1837c41f011864c0f8a01f3544661dbe00",
+    "bytes": 13187091
+  }
+}

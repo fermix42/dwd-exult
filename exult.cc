@@ -74,6 +74,7 @@
 #include "u7drag.h"
 #include "ucmachine.h"
 #include "utils.h"
+#include "dwd_paths.h"
 #include "verify.h"
 #include "version.h"
 #ifdef HAVE_ZIP_SUPPORT
@@ -323,13 +324,25 @@ int main(int argc, char* argv[]) {
   if(cli_run_dir.empty() || arg_configfile.empty() || !cli_config_isolated(arg_configfile)) { std::cerr<<"--test-cli requires --test-run-dir and an isolated -c config"<<std::endl;return 64; }
   arg_nomenu=true;
  }
+#ifdef _WIN32
+    try {
+        dwd_initialize_root(cli_enabled ? cli_run_dir : "", cli_enabled);
+        if (!arg_configfile.empty()) dwd_require_write_path(arg_configfile);
+    } catch (const std::exception& error) {
+        std::cerr << error.what() << std::endl;
+        return 2;
+    }
+#endif
  add_system_path("<alt_cfg>", arg_configfile);
 #if defined _WIN32
-	if (portable) {
+	if (portable && !dwd_portable_runtime()) {
 		add_system_path("<HOME>", ".");
 	}
 	setup_program_paths();
-	if(!cli_enabled) redirect_output("std");
+	if(!cli_enabled) {
+        try { redirect_output("std"); }
+        catch (const std::exception& error) { std::cerr << error.what() << std::endl; return 2; }
+    }
 	std::atexit(do_cleanup_output);
 #endif
 
@@ -525,8 +538,11 @@ int exult_main(const char* runpath) {
 	if (!arg_configfile.empty()) {
 		config->read_abs_config_file(arg_configfile);
 	} else {
-		config->read_config_file(USER_CONFIGURATION_FILE);
+		if (dwd_portable_runtime()) config->read_abs_config_file(get_system_path("<CONFIG>/" USER_CONFIGURATION_FILE));
+        else config->read_config_file(USER_CONFIGURATION_FILE);
 	}
+
+    dwd_configure_paths(*config);
 
 if(cli_enabled){config->set("config/audio/enabled","no",false);config->set("config/video/fullscreen","no",false);}
 #if defined _WIN32

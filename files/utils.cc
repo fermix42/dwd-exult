@@ -40,6 +40,8 @@
 #include <cstring>
 #include <exception>
 #include <fstream>
+#include <filesystem>
+#include <stdexcept>
 #include <list>
 #include <map>
 #include <string>
@@ -83,6 +85,112 @@ using std::string;
 
 static void switch_slashes(string& name);
 static bool base_to_uppercase(string& str, int count);
+
+
+namespace {
+std::filesystem::path dwd_root;
+bool dwd_testing = false;
+std::vector<std::filesystem::path> dwd_game_roots;
+#ifdef _WIN32
+std::filesystem::path dwd_canonical(const std::string& value) {
+    return std::filesystem::weakly_canonical(std::filesystem::absolute(get_system_path(value)));
+}
+bool dwd_inside(const std::filesystem::path& path, const std::filesystem::path& parent) {
+    auto p = path.begin();
+    for (auto q = parent.begin(); q != parent.end(); ++q, ++p) {
+        if (p == path.end() || _wcsicmp(p->c_str(), q->c_str()) != 0) return false;
+    }
+    return true;
+}
+#endif
+}
+
+bool dwd_portable_runtime() { return !dwd_root.empty(); }
+bool dwd_developer_run() { return dwd_testing; }
+
+void dwd_require_path_within(const std::string& path, const std::string& parent) {
+#ifdef _WIN32
+    if (dwd_portable_runtime() && !dwd_inside(dwd_canonical(path), dwd_canonical(parent))) {
+        errno = EACCES;
+        throw file_open_exception("DWD path escapes its owned directory: " + path);
+    }
+#else
+    ignore_unused_variable_warning(path, parent);
+#endif
+}
+
+void dwd_require_write_path(const std::string& path) {
+#ifdef _WIN32
+    if (!dwd_portable_runtime()) return;
+    const auto target = dwd_canonical(path);
+    dwd_require_path_within(path, dwd_root.string());
+    for (const auto& game : dwd_game_roots) {
+        if (dwd_inside(target, game)) {
+            errno = EACCES;
+            throw file_open_exception("Original Ultima VII assets are read-only: " + path);
+        }
+    }
+    std::error_code ec;
+    if (std::filesystem::is_regular_file(target, ec) && std::filesystem::hard_link_count(target, ec) > 1) {
+        errno = EACCES;
+        throw file_open_exception("DWD will not modify a hard-linked file: " + path);
+    }
+#else
+    ignore_unused_variable_warning(path);
+#endif
+}
+
+std::string dwd_owned_path(const std::string& relative) {
+    const auto path = (dwd_root / relative).string();
+    dwd_require_write_path(path);
+    return path;
+}
+
+void dwd_protect_game_path(const std::string& path) {
+#ifdef _WIN32
+    if (dwd_portable_runtime()) dwd_game_roots.push_back(dwd_canonical(path));
+#else
+    ignore_unused_variable_warning(path);
+#endif
+}
+
+void dwd_initialize_root(const std::string& root, bool developer_run) {
+#ifdef _WIN32
+    std::filesystem::path path;
+    if (root.empty()) {
+        std::vector<wchar_t> buffer(32768);
+        const DWORD length = GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
+        if (!length || length >= buffer.size()) throw std::runtime_error("Cannot determine the DWD application directory.");
+        path = std::filesystem::path(std::wstring(buffer.data(), length)).parent_path();
+    } else {
+        path = std::filesystem::absolute(root);
+    }
+    path = std::filesystem::weakly_canonical(path);
+    if (!std::filesystem::is_directory(path)) throw std::runtime_error("DWD installation directory does not exist: " + path.string());
+    const auto probe = path / (".dwd-write-check-" + std::to_string(GetCurrentProcessId()));
+    HANDLE file = CreateFileW(probe.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_NEW,
+                              FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, nullptr);
+    if (file == INVALID_HANDLE_VALUE) {
+        const std::string message = "DWD Exult needs a writable installation directory. Move it or choose another folder: " + path.string();
+        if (GetFileType(GetStdHandle(STD_ERROR_HANDLE)) == FILE_TYPE_UNKNOWN)
+            MessageBoxA(nullptr, message.c_str(), "DWD Exult: installation directory is not writable", MB_OK | MB_ICONERROR);
+        throw std::runtime_error(message);
+    }
+    CloseHandle(file);
+    dwd_root = path;
+    dwd_testing = developer_run;
+    dwd_game_roots.clear();
+    U7set_home(path.string());
+    std::filesystem::current_path(path);
+    const auto temporary = path / "temp";
+    dwd_require_write_path(temporary.string());
+    std::filesystem::create_directories(temporary);
+    if (_wputenv_s(L"TEMP", temporary.c_str()) || _wputenv_s(L"TMP", temporary.c_str()) || _wputenv_s(L"TMPDIR", temporary.c_str()))
+        throw std::runtime_error("Cannot set DWD runtime temporary directory");
+#else
+    ignore_unused_variable_warning(root, developer_run);
+#endif
+}
 
 // Global factories for instantiating file streams
 static U7IstreamFactory istream_factory = [](const char* s, std::ios_base::openmode mode) {
@@ -354,6 +462,7 @@ std::unique_ptr<std::ostream> U7open_out(
 		mode |= std::ios::binary;
 	}
 	string name = get_system_path(fname);
+	dwd_require_write_path(name);
 
 	std::unique_ptr<std::ostream> out;
 
@@ -400,6 +509,7 @@ DIR* U7opendir(const char* fname    // May be converted to upper-case.
 void U7remove(const char* fname    // May be converted to upper-case.
 ) {
 	string name = get_system_path(fname);
+	dwd_require_write_path(name);
 
 #if defined(_WIN32) && defined(UNICODE)
 	const char* n     = name.c_str();
@@ -493,6 +603,8 @@ int U7mkdir(
 		const char* dirname,    // May be converted to upper-case.
 		int mode, bool parents) {
 	string name = get_system_path(dirname);
+	dwd_require_write_path(name);
+	if (dwd_portable_runtime() && std::filesystem::is_directory(name)) { errno = EEXIST; return -1; }
 	// remove any trailing slashes
 	const string::size_type pos = name.find_last_not_of('/');
 	if (pos != string::npos) {
@@ -521,6 +633,7 @@ int U7mkdir(
 
 int U7rmdir(const char* dirname, bool recursive) {
 	string name = get_system_path(dirname);
+	dwd_require_write_path(name);
 
 	if (recursive) {
 		// Get contents if recrusive
@@ -544,7 +657,8 @@ int U7rmdir(const char* dirname, bool recursive) {
 					return -1;
 				}
 			} else {
-				if (!std::remove(filename.c_str())) {
+				dwd_require_write_path(filename);
+				if (std::remove(filename.c_str()) != 0) {
 					return -1;
 				}
 			}
@@ -726,8 +840,10 @@ void redirect_output(const char* prefix) {
 	// Paths to the output files.
 	const string folderPath = Get_home() + "/" + prefix;
 	const string stdoutPath = folderPath + "out.txt";
+    dwd_require_write_path(stdoutPath);
 	stdout_redirected       = redirect_stdout(stdoutPath.c_str());
 	const string stderrPath = folderPath + "err.txt";
+    dwd_require_write_path(stderrPath);
 	stderr_redirected       = redirect_stderr(stderrPath.c_str());
 }
 
@@ -769,7 +885,10 @@ string Get_home() {
 	}
 #ifdef _WIN32
 #	ifdef PORTABLE_EXULT_WIN32
-	home_directory = ".";
+	std::vector<wchar_t> buffer(32768);
+    const DWORD length = GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
+    if (!length || length >= buffer.size()) throw std::runtime_error("Cannot determine DWD home directory");
+    home_directory = std::filesystem::path(std::wstring(buffer.data(), length)).parent_path().string();
 #	else
 	if (is_system_path_defined("<HOME>") && get_system_path("<HOME>") == ".") {
 		home_directory = ".";

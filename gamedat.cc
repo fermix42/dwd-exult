@@ -221,7 +221,8 @@ void Game_window::restore_gamedat(const char* fname    // Name of savegame file.
 	U7remove(GWINDAT);
 	U7remove(IDENTITY);
 	U7remove(GSCHEDULE);
-	U7remove("<STATIC>/flags.flg");
+	// DWD treats original game assets as read-only, including legacy cleanup.
+	if (!dwd_portable_runtime()) U7remove("<STATIC>/flags.flg");
 	U7remove(GSCRNSHOT);
 	U7remove(GSAVEINFO);
 	U7remove(GNEWGAMEVER);
@@ -892,7 +893,8 @@ bool Game_window::restore_gamedat_zip(const char* fname    // Name of savegame f
 	U7remove(GWINDAT);
 	U7remove(IDENTITY);
 	U7remove(GSCHEDULE);
-	U7remove("<STATIC>/flags.flg");
+	// DWD treats original game assets as read-only, including legacy cleanup.
+	if (!dwd_portable_runtime()) U7remove("<STATIC>/flags.flg");
 	U7remove(GSCRNSHOT);
 	U7remove(GSAVEINFO);
 	U7remove(GNEWGAMEVER);

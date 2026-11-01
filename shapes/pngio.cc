@@ -23,6 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include "utils.h"
 #ifdef HAVE_CONFIG_H
 #	include <config.h>
 #endif
@@ -192,6 +193,7 @@ int Export_png8(
 							//   fixes a bug in the Gimp.
 ) {
 	// Open file.
+	dwd_require_write_path(pngname);
 	FILE* fp = fopen(pngname, "wb");
 	if (!fp) {
 		return 0;
@@ -368,6 +370,7 @@ int Export_png32(
 		unsigned char* pixels    // ->pixels to write.
 ) {
 	// Open file.
+	dwd_require_write_path(pngname);
 	FILE* fp = fopen(pngname, "wb");
 	if (!fp) {
 		return 0;

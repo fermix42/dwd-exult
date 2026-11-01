@@ -134,6 +134,14 @@ void U7set_ostream_factory(U7OstreamFactory factory);
 // environment. Intended to be called once during initialization before using
 // U7open...() calls and is not guaranteed to be thread-safe.
 void U7set_home(std::string home);
+// DWD Windows runtime storage: disabled in standalone tools unless initialized.
+void dwd_initialize_root(const std::string& root = {}, bool developer_run = false);
+bool dwd_portable_runtime();
+bool dwd_developer_run();
+std::string dwd_owned_path(const std::string& relative);
+void dwd_require_write_path(const std::string& path);
+void dwd_require_path_within(const std::string& path, const std::string& parent);
+void dwd_protect_game_path(const std::string& path);
 
 std::unique_ptr<std::istream> U7open_in(
 		const char* fname,             // May be converted to upper-case.

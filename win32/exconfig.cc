@@ -31,6 +31,7 @@
 #include "fnames.h"
 #include "headers/ignore_unused_variable_warning.h"
 #include "utils.h"
+#include "dwd_paths.h"
 
 #include <array>
 #include <cstring>
@@ -38,6 +39,7 @@
 #include <string>
 
 #define MAX_STRLEN 512
+static bool dwd_config_write_success = false;
 
 #ifdef _DEBUF
 #	define MessageBoxDebug(a, b, c, d) MessageBox(a, b, c, d);
@@ -290,7 +292,7 @@ EXCONFIG_EXPORT void __cdecl GetExultGamePaths(const char* ExultDir, char* BGPat
 	Path config_path(ExultDir);
 	config_path.AddString("exult.cfg");
 	config_path.GetString(p, p_size);
-	setup_program_paths();
+
 
 	static const char* si_pathdef = CFG_SI_NAME;
 	static const char* bg_pathdef = CFG_BG_NAME;
@@ -300,11 +302,7 @@ EXCONFIG_EXPORT void __cdecl GetExultGamePaths(const char* ExultDir, char* BGPat
 	try {
 		// Open config file
 		Configuration config;
-		if (get_system_path("<CONFIG>") == ".") {
-			config.read_config_file(p);
-		} else {
-			config.read_config_file("exult.cfg");
-		}
+		config.read_abs_config_file(p);
 		std::string dir;
 
 		// SI Path
@@ -366,18 +364,14 @@ EXCONFIG_EXPORT void __cdecl SetExultGamePaths(const char* ExultDir, const char*
 	Path config_path(ExultDir);
 	config_path.AddString("exult.cfg");
 	config_path.GetString(p, p_size);
-	setup_program_paths();
+
 
 	MessageBoxDebug(nullptr, p, "WriteConfig: p", MB_OK);
 
 	try {
 		// Open config file
 		Configuration config;
-		if (get_system_path("<CONFIG>") == ".") {
-			config.read_config_file(p);
-		} else {
-			config.read_config_file("exult.cfg");
-		}
+		config.read_abs_config_file(p);
 		char existing_bgpath[MAX_PATH];
 		char existing_sipath[MAX_PATH];
 		GetExultGamePaths(ExultDir, existing_bgpath, existing_sipath, MAX_PATH);
@@ -429,8 +423,12 @@ EXCONFIG_EXPORT void __cdecl SetExultGamePaths(const char* ExultDir, const char*
 			config.set("config/disk/game/serpentisle/waves", s, true);
 		}
 
+		dwd_configure_paths(config);
 		config.write_back();
-	} catch (...) {
+        dwd_config_write_success = true;
+	} catch (const std::exception& error) {
+        std::cerr << error.what() << std::endl;
+        dwd_config_write_success = false;
 	}
 
 	delete[] p;
@@ -552,8 +550,14 @@ int main(int argc, char** argv) {
 			return -3;
 		}
 
-		SetExultGamePaths(argv[2], argv[3], argv[4]);
-		return 0;
+        try {
+            dwd_initialize_root(argv[2]);
+            SetExultGamePaths(argv[2], argv[3], argv[4]);
+            return dwd_config_write_success ? 0 : 1;
+        } catch (const std::exception& error) {
+            std::cerr << error.what() << std::endl;
+            return 1;
+        }
 	} else if (!strcasecmp(argv[1], "VerifyBGDirectory")) {
 		if (argc != 3) {
 			return -4;

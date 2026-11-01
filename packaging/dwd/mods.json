@@ -1,0 +1,50 @@
+{
+  "current_editions": "Original upstream packages only. No DWD edition has been modified or approved.",
+  "packages": [
+    {
+      "id": "keyring-upstream",
+      "name": "Marzo's Keyring (original)",
+      "edition": "upstream",
+      "game": "blackgate",
+      "installed_id": "Keyring",
+      "package": "bgkeyring.zip",
+      "source": "content/bgkeyring",
+      "version_document": "content/bgkeyring/Readme.txt"
+    },
+    {
+      "id": "sifixes-upstream",
+      "name": "SI Fixes (original)",
+      "edition": "upstream",
+      "game": "serpentisle",
+      "installed_id": "sifixes",
+      "package": "sifixes.zip",
+      "source": "content/sifixes",
+      "version_document": "content/sifixes/Readme.txt"
+    },
+    {
+      "id": "sfisland-original",
+      "name": "SourceForge Island",
+      "edition": "third-party-original",
+      "game": "blackgate",
+      "installed_id": "islefaq",
+      "package": "islefaq.zip",
+      "source": "content/islefaq"
+    },
+    {
+      "id": "ultima6-original",
+      "name": "Ultima VI Remake 1.3",
+      "edition": "third-party-original",
+      "game": "blackgate",
+      "installed_id": "Ultima6v1.3",
+      "download": "Ultima6-1.3.zip"
+    },
+    {
+      "id": "glimmerscape-original",
+      "name": "Glimmerscape by Donfrow",
+      "edition": "third-party-original",
+      "game": "serpentisle",
+      "installed_id": "glimmerscape",
+      "download": "Glimmerscape_SI_mod_by_Donfrow.zip"
+    }
+  ]
+}
