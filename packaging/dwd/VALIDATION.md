@@ -103,7 +103,8 @@ Evidence root: `../test-output/dwd-paths/`. Exact final revision, rebuilt assets
 final reruns are recorded in final-review.json beside the final assets. Earlier
 runs: installer-1 passed 186 assertions plus all 34 runtime assertions; portable-3
 passed 39; default-3 passed 16; download-install-2 passed 10 actual network-download
-assertions. Final reruns supersede these snapshots.
+assertions. The subsequent committed-source run passed **188 installer assertions, 34 runtime
+assertions and 39 portable assertions**. Final reruns supersede earlier snapshots.
 
 The installer regression retains the previous 167 checks and adds owned paths,
 remembered upgrades, package bytes, mod update/removal save preservation and obsolete
