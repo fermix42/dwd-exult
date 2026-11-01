@@ -135,6 +135,10 @@ void U7set_ostream_factory(U7OstreamFactory factory);
 // U7open...() calls and is not guaranteed to be thread-safe.
 void U7set_home(std::string home);
 // DWD Windows runtime storage: disabled in standalone tools unless initialized.
+std::string dwd_executable_directory();
+void dwd_report_startup_error(const std::string& message);
+void dwd_validate_installation_root(const std::string& root);
+void dwd_validate_asset_path(const std::string& root, const std::string& asset);
 void dwd_initialize_root(const std::string& root = {}, bool developer_run = false);
 bool dwd_portable_runtime();
 bool dwd_developer_run();

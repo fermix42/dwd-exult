@@ -27,6 +27,9 @@ def main(a):
         (work/(label+'.log')).write_bytes(r.stdout+r.stderr)
         check(label+' exit',r.returncode==expect)
         return (r.stdout+r.stderr).decode(errors='replace')
+    forbidden=(a.bg/'DWD-forbidden-install-root').resolve()
+    reject=subprocess.run([str(helper),'VerifyDwdRoot',str(forbidden),str(a.bg.resolve()),str(a.si.resolve())],cwd=unrelated,capture_output=True,creationflags=subprocess.CREATE_NO_WINDOW)
+    check('overlapping installer root rejected without creation',reject.returncode!=0 and b'outside original game directories' in reject.stdout+reject.stderr and not forbidden.exists())
     run([helper,'SetExultGamePaths',app,a.bg.resolve(),a.si.resolve()],'configure-zip')
     check('ZIP config is inside executable root',(app/'exult.cfg').is_file() and not (unrelated/'exult.cfg').exists())
     version=run([app/'Exult.exe','--version'],'version-from-unrelated-cwd')
@@ -81,6 +84,14 @@ def main(a):
     check('moved save stays with root',(app/'saves/blackgate/relocation.sav').read_bytes()==b'portable move sentinel')
     check('old root not recreated',not oldapp.exists())
     check('no unrelated CWD output after moving',snapshot(unrelated)==before)
+    # Declaring an enclosing directory as game assets must fail before even
+    # creating runtime temp/log files. This is a metadata-only fixture.
+    cfg=app/'exult.cfg';saved_cfg=cfg.read_bytes();declared=ET.parse(cfg)
+    declared.getroot().find('disk/game/blackgate/path').text=str(app.parent)
+    declared.write(cfg,encoding='utf-8');before_refusal=snapshot(app)
+    refusal=subprocess.run([str(app/'Exult.exe'),'--version'],cwd=unrelated,capture_output=True,creationflags=subprocess.CREATE_NO_WINDOW,timeout=30)
+    check('overlapping asset root fails before writes',refusal.returncode!=0 and snapshot(app)==before_refusal)
+    cfg.write_bytes(saved_cfg)
     # A malformed archive must not redirect output outside its controlled root.
     bad=work/'escape-audio.zip'
     with zipfile.ZipFile(bad,'w') as z:z.writestr('../../unrelated-working-directory/escape.txt','not allowed')
@@ -91,7 +102,7 @@ def main(a):
     identity=subprocess.check_output(['whoami','/user','/fo','csv','/nh'],text=True)
     sid=next(csv.reader(io.StringIO(identity)))[1]
     assert work in app.resolve().parents
-    acl=subprocess.run(['icacls',str(app),'/deny','*'+sid+':(OI)(CI)(W)'],capture_output=True,creationflags=subprocess.CREATE_NO_WINDOW)
+    acl=subprocess.run(['icacls',str(app),'/deny','*'+sid+':(WD,AD)'],capture_output=True,creationflags=subprocess.CREATE_NO_WINDOW)
     check('nonwritable fixture ACL applied',acl.returncode==0)
     try:
         refusal=subprocess.run([str(app/'Exult.exe'),'--version'],cwd=unrelated,capture_output=True,creationflags=subprocess.CREATE_NO_WINDOW,timeout=30)

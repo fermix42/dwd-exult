@@ -33,6 +33,7 @@
 #include "utils.h"
 #include "dwd_paths.h"
 #include "exceptions.h"
+#include <filesystem>
 
 #include <array>
 #include <cstring>
@@ -532,10 +533,25 @@ BOOL APIENTRY DllMain(HINSTANCE hModule, DWORD ul_reason_for_call, LPVOID lpRese
 }
 #else
 
+static void DwdPreflight(const char* app, const char* bg, const char* si) {
+    const auto root = std::filesystem::absolute(app).string();
+    dwd_validate_installation_root(root);
+    Configuration existing;
+    existing.read_abs_config_file(root + "/exult.cfg");
+    dwd_preflight_config(existing, root);
+    dwd_validate_asset_path(root, bg);
+    dwd_validate_asset_path(root, si);
+}
+
 int main(int argc, char** argv) {
 	if (argc < 2) {
 		return -1;
 	}
+    if (!strcasecmp(argv[1], "VerifyDwdRoot")) {
+        if (argc != 5) return 1;
+        try { DwdPreflight(argv[2], argv[3], argv[4]); return 0; }
+        catch (const std::exception& error) { std::cerr << error.what() << std::endl; return 1; }
+    }
 	if (!strcasecmp(argv[1], "GetExultGamePaths")) {
 		if (argc != 3) {
 			return -2;
@@ -555,6 +571,7 @@ int main(int argc, char** argv) {
 		}
 
         try {
+            DwdPreflight(argv[2], argv[3], argv[4]);
             dwd_initialize_root(argv[2]);
             SetExultGamePaths(argv[2], argv[3], argv[4]);
             return dwd_config_write_success ? 0 : 1;

@@ -75,6 +75,7 @@
 #include "ucmachine.h"
 #include "utils.h"
 #include "dwd_paths.h"
+#include <filesystem>
 #include "verify.h"
 #include "version.h"
 #ifdef HAVE_ZIP_SUPPORT
@@ -326,10 +327,19 @@ int main(int argc, char* argv[]) {
  }
 #ifdef _WIN32
     try {
-        dwd_initialize_root(cli_enabled ? cli_run_dir : "", cli_enabled);
+        const std::string root = cli_enabled ? cli_run_dir : dwd_executable_directory();
+        if (!cli_enabled) {
+            Configuration preflight;
+            auto file = arg_configfile.empty() ? std::filesystem::path(root) / "exult.cfg" : std::filesystem::path(arg_configfile);
+            if (file.is_relative()) file = std::filesystem::path(root) / file;
+            if (!arg_configfile.empty()) arg_configfile = file.string();
+            preflight.read_abs_config_file(file.string());
+            dwd_preflight_config(preflight, root);
+        }
+        dwd_initialize_root(root, cli_enabled);
         if (!arg_configfile.empty()) dwd_require_write_path(arg_configfile);
     } catch (const std::exception& error) {
-        std::cerr << error.what() << std::endl;
+        dwd_report_startup_error(error.what());
         return 2;
     }
 #endif

@@ -20,6 +20,21 @@ inline std::string dwd_path_component(const std::string& value) {
     return result.empty() ? "game" : result;
 }
 
+// Read-only preflight: this runs before probing/creating anything under root.
+inline void dwd_preflight_config(Configuration& cfg, const std::string& root) {
+    add_system_path("<HOME>", root);
+    add_system_path("<CONFIG>", root);
+    add_system_path("<GAMEHOME>", root);
+    add_system_path("<DATA>", root + "/data");
+    for (const auto& game : cfg.listkeys("config/disk/game", false)) {
+        for (const char* field : {"path", "static_path"}) {
+            std::string value;
+            cfg.value("config/disk/game/" + game + "/" + field, value, "");
+            if (!value.empty()) dwd_validate_asset_path(root, value);
+        }
+    }
+}
+
 inline void dwd_configure_paths(Configuration& cfg) {
     if (!dwd_portable_runtime() || dwd_developer_run()) return;
     bool changed = false;

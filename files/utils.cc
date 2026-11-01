@@ -154,26 +154,72 @@ void dwd_protect_game_path(const std::string& path) {
 #endif
 }
 
+void dwd_report_startup_error(const std::string& message) {
+    std::cerr << message << std::endl;
+#ifdef _WIN32
+    if (GetFileType(GetStdHandle(STD_ERROR_HANDLE)) == FILE_TYPE_UNKNOWN)
+        MessageBoxA(nullptr, message.c_str(), "DWD Exult: startup error", MB_OK | MB_ICONERROR);
+#endif
+}
+
+std::string dwd_executable_directory() {
+#ifdef _WIN32
+    std::vector<wchar_t> buffer(32768);
+    const DWORD length = GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
+    if (!length || length >= buffer.size()) throw std::runtime_error("Cannot determine the DWD application directory.");
+    return std::filesystem::path(std::wstring(buffer.data(), length)).parent_path().string();
+#else
+    return ".";
+#endif
+}
+
+void dwd_validate_installation_root(const std::string& root) {
+#ifdef _WIN32
+    for (auto folder = dwd_canonical(root); !folder.empty();) {
+        if (std::filesystem::is_regular_file(folder / "static" / "shapes.vga")
+                && std::filesystem::is_regular_file(folder / "static" / "usecode"))
+            throw std::runtime_error("DWD installation must be outside original game directories: " + folder.string());
+        const auto parent = folder.parent_path();
+        if (parent == folder) break;
+        folder = parent;
+    }
+#else
+    ignore_unused_variable_warning(root);
+#endif
+}
+
+void dwd_validate_asset_path(const std::string& root, const std::string& asset) {
+#ifdef _WIN32
+    if (asset.empty()) return;
+    const auto app = dwd_canonical(root);
+    auto source = std::filesystem::path(get_system_path(asset));
+    if (source.is_relative()) source = app / source;
+    source = std::filesystem::weakly_canonical(source);
+    if (dwd_inside(app, source)) throw std::runtime_error("DWD installation must be outside original game directories: " + asset);
+    for (const char* owned : {"data", "mods", "patches", "saves", "gamedat", "temp"}) {
+        if (dwd_inside(source, app / owned)) throw std::runtime_error("Original game assets cannot occupy a DWD-managed directory: " + asset);
+    }
+#else
+    ignore_unused_variable_warning(root, asset);
+#endif
+}
+
 void dwd_initialize_root(const std::string& root, bool developer_run) {
 #ifdef _WIN32
     std::filesystem::path path;
     if (root.empty()) {
-        std::vector<wchar_t> buffer(32768);
-        const DWORD length = GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
-        if (!length || length >= buffer.size()) throw std::runtime_error("Cannot determine the DWD application directory.");
-        path = std::filesystem::path(std::wstring(buffer.data(), length)).parent_path();
+        path = dwd_executable_directory();
     } else {
         path = std::filesystem::absolute(root);
     }
     path = std::filesystem::weakly_canonical(path);
+    dwd_validate_installation_root(path.string());
     if (!std::filesystem::is_directory(path)) throw std::runtime_error("DWD installation directory does not exist: " + path.string());
     const auto probe = path / (".dwd-write-check-" + std::to_string(GetCurrentProcessId()));
     HANDLE file = CreateFileW(probe.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_NEW,
                               FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, nullptr);
     if (file == INVALID_HANDLE_VALUE) {
         const std::string message = "DWD Exult needs a writable installation directory. Move it or choose another folder: " + path.string();
-        if (GetFileType(GetStdHandle(STD_ERROR_HANDLE)) == FILE_TYPE_UNKNOWN)
-            MessageBoxA(nullptr, message.c_str(), "DWD Exult: installation directory is not writable", MB_OK | MB_ICONERROR);
         throw std::runtime_error(message);
     }
     CloseHandle(file);
@@ -884,11 +930,7 @@ string Get_home() {
 		return home_directory;
 	}
 #ifdef _WIN32
-#	ifdef PORTABLE_EXULT_WIN32
-	std::vector<wchar_t> buffer(32768);
-    const DWORD length = GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
-    if (!length || length >= buffer.size()) throw std::runtime_error("Cannot determine DWD home directory");
-    home_directory = std::filesystem::path(std::wstring(buffer.data(), length)).parent_path().string();
+#	ifdef PORTABLE_EXULT_WIN32	home_directory = dwd_executable_directory();
 #	else
 	if (is_system_path_defined("<HOME>") && get_system_path("<HOME>") == ".") {
 		home_directory = ".";

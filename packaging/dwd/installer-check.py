@@ -91,13 +91,21 @@ def main(a):
         for mod,game,archive in [('Keyring','blackgate','bgkeyring.zip'),('sifixes','serpentisle','sifixes.zip')]:
             sentinel=app/'saves'/game/'mods'/mod/'preserve.sav'
             sentinel.parent.mkdir(parents=True,exist_ok=True);sentinel.write_bytes(b'isolated mod save sentinel')
+            if a.quiz_header:
+                tag='installed-bg-Keyring' if game=='blackgate' else 'installed-si-sifixes'
+                actual=next((work/'runtime/runs'/tag).rglob('*.sav'))
+                sentinel.write_bytes(actual.read_bytes())
+            saved_bytes=sentinel.read_bytes()
             mod_saves.append(sentinel)
+            obsolete=app/'mods'/game/mod/'data/retired-dwd-install-test.tmp'
+            obsolete.write_bytes(b'obsolete package file fixture')
             run([app/'Exult.exe','--'+('bg' if game=='blackgate' else 'si'),'--installmod',candidate/archive],'update-'+mod)
-            check('mod update retains save '+mod,sentinel.read_bytes()==b'isolated mod save sentinel')
+            check('mod update retains save '+mod,sentinel.read_bytes()==saved_bytes)
+            check('mod update removes obsolete package file '+mod,not obsolete.exists())
             target=(app/'mods'/game/mod).resolve()
             assert (app/'mods').resolve() in target.parents
             shutil.rmtree(target)
-            check('mod removal retains save '+mod,sentinel.read_bytes()==b'isolated mod save sentinel')
+            check('mod removal retains save '+mod,sentinel.read_bytes()==saved_bytes)
             run([app/'Exult.exe','--'+('bg' if game=='blackgate' else 'si'),'--installmod',candidate/archive],'restore-'+mod)
         check('no mod saves inside installation trees',not any((app/'mods').rglob('*.sav')))
         def config_values():

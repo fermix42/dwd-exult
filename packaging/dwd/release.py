@@ -111,8 +111,15 @@ def installer(stage, meta):
     text += r"""
 // Preserve the same download page and validation in unattended installations.
 function PrepareToInstall(var NeedsRestart: Boolean): String;
+var Code: Integer; Output: TExecOutput;
 begin
   Result := '';
+  if BGEdit.Text <> '' then BGPath := BGEdit.Text;
+  if SIEdit.Text <> '' then SIPath := SIEdit.Text;
+  if not ExecAndCaptureOutput(sExConfigPath, 'VerifyDwdRoot "'+ExpandConstant('{app}')+'" "'+BGPath+'" "'+SIPath+'"', '', SW_HIDE, ewWaitUntilTerminated, Code, Output) or (Code <> 0) then begin
+    Result := 'Choose a separate DWD folder outside the original game directories and keep original assets outside DWD-managed data folders.';
+    exit;
+  end;
   if WizardSilent and not DwdDownloadsReady then begin
     if not NextButtonClick(wpReady) then
       Result := 'The requested optional DWD downloads could not be prepared.';
