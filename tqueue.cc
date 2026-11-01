@@ -328,3 +328,21 @@ bool Time_queue_iterator::operator()(
 	++iter;    // On to the next.
 	return true;
 }
+
+// Additive API for separately owned calendar queues; ordinary activate() is unchanged.
+bool Time_queue::next_deadline(uint32& tick) const {
+    if (data.empty()) return false;
+    tick = data.front().time;
+    return true;
+}
+bool Time_queue::activate_next(uint32 cutoff) {
+    if (data.empty() || data.front().time > cutoff) return false;
+    auto entry = data.front();
+    data.pop_front();
+    auto* handler = entry.handler ? entry.handler : entry.sp_handler.get();
+    if (handler) {
+        handler->dequeue();
+        handler->handle_event(entry.time, entry.udata);
+    }
+    return true;
+}

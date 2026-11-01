@@ -791,11 +791,10 @@ void Actor::write(ODataSource* nfile    // Generally 'npc.dat'.
 	nfile->write(namebuf, 16);
 	write_contents(nfile);    // Write what he holds.
 	namebuf[16] = 0;
-	if (atts) {
-		Actor::Atts_vector attlist;
-		get_attributes(attlist);
-		Game_map::write_attributes(nfile, attlist);
-	}
+    Actor::Atts_vector attlist;
+    get_attributes(attlist);
+    append_effect_durations(attlist);
+    Game_map::write_attributes(nfile, attlist);
 	// Write scheduled usecode.
 	Game_map::write_scheduled(nfile, this, true);
 }

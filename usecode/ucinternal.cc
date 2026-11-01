@@ -24,6 +24,8 @@
 #endif
 
 #include "ucinternal.h"
+#include "game_time_compat.h"
+#include <sstream>
 
 #include "Audio.h"
 #include "Face_stats.h"
@@ -1759,6 +1761,13 @@ void Usecode_internal::read_usecode() {
 		std::cerr << "Warning (map-editing): Couldn't open '" << USECODE << "'" << endl;
 	}
 
+    {
+        const auto* bytes = GAME_BG ? game_time_bg : game_time_si;
+        const auto size = GAME_BG ? sizeof(game_time_bg) : sizeof(game_time_si);
+        std::istringstream support(std::string(reinterpret_cast<const char*>(bytes), size), std::ios::binary);
+        read_usecode(support, true);
+        native_light_adapter = find_function(GAME_BG ? 0x905 : 0x950);
+    }
 	// Get custom usecode functions.
 	if (is_system_path_defined("<PATCH>") && U7exists(PATCH_USECODE)) {
 		auto pFile = U7open_in(PATCH_USECODE);
@@ -3435,3 +3444,9 @@ int Usecode_internal::set_location_breakpoint(int funcid, int ip) {
 }
 
 #endif
+
+// An overriding conventional mod owns its lifecycle. Do not infer its contract
+// from a shape, callback number or bytecode. This compares the actual participant.
+bool Usecode_internal::native_light_contract() {
+    return native_light_adapter && find_function(GAME_BG ? 0x905 : 0x950) == native_light_adapter;
+}

@@ -81,6 +81,10 @@ public:
 
 	inline void activate_egg(Usecode_internal* usecode, Game_object* e);
 
+	bool executable() const { return i < cnt; }
+	static void adopt_declared_timer(Game_object* owner, int function, long& remaining);
+	static bool party_sequence();
+
 	static int get_count() {
 		return count;
 	}

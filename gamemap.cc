@@ -26,6 +26,7 @@
 #	include <config.h>
 #endif
 
+#include "game_time.h"
 #include "gamemap.h"
 
 #include "Flex.h"
@@ -688,6 +689,7 @@ void Game_map::write_scheduled(
 		ODataSource* ireg, Game_object* obj,
 		bool write_mark    // Write an IREG_ENDMARK if true.
 ) {
+    Game_time::write(ireg, obj);
 	for (Usecode_script* scr = Usecode_script::find(obj); scr; scr = Usecode_script::find(obj, scr)) {
 		ostringstream     outbuf(ios::out);
 		OStreamDataSource nbuf(&outbuf);
@@ -852,6 +854,9 @@ void Read_special_ireg(
 		if (scr) {
 			scr->start(scr->get_delay());
 		}
+    } else if (type == 5) { // Optional explicit game-time event.
+        IBufferDataView record(buf, len);
+        Game_time::read(&record, obj, len);
 	} else if (type == IREG_ATTS) {    // Attribute/value pairs?
 		obj->read_attributes(buf, len);
 	} else if (type == IREG_STRING) {    // IE, Usecode egg function name?
@@ -907,12 +912,19 @@ void Game_map::read_ireg_objects(
 	int           entlen;    // Gets entry length.
 	sint8         index_id = -1;
 	Game_object*  last_obj = nullptr;    // Last one read in this call.
+    auto finish_object = [&]() {
+        if (last_obj) Game_time::ensure_fuel(last_obj);
+        last_obj = nullptr;
+    };
 	Game_window*  gwin     = Game_window::get_instance();
 	// Go through entries.
 	for (entlen = ireg->read1(); !ireg->eof(); entlen = ireg->read1()) {
 		int  extended      = 0;    // 1 for 2-byte shape #'s.
 		bool extended_lift = false;
 
+        // Specials belong to the preceding object. Only finish once all its
+        // metadata and legacy continuations have been read, including lazy chunks.
+        if (entlen != IREG_SPECIAL) finish_object();
 		// Skip 0's & ends of containers.
 
 		if (!entlen || entlen == 1) {
@@ -1123,6 +1135,7 @@ void Game_map::read_ireg_objects(
 			chunk->add(obj.get());
 		}
 	}
+    finish_object();
 }
 
 /*

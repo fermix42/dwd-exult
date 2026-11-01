@@ -416,6 +416,9 @@ for /f "tokens=* delims=" %%u in ('git ls-remote --get-url') do echo #define GIT
     <ClCompile Include="..\..\exult.cc" />
     <ClCompile Include="..\..\cli_driver.cc" />
     <ClCompile Include="..\..\cli_world.cc" />
+    <ClCompile Include="..\..\native_wait.cc" />
+    <ClCompile Include="..\..\gumps\Wait_gump.cc" />
+    <ClCompile Include="..\..\game_time.cc" />
     <ClCompile Include="..\..\exultmenu.cc" />
     <ClCompile Include="..\..\files\crc.cc" />
     <ClCompile Include="..\..\files\Flat.cc" />

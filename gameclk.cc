@@ -23,6 +23,7 @@
 #endif
 
 #include "gameclk.h"
+#include "game_time.h"
 
 #include "actors.h"
 #include "cheat.h"
@@ -239,6 +240,7 @@ static void Check_freezing() {
 
 void Game_clock::increment(int num_minutes    // # of minutes to increment.
 ) {
+    const auto prior_tick = Game_time::now();
 	Game_window* gwin     = Game_window::get_instance();
 	const int    old_hour = hour;    // Remember current 3-hour period.
 	num_minutes += 7;                // Round to nearest 15 minutes.
@@ -249,6 +251,7 @@ void Game_clock::increment(int num_minutes    // # of minutes to increment.
 	ticks  = 0;
 	day += hour / 24;    // Update day.
 	hour %= 24;
+    Game_time::calendar_jump(prior_tick);
 
 	// Update palette to new time.
 	set_time_palette(false);
@@ -267,6 +270,12 @@ void Game_clock::handle_event(
 		uintptr       udata       // ->game window.
 ) {
 	auto* gwin = reinterpret_cast<Game_window*>(udata);
+    // This is ordinary active-world execution, after the Wait operation returned.
+    // Schedule constructors/ending/now_what may invoke arbitrary Usecode.
+    if (pending_schedules) {
+        pending_schedules = pending_scripted_schedule = false;
+        gwin->schedule_npcs(hour, false);
+    }
 
 	const int min_old  = minute;
 	const int hour_old = hour;
@@ -306,6 +315,7 @@ void Game_clock::handle_event(
 	if ((hour != hour_old) || (minute / 15 != min_old / 15)) {
 		COUT("Clock updated to " << hour << ':' << minute);
 	}
+	Game_time::dispatch(Game_time::now());
 	curtime += gwin->get_std_delay();
 	tqueue->add(curtime, this, udata);
 }
@@ -326,4 +336,32 @@ void Game_clock::fake_next_period() {
 	gwin->schedule_npcs(hour);
 	gwin->mend_npcs();    // Just do it once, cheater.
 	COUT("The hour is now " << hour);
+}
+
+// One elapsed calendar minute, without activating unrelated world handlers.
+void Game_clock::advance_wait_minute() {
+    ++minute;
+    Check_freezing();
+    if (minute >= 60) {
+        minute -= 60;
+        if (++hour >= 24) { hour = 0; ++day; }
+        auto* w = Game_window::get_instance();
+        w->mend_npcs();
+        check_hunger();
+        pending_schedules = true;
+        pending_scripted_schedule = pending_scripted_schedule || w->schedule_transition_uses_usecode(hour);
+    }
+    if (transition && !transition->set_step(hour, minute, ticks)) transition.reset();
+    set_time_palette(false);
+}
+
+void Game_clock::advance_wait_ticks(int count) {
+    // Controller splits at every minute boundary; callbacks observe exact ticks.
+    ticks += count;
+    if (ticks >= ticks_per_minute) { ticks -= ticks_per_minute; advance_wait_minute(); }
+}
+void Game_clock::set_time_rate(int value) {
+    const auto old = time_rate;
+    time_rate = value > 0 ? value : 1;
+    Game_time::rate_changed(old, time_rate);
 }

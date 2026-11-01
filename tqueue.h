@@ -96,6 +96,7 @@ class Time_queue {
 
 public:
 	friend class Time_queue_iterator;
+	bool is_paused() const { return paused != 0; }
 	void clear();    // Remove all entries.
 
 	// Add an entry.
@@ -136,6 +137,8 @@ public:
 	long find_delay(const Time_sensitive* obj, uint32 curtime) const;
 
 	// Activate entries that are 'due'.
+	bool next_deadline(uint32& tick) const;
+	bool activate_next(uint32 cutoff); // One entry at its intended deadline.
 	void activate(uint32 curtime);
 
 	void pause(uint32 curtime) {    // Game paused.

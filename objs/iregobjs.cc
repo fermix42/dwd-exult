@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #	include <config.h>
 #endif
 
+#include "game_time.h"
 #include "Gump_manager.h"
 #include "cheat.h"
 #include "chunks.h"
@@ -181,7 +182,7 @@ void Ireg_game_object::write_ireg(ODataSource* out) {
 // Get size of IREG. Returns -1 if can't write to buffer
 int Ireg_game_object::get_ireg_size() {
 	// These shouldn't ever happen, but you never know
-	if (gumpman->find_gump(this) || Usecode_script::find(this)) {
+	if (gumpman->find_gump(this) || Usecode_script::find(this) || Game_time::has_event(this)) {
 		return -1;
 	}
 	return 6 + get_common_ireg_size();

@@ -77,6 +77,7 @@ const struct Action {
 	unsigned int desg_msg_id;
 
 	const char* desc() const {
+        if (std::string(s) == "WAIT") return "Wait";
 		return get_text_msg(desg_msg_id - msg_file_start);
 	}
 
@@ -97,6 +98,7 @@ const struct Action {
 		//  This causes misalignments.
 		// clang-format off
 		{        "VOLUME_MIXER",          ActionMixerGump,           nullptr, 0x800,  Action::normal_keys,         NONE,  true,  true,  true, false},
+		{                "WAIT",               ActionWait,           nullptr,     0,  Action::normal_keys,         NONE, false, false, false, false},
 		{                "QUIT",               ActionQuit,           nullptr, 0x801,  Action::normal_keys,         NONE,  true,  true,  true, false},
 		{        "SAVE_RESTORE",           ActionFileGump,           nullptr, 0x802,  Action::normal_keys,         NONE,  true,  true,  true, false},
 		{           "QUICKSAVE",          ActionQuicksave,           nullptr, 0x803,  Action::normal_keys,         NONE, false,  true,  true, false},
@@ -759,6 +761,12 @@ void KeyBinder::LoadDefaults() {
 	if (txt && len > 0) {
 		ParseText(reinterpret_cast<char*>(txt.get()), len);
 	}
+    // Older compatible resource packs have no Wait binding. New packs already
+    // provide it; preserve mappings and avoid duplicate help entries.
+    if (bindings.find(ExultKey{SDLK_W, SDL_KMOD_SHIFT}) == bindings.end()) {
+        char binding[] = "Shift-W WAIT # Wait 1-24 hours";
+        ParseLine(binding, 0);
+    }
 }
 
 // codes used in keybindings-files. (use uppercase here)

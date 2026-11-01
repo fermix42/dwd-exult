@@ -494,6 +494,7 @@ public:
 	virtual void switched_chunks(Map_chunk*, Map_chunk*) {}
 
 	// Update schedule for new 3-hour time.
+	virtual bool schedule_transition_uses_usecode(int) { return false; }
 	virtual void update_schedule(int hour3, int delay = -1, Tile_coord* pos = nullptr) {
 		ignore_unused_variable_warning(hour3, delay, pos);
 	}
@@ -574,6 +575,10 @@ public:
 	// Set atts. from savegame.
 	void            read_attributes(const unsigned char* buf, int len) override;
 	Npc_timer_list* need_timers();
+	void elapse_temporary_effects(uint32 milliseconds);
+	int temporary_effect_remaining(int flag) const;
+	void append_effect_durations(Atts_vector& attributes) const;
+	void restore_effect_durations();
 	// Set/clear/get actor flag.
 	void force_sleep();
 
@@ -909,6 +914,7 @@ public:
 	// Move and change frame.
 	void movef(Map_chunk* old_chunk, Map_chunk* new_chunk, int new_sx, int new_sy, int new_frame, int new_lift);
 	// Update schedule for new 3-hour time.
+	bool schedule_transition_uses_usecode(int hour3) override;
 	void             update_schedule(int hour3, int delay = -1, Tile_coord* pos = nullptr) override;
 	Schedule_change* find_schedule_at_time(int hour3) override;
 	// Render.

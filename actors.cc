@@ -5432,3 +5432,18 @@ Frames_sequence::Frames_sequence(
 	frames = new unsigned char[cnt];
 	memcpy(frames, f, cnt);    // Copy in the list.
 }
+
+// Read-only preflight mirrors update_schedule's selection/early-return logic.
+bool Npc_actor::schedule_transition_uses_usecode(int hour3) {
+    auto* desired = find_schedule_change(hour3);
+    if (!desired) {
+        desired = find_schedule_at_time(hour3);
+        if (!desired) return false;
+        // update_schedule only skips unchanged fallback entries. An explicit
+        // entry still reconstructs the schedule, even at the same type/location.
+        if ((schedule_type == desired->get_type() || restored_schedule == desired->get_type())
+            && old_schedule_loc == desired->get_pos()) return false;
+    }
+    return dynamic_cast<Scripted_schedule*>(schedule.get()) != nullptr
+        || desired->get_type() >= Schedule::first_scripted_schedule;
+}

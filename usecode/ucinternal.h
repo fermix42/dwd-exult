@@ -71,6 +71,7 @@ class Usecode_internal : public Usecode_machine {
 	//    256*i + n.
 	using Funs256 = std::vector<Usecode_function*>;
 	std::vector<Funs256>                 funs;
+    Usecode_function* native_light_adapter = nullptr; // Explicit built-in compatibility participant.
 	std::vector<Usecode_value>           statics;                   // Global persistent vars.
 	Usecode_symbol_table*                symtbl = nullptr;          // (optional) symbol table.
 	std::deque<Stack_frame*>             call_stack;                // the call stack
@@ -329,6 +330,7 @@ class Usecode_internal : public Usecode_machine {
 	USECODE_INTRINSIC_DECL(close_gumps2, 0);
 	USECODE_INTRINSIC_DECL(in_gump_mode, 0);
 	USECODE_INTRINSIC_DECL(set_light, 2);
+	USECODE_INTRINSIC_DECL(schedule_game_time_fuel, 6);
 	USECODE_INTRINSIC_DECL(set_time_palette, 0);
 	USECODE_INTRINSIC_DECL(ambient_light, 1);
 	USECODE_INTRINSIC_DECL(is_not_blocked, 3);
@@ -495,6 +497,7 @@ public:
 	// Read in usecode functions.
 	void read_usecode(std::istream& file, bool patch = false) override;
 	void read_usecode() override;
+    bool native_light_contract();
 	// Call desired function.
 	int         call_usecode(int id, Game_object* item, Usecode_events event) override;
 	bool        call_method(Usecode_value* inst, int id, Game_object* item) override;

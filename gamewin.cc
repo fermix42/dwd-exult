@@ -28,6 +28,7 @@
 #	include <config.h>
 #endif
 
+#include "game_time.h"
 #include "gamewin.h"
 #include "cli_driver.h"
 #include "cli_world.h"
@@ -964,6 +965,7 @@ void Game_window::clear_world(bool restoremapedit) {
 	const bool edit = cheat.in_map_editor();
 	cheat.set_map_editor(false);
 	Combat::resume();
+	Game_time::clear();
 	tqueue->clear();    // Remove all entries.
 	clear_dirty();
 	Usecode_script::clear();    // Clear out all scheduled usecode.
@@ -1519,9 +1521,16 @@ void Game_window::write_gwin() {
 	gout.write1(ambient_light ? 1 : 0);
 	gout.write1(combat ? 1 : 0);
 	gout.write1(infravision_active ? 1 : 0);
+    gout.write4(0x47544d32); // Optional game-time metadata v2; old writers drop it.
+    gout.write2(clock->get_ticks());
+    gout.write2(clock->get_time_rate());
+    const auto epoch = Game_time::metadata_epoch();
+    gout.write4(static_cast<uint32>(epoch)); gout.write4(static_cast<uint32>(epoch >> 32));
+    gout.write2(clock->schedule_pending_flags());
 	if (!gout.good()) {
 		throw file_write_exception(GWINDAT);
 	}
+    Game_time::accept_save_metadata(epoch);
 }
 
 /*
@@ -1593,6 +1602,16 @@ void Game_window::read_gwin() {
 	if (!gin.good()) {
 		infravision_active = false;
 	}
+    clock->set_ticks(0); // Original files have no fractional-clock field.
+    if (gin.getSize() - gin.getPos() >= 16 && gin.read4() == 0x47544d32) {
+        const auto phase = gin.read2(); const auto rate = gin.read2();
+        const auto low = gin.read4();
+        const auto epoch = static_cast<unsigned long long>(gin.read4()) << 32 | low;
+        if (phase < ticks_per_minute && rate > 0 && epoch) {
+            clock->set_ticks(phase); clock->set_time_rate(rate); Game_time::accept_save_metadata(epoch);
+            if (gin.getSize() - gin.getPos() >= 2) { const auto flags = gin.read2(); if (flags <= 3) clock->restore_pending_schedules(flags); }
+        }
+    }
 }
 
 /*
@@ -2954,6 +2973,13 @@ void Game_window::setup_game(bool map_editing) {
 	for (int i = 0; i < cnt; i++) {         // Init. rings.
 		party[i]->init_readied();
 	}
+    // Rebase optional saved durations after loading/readied initialization has
+    // finished, before starting new egg-driven gameplay. No load-time fade cost.
+    for (int i = 0; i < get_num_npcs(); ++i)
+        if (auto* actor = get_npc(i)) actor->restore_effect_durations();
+    for (auto* actor = Monster_actor::get_first_in_world(); actor; actor = actor->get_next_in_world())
+        actor->restore_effect_durations();
+	Game_time::finish_load();
 	// Ensure time is stopped if map-editing.
 	time_stopped = map_editing ? -1 : 0;
 	//+++++The below wasn't prev. done by ::read(), so maybe it should be
@@ -3317,4 +3343,13 @@ void Game_window::set_shortcutbar(uint8 s) {
 			g_shortcutBar = nullptr;
 		}
 	}
+}
+
+bool Game_window::schedule_transition_uses_usecode(int hour) {
+    for (const auto& npc : npcs) {
+        if (npc && npc->get_schedule_type() != Schedule::wait
+            && (npc->get_schedule_type() != Schedule::combat || npc->get_target() == nullptr)
+            && npc->schedule_transition_uses_usecode(hour / 3)) return true;
+    }
+    return false;
 }

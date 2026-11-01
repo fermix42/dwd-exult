@@ -822,3 +822,34 @@ void Usecode_script::print(std::ostream& out) const {
 	}
 	out << ") = ";
 }
+
+bool Usecode_script::party_sequence() {
+    for (auto* script = first; script; script = script->next) {
+        if (!script->executable()) continue;
+        auto owner = script->obj.lock();
+        auto* actor = owner ? owner->get_outermost()->as_actor() : nullptr;
+        if (actor && (actor->is_in_party() || actor == Game_window::get_instance()->get_main_actor())) return true;
+    }
+    return false;
+}
+
+// One-time legacy timer handoff, explicitly declared by participating Usecode.
+// Not event admission, function-body classification, or new-format identity.
+// Only the canonical old delayed-single-call envelope is transferable; any other
+// executable work is preserved. The caller invokes this only during reconstruction.
+void Usecode_script::adopt_declared_timer(Game_object* owner, int function, long& remaining) {
+    auto* q = Game_window::get_instance()->get_tqueue();
+    for (auto* s = first; s; s = s->next) {
+        if (s->obj.lock().get() != owner || !s->executable()) continue;
+        const int base = s->cnt == 3 && s->code->get_elem(0).get_int_value() == Ucscript::dont_halt ? 1 : 0;
+        if (s->cnt != base + 2 || s->i > base
+            || s->code->get_elem(base).get_int_value() != Ucscript::usecode
+            || s->code->get_elem(base + 1).get_int_value() != function) continue;
+        const auto delay = q->find_delay(s, SDL_GetTicks());
+        if (delay < 0) continue;
+        remaining = remaining < 0 ? delay : std::min(remaining, delay);
+        s->i = s->cnt; // Explicit ownership transfer, including old nohalt timers.
+        // Leave the exhausted envelope for normal queue cleanup; no executable
+        // callback is dropped by any general Wait eligibility operation.
+    }
+}

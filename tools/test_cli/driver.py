@@ -1,5 +1,5 @@
 """JSON Lines client for the ordinary Exult executable (Python stdlib only)."""
-import argparse, ctypes, hashlib, json, os, pathlib, queue, subprocess, sys, threading, time, tempfile
+import argparse, ctypes, hashlib, json, os, pathlib, queue, shutil, subprocess, sys, threading, time, tempfile
 from xml.sax.saxutils import escape
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 BASE=pathlib.Path(os.environ.get('EXULT_TEST_OUTPUT',str(pathlib.Path(tempfile.gettempdir())/'exult-test-cli'))).resolve()
@@ -31,9 +31,26 @@ class Driver:
   if mod and not (mods_path/(mod+'.cfg')).is_file():raise ValueError('Selected mod not found; set EXULT_TEST_MODS_PATH')
   self.run=BASE/'runs'/name; self.run.mkdir(parents=True,exist_ok=False)
   (self.run/'.exult-test-run').write_text('isolated developer session\n')
+  scale=int(c.get('scale',1))
+  if scale<1 or scale>4:raise ValueError('scale must be 1..4')
   g='blackgate' if game=='bg' else 'serpentisle'
-  cfg=f'''<config><disk><data_path>{escape(data_path)}</data_path><game><{g}><path>{escape(path)}</path><mods>{escape(mods_path.as_posix())}</mods><gamedat_path>{escape(self.run.as_posix())}/gamedat</gamedat_path><savegame_path>{escape(self.run.as_posix())}/saves</savegame_path></{g}></game></disk><gameplay><skip_splash>yes</skip_splash><skip_intro>yes</skip_intro></gameplay><video><fullscreen>no</fullscreen><scale>1</scale><scale_method>point</scale_method><vsync>0</vsync><display><width>640</width><height>480</height></display></video><audio><enabled>no</enabled></audio></config>'''
+  keys_fragment=''
+  if c.get('keys_path'):
+   keys_path=pathlib.Path(c['keys_path']).resolve()
+   if not keys_path.is_file():raise ValueError('keys_path must be a regular bindings file')
+   keys_fragment='<keys>'+escape(keys_path.as_posix())+'</keys>'
+  patch_path=c.get('patch_path')
+  patch_fragment=''
+  if patch_path:
+   patch_path=pathlib.Path(patch_path).resolve()
+   if not (patch_path/'usecode').is_file():raise ValueError('patch_path must contain a usecode resource')
+   patch_fragment='<patch>'+escape(patch_path.as_posix())+'</patch>'
+  cfg=f'''<config><disk><data_path>{escape(data_path)}</data_path><game><{g}><path>{escape(path)}</path><mods>{escape(mods_path.as_posix())}</mods>{patch_fragment}{keys_fragment}<gamedat_path>{escape(self.run.as_posix())}/gamedat</gamedat_path><savegame_path>{escape(self.run.as_posix())}/saves</savegame_path></{g}></game></disk><gameplay><skip_splash>yes</skip_splash><skip_intro>yes</skip_intro></gameplay><video><fullscreen>no</fullscreen><scale>{scale}</scale><scale_method>point</scale_method><vsync>0</vsync><display><width>640</width><height>480</height></display></video><audio><enabled>no</enabled></audio></config>'''
   (self.run/'exult.cfg').write_text(cfg.replace('><', '>\n<'))
+  checkpoint=c.get('checkpoint')
+  if checkpoint:
+   source=pathlib.Path(checkpoint).resolve()
+   if not source.is_file() or source.suffix.lower()!='.sav':raise ValueError('checkpoint must be a regular Exult save archive')
   env=child_environment()
   self.stdout=(self.run/'engine.log').open('w',encoding='utf8');self.stderr=(self.run/'stderr.log').open('w',encoding='utf8')
   args=[str(EXE),'--test-cli','--test-run-dir',str(self.run),'-p','--'+game,'--nomenu','-c',str(self.run/'exult.cfg')]
@@ -51,11 +68,18 @@ class Driver:
      except Exception as e:self.responses.put({'ok':False,'error':'malformed engine reply '+str(e)})
   self.reader=threading.Thread(target=reader,daemon=True);self.reader.start()
   ready=self.receive(0,30)
+  if checkpoint:
+   # Ask the ordinary engine for its selected save directory (mods may nest it).
+   target=pathlib.Path(self.raw('state')['state']['save_path']).resolve()
+   if self.run.resolve() not in target.parents:raise ValueError('engine save path escapes fresh run')
+   target.mkdir(parents=True,exist_ok=True)
+   shutil.copyfile(source,target/source.name)
   # Record exact resource identities, read only.
   paths=[pathlib.Path(path)/'static'/'usecode']
   if mod: paths+=list((mods_path/mod).rglob('*usecode*'))
+  if patch_path:paths.append(patch_path/'usecode')
   resources=[{'path':str(p),'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in paths if p.is_file()]
-  return {'ok':True,'category':'lifecycle','ready':ready,'run':str(self.run),'game':game,'mod':mod,'resources':resources,'desktop_before':self.before,'desktop_after':self.desktop(),'executable':str(EXE),'executable_sha256':hashlib.sha256(EXE.read_bytes()).hexdigest()}
+  return {'ok':True,'category':'lifecycle','ready':ready,'run':str(self.run),'game':game,'mod':mod,'resources':resources,'desktop_before':self.before,'desktop_after':self.desktop(),'executable':str(EXE),'executable_sha256':hashlib.sha256(EXE.read_bytes()).hexdigest(),'checkpoint':{'path':str(source),'sha256':hashlib.sha256(source.read_bytes()).hexdigest()} if checkpoint else None}
  def desktop(self):
   class POINT(ctypes.Structure):_fields_=[('x',ctypes.c_long),('y',ctypes.c_long)]
   p=POINT();u=ctypes.windll.user32;u.GetCursorPos(ctypes.byref(p));u.GetForegroundWindow.restype=ctypes.c_void_p
@@ -105,6 +129,26 @@ class Driver:
    return self.raw(op,int(c['ref']),0)
   if op in ('inspect_tile','path_query','move_to'):
    return self.raw(op,int(c['x']),int(c['y']),int(c.get('z',0)),int(float(c.get('timeout',10))*1000))
+  if op in ('inspect_inventory','interact_inventory'):return self.raw(op,int(c.get('ref',0)))
+  if op=='key':
+   names={'w':119,'escape':27,'enter':13,'left':0x40000050,'right':0x4000004f,'up':0x40000052,'down':0x40000051,'home':0x4000004a,'end':0x4000004d}
+   names.update({str(i):ord(str(i))for i in range(1,9)})
+   if c['key'].lower()not in names:raise ValueError('unsupported semantic key')
+   return self.raw(op,names[c['key'].lower()],3 if c.get('shift',False)else 0)
+  if op=='test_light_item':return self.raw(op,int(c['kind']))
+  if op=='test_remove_fuel_receiver':return self.raw(op,int(c['ref']))
+  if op=='drop_item':return self.raw(op,int(c['ref']),int(c['x']),int(c['y']),int(c.get('z',0)))
+  if op=='ready_inventory':return self.raw(op,int(c['ref']),int(c['slot']))
+  if op=='test_stall':return self.raw(op,int(c['milliseconds']))
+  if op=='test_exposure':return self.raw(op)
+  if op=='test_equipment':return self.raw(op,int(c['kind']))
+  if op=='test_stale_event_metadata':return self.raw(op,int(c['ref']))
+  if op=='test_calendar':return self.raw(op,int(c['day']),int(c['hour']),int(c['minute']),int(c.get('phase',0)))
+  if op=='test_legacy_clock':return self.raw(op,int(c['minutes']))
+  if op=='test_time_rate':return self.raw(op,int(c['rate']))
+  if op=='test_temporary_effect':return self.raw(op,{'protection':1,'might':2}[c['effect']])
+  if op=='native_wait':return self.raw(op,int(c['minutes']))
+  if op=='wait_eligibility':return self.raw(op)
   if op=='activate_control':return self.raw(op,int(c['id']),0)
   if op=='choose':
    index=c.get('index')

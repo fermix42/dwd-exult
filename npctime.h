@@ -72,6 +72,9 @@ public:
 	friend class Npc_bleed_timer;
 	Npc_timer_list(Actor* n);
 	~Npc_timer_list();
+	void elapse(uint32 milliseconds);
+	void restore_remaining(int flag, int milliseconds);
+	int remaining(int flag) const; // -1: no owned temporary timer.
 	void start_hunger();
 	void start_poison();
 	void start_sleep();

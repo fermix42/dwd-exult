@@ -60,6 +60,15 @@ EXULTSOURCES =	\
 	cli_driver.h	\
 	cli_world.cc	\
 	cli_world.h	\
+	gumps/Wait_gump.cc	\
+	gumps/Wait_gump.h	\
+	native_wait.cc	\
+	native_wait.h	\
+	game_time.cc	\
+	game_time.h	\
+	usecode/game_time_compat.h	\
+	data/game_time_bg.uc	\
+	data/game_time_si.uc	\
 	exult.h		\
 	exulticon.h	\
 	exultmenu.cc	\
@@ -376,4 +385,6 @@ endif
 EXTRA_DIST += docs/test_cli.md docs/test_cli_protocol.md \
  tools/test_cli/driver.py tools/test_cli/acceptance.py \
  tools/test_cli/demonstrate.py tools/test_cli/navigation_checks.py \
- tools/test_cli/lifecycle_checks.py tools/test_cli/review_checks.py
+ tools/test_cli/lifecycle_checks.py tools/test_cli/review_checks.py \
+ tools/test_cli/native_wait_checks.py tools/compile_resources.py \
+ tools/test_cli/scenarios/legacy_light.uc docs/game_time_events.md

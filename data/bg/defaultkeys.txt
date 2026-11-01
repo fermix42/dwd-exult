@@ -127,3 +127,5 @@ Ctrl-N		npc_numbers
 6	inventory	5	# Show inventory for character 6
 7	inventory	6	# Show inventory for character 7
 8	inventory	7	# Show inventory for character 8
+
+Shift-W		wait			# Wait 1-24 hours

@@ -20,6 +20,11 @@
 #	include <config.h>
 #endif
 
+#include "Wait_gump.h"
+#include "native_wait.h"
+#include "gameclk.h"
+
+
 #include "keyactions.h"
 
 #include "Audio.h"
@@ -983,4 +988,39 @@ void ActionToggleBBoxes(const int* /*params*/) {
 
 void ActionPerfMetrics(const int* /*params*/) {
 	PerformanceTimer::IncMode();
+}
+
+namespace {
+const char* wait_reason(const std::string& reason) {
+    if (reason == "hungry-party") return "Thy party is too hungry to wait.";
+    if (reason == "combat") return "Thou canst not wait in combat.";
+    if (reason == "nearby-capable-hostile") return "Enemies are too near.";
+    if (reason == "exposure") return "Thy party is too cold to wait.";
+    if (reason == "harmful-condition") return "A companion needs tending before waiting.";
+    if (reason == "party-action") return "Wait until thy party stops moving.";
+    if (reason == "schedule-reconciliation-pending") return "Wait a moment for the world to settle.";
+    return "Thou canst not wait during this activity.";
+}
+}
+void ActionWait(const int*) {
+    auto* w = Game_window::get_instance();
+    const char* reason = Native_wait::eligibility(*w);
+    if (std::string(reason) != "allow") {
+        w->get_effects()->center_text(wait_reason(reason));
+        return;
+    }
+    Wait_gump dialog;
+    if (!w->get_gump_man()->do_modal_gump(&dialog, Mouse::hand) || !dialog.accepted()) return;
+    // The modal is now removed and its own pause released. The service revalidates
+    // the real gameplay context and returns actual elapsed time on interruption.
+    const auto result = Native_wait::advance(*w, dialog.duration() * 60);
+    std::string message;
+    if (!result.completed_ticks) message = wait_reason(result.reason);
+    else if (std::string(result.reason) == "complete") message = "Time passes.";
+    else if (!result.completed_minutes) message = "Less than a minute passes. ";
+    else message = "Waited " + std::to_string(result.completed_minutes) + " minutes. ";
+    if (std::string(result.reason) == "hungry-party") message += "Thou art hungry.";
+    else if (std::string(result.reason) == "exposure") message += "The cold interrupts thy wait.";
+    else if (std::string(result.reason) != "complete" && result.completed_ticks) message += "Thy wait was interrupted.";
+    w->get_effects()->center_text(message.c_str());
 }

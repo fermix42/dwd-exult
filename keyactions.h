@@ -116,4 +116,6 @@ void ActionTest(const int* params);
 
 void ActionToggleBBoxes(const int* params);
 void ActionPerfMetrics(const int* params);
+void ActionWait(const int* params);
+
 #endif

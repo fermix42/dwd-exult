@@ -50,6 +50,8 @@ class Game_clock : public Time_sensitive {
 	bool                                was_foggy;
 	std::unique_ptr<Palette_transition> transition;    // For smooth palette transitions.
 	unsigned short                      time_rate;
+    bool pending_schedules = false;
+    bool pending_scripted_schedule = false;
 	void                                set_time_palette(bool force);
 	void                                set_light_source_level(int lev);
 	void                                check_hunger() const;
@@ -112,6 +114,7 @@ public:
 	}
 
 	void reset() {
+        pending_schedules = pending_scripted_schedule = false;
 		overcast = fog = 0;
 		was_overcast = was_foggy = false;
 		old_special_light        = false;
@@ -123,6 +126,12 @@ public:
 
 	void set_overcast(bool onoff);      // Start/end cloud cover.
 	void set_fog(bool onoff);           // Start/end cloud cover.
+	bool schedules_pending() const { return pending_schedules; }
+    bool scripted_schedule_pending() const { return pending_scripted_schedule; }
+    unsigned schedule_pending_flags() const { return pending_schedules | (pending_scripted_schedule << 1); }
+    void restore_pending_schedules(unsigned flags) { pending_schedules = flags & 1; pending_scripted_schedule = pending_schedules && (flags & 2); }
+	void advance_wait_ticks(int count);
+	void advance_wait_minute(); // Native Wait only; preserves fractional ticks.
 	void increment(int num_minutes);    // Increment clock.
 	void handle_event(unsigned long curtime, uintptr udata) override;
 	void fake_next_period();    // For debugging.
@@ -131,9 +140,7 @@ public:
 		return time_rate;
 	}
 
-	void set_time_rate(int i) {
-		time_rate = i > 0 ? i : 1;
-	}
+	void set_time_rate(int i);
 };
 
 #endif /* INCL_GAMECLK */

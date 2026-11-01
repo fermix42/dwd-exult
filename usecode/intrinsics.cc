@@ -20,6 +20,7 @@
 #	include <config.h>
 #endif
 
+#include "game_time.h"
 #include "Audio.h"
 #include "Book_gump.h"
 #include "Dynamic_shape_widget.h"
@@ -2121,6 +2122,7 @@ USECODE_INTRINSIC(halt_scheduled) {
 	// Halt_scheduled(item)
 	Game_object* obj = get_item(parms[0]);
 	if (obj) {
+        Game_time::cancel(obj); // Explicit lifecycle cancellation includes owned fuel.
 		Usecode_script::terminate(obj);
 	}
 	return no_ret;
@@ -3978,6 +3980,9 @@ USECODE_INTRINSIC(set_light) {
 			npc->remove_light_source(light);
 		}
 	}
+    // The same explicit compatibility participant handles ordinary activation
+    // and materialization. Existing valid deadlines remain idempotent.
+    if (parms[1].get_int_value()) Game_time::ensure_fuel(light);
 	return no_ret;
 }
 
@@ -4484,4 +4489,9 @@ USECODE_INTRINSIC(set_gump_text_font) {
 		}
 	}
 	return Usecode_value(0);
+}
+
+USECODE_INTRINSIC(schedule_game_time_fuel) {
+    return Usecode_value(Game_time::fuel(get_item(parms[0]), parms[1].get_int_value(),
+        parms[2].get_int_value(), parms[3].get_int_value(), parms[4].get_int_value(), parms[5].get_int_value()));
 }

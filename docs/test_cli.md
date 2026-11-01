@@ -94,10 +94,15 @@ than repeating every game/mod scenario automatically. Read-only semantic inspect
 is the default for timers/Usecode, combat/navigation and UI tests. Screenshots are
 optional visual evidence, never the source of object identity, collision or choices.
 Human testing is for visual/auditory/subjective behavior. The infrastructure is shared
-across projects; this change does not implement Native Wait or alter combat/audio.
+across projects. Native Wait uses the service described in game_time_events.md. Combat/audio
+implementation is unchanged.
 
 Normal idle exit reports full engine cleanup. Unsupported nested exit is explicit
 cancellation, nonzero and never PASS. Cancel a supported modal through its native
 control, wait for gameplay ownership, then exit normally. Zero assertions still
 cannot yield a passing gameplay session. Detailed evidence belongs in the configured
 output root, never in the source commit.
+
+For Native Wait regression commands, supported compatibility and known limits,
+see game_time_events.md and test_cli_protocol.md.
+All commands use the ordinary Exult binary; no separate CLI engine exists.

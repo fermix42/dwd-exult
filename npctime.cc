@@ -23,6 +23,9 @@
 #endif
 
 #include "npctime.h"
+#include "game_time.h"
+#include <algorithm>
+#include <string>
 
 #include "actors.h"
 #include "game.h"
@@ -93,6 +96,7 @@ public:
  *  Invisibility timer.
  */
 class Npc_invisibility_timer : public Npc_timer {
+	friend class Npc_timer_list;
 	uint32 end_time;    // Time when it wears off.
 public:
 	Npc_invisibility_timer(Npc_timer_list* l) : Npc_timer(l) {
@@ -108,6 +112,7 @@ public:
  *  Protection timer.
  */
 class Npc_protection_timer : public Npc_timer {
+	friend class Npc_timer_list;
 	uint32 end_time;    // Time when it wears off.
 public:
 	Npc_protection_timer(Npc_timer_list* l) : Npc_timer(l) {
@@ -134,6 +139,7 @@ public:
  *  Timer for flags that don't need any other checks.
  */
 class Npc_flag_timer : public Npc_timer {
+	friend class Npc_timer_list;
 	int    flag;        // Flag # in Obj_flags.
 	uint32 end_time;    // Time when it wears off.
 public:
@@ -552,4 +558,121 @@ void Npc_flag_timer::handle_event(unsigned long curtime, uintptr udata) {
 	}
 	// Check again in 10 secs.
 	gwin->get_tqueue()->add(curtime + 10000, this);
+}
+
+void Actor::elapse_temporary_effects(uint32 milliseconds) {
+    if (timers) timers->elapse(milliseconds);
+}
+int Actor::temporary_effect_remaining(int flag) const {
+    return timers ? timers->remaining(flag) : -1;
+}
+
+int Npc_timer_list::remaining(int flag) const {
+    uint32 end;
+    if (flag == Obj_flags::protection && protection) end = protection->end_time;
+    else if (flag == Obj_flags::invisible && invisibility) end = invisibility->end_time;
+    else {
+        auto it = flags.find(flag);
+        if (it == flags.end()) return -1;
+        end = it->second->end_time;
+    }
+    const auto delta = static_cast<sint32>(end - Game::get_ticks());
+    return delta > 0 ? delta : 0;
+}
+void Npc_timer_list::elapse(uint32 milliseconds) {
+    const auto now = Game::get_ticks();
+    auto* queue = Game_window::get_instance()->get_tqueue();
+    auto age = [&](auto& owner, int flag) {
+        if (!owner) return;
+        auto* timer = owner.get();
+        const auto left = static_cast<uint32>(remaining(flag));
+        timer->end_time = now + (left > milliseconds ? left - milliseconds : 0);
+        while (queue->remove(timer)) {}
+        // Existing cleanup may destroy timer: never dereference it afterwards.
+        timer->handle_event(now, 0);
+    };
+    age(protection, Obj_flags::protection);
+    age(invisibility, Obj_flags::invisible);
+    for (auto it = flags.begin(); it != flags.end();) {
+        const auto current = it++;
+        age(current->second, current->first);
+    }
+}
+
+namespace {
+// Optional v2 metadata in the existing named-attribute envelope. Values in that
+// envelope are 16-bit, so durations use two unsigned words, with 0 = absent and
+// remaining+1 = present. Do not put millisecond durations in a single attribute.
+constexpr const char* effect_version = "exult.effect.v";
+constexpr const char* effect_epoch[] = {"exult.effect.e0", "exult.effect.e1", "exult.effect.e2", "exult.effect.e3"};
+struct Effect_key { int flag; const char* low; const char* high; };
+const Effect_key effect_keys[] = {
+    {Obj_flags::protection, "exult.effect.p.lo", "exult.effect.p.hi"},
+    {Obj_flags::invisible, "exult.effect.i.lo", "exult.effect.i.hi"},
+    {Obj_flags::might, "exult.effect.m.lo", "exult.effect.m.hi"},
+    {Obj_flags::cursed, "exult.effect.c.lo", "exult.effect.c.hi"},
+    {Obj_flags::charmed, "exult.effect.h.lo", "exult.effect.h.hi"},
+    {Obj_flags::paralyzed, "exult.effect.z.lo", "exult.effect.z.hi"}
+};
+}
+void Actor::append_effect_durations(Atts_vector& attributes) const {
+    // Discard the previous serialized snapshot, never reserialize stale metadata.
+    attributes.erase(std::remove_if(attributes.begin(), attributes.end(), [](const auto& a) {
+        return std::string(a.first).compare(0, 13, "exult.effect.") == 0;
+    }), attributes.end());
+    bool has_effect = false;
+    for (const auto& key : effect_keys)
+        has_effect = has_effect || get_flag(key.flag) || temporary_effect_remaining(key.flag) >= 0;
+    if (!has_effect) return;
+    attributes.emplace_back(effect_version, 2);
+    const auto epoch = Game_time::metadata_epoch();
+    for (int i = 0; i < 4; ++i) attributes.emplace_back(effect_epoch[i], (epoch >> (16 * i)) & 65535);
+    for (const auto& key : effect_keys) {
+        const auto value = static_cast<uint32>(temporary_effect_remaining(key.flag) + 1);
+        attributes.emplace_back(key.low, value & 65535);
+        attributes.emplace_back(key.high, value >> 16);
+    }
+}
+void Actor::restore_effect_durations() {
+    // Legacy/unknown-version saves follow the unchanged normal reconstruction.
+    if (!Game_time::save_metadata_valid() || get_attribute(effect_version) != 2) return;
+    unsigned long long epoch = 0;
+    for (int i = 0; i < 4; ++i) epoch |= (static_cast<unsigned long long>(get_attribute(effect_epoch[i])) & 65535) << (16 * i);
+    if (epoch != Game_time::metadata_epoch()) return;
+    for (const auto& key : effect_keys) {
+        const uint32 value = (static_cast<uint32>(get_attribute(key.low)) & 65535)
+            | ((static_cast<uint32>(get_attribute(key.high)) & 65535) << 16);
+        // Current supported effects never exceed 120s. Reject corrupt metadata
+        // instead of extending arbitrary flags for unbounded periods.
+        if (value > 120001) continue;
+        need_timers()->restore_remaining(key.flag, static_cast<int>(value) - 1);
+    }
+    // Consume the loaded snapshot. Saving computes fresh metadata from records.
+    set_attribute(effect_version, 0);
+}
+void Npc_timer_list::restore_remaining(int flag, int milliseconds) {
+    const auto actor = get_npc();
+    if (!actor) return;
+    auto restore = [&](auto& owner) {
+        if (milliseconds < 0) { owner.reset(); return; }
+        // Do not resurrect a cleared status or manufacture an effect from metadata.
+        if (!owner || !actor->get_flag(flag)) return;
+        auto* timer = owner.get();
+        // The normal cached game tick is refreshed on return to the event loop.
+        // Rebase at the actual end of loading, not at its earlier cached epoch.
+        const auto now = static_cast<uint32>(SDL_GetTicks());
+        timer->end_time = now + milliseconds;
+        auto* queue = Game_window::get_instance()->get_tqueue();
+        while (queue->remove(timer)) {}
+        timer->handle_event(now, 0);
+    };
+    if (flag == Obj_flags::protection) restore(protection);
+    else if (flag == Obj_flags::invisible) restore(invisibility);
+    else {
+        auto it = flags.find(flag);
+        if (it != flags.end()) {
+            if (milliseconds < 0) flags.erase(it);
+            else restore(it->second);
+        }
+    }
 }
