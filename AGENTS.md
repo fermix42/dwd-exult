@@ -190,3 +190,14 @@ to obtain an attestation without the owner's explicit publication approval.
   mod/patch/install trees; use read-only resources where practical. Rerun existing
   installer/runtime regressions, report actual totals, rebuild exact-source assets
   and new checksums, retain Defender/provenance and genuine NOT TESTED gates.
+
+### Accepted DWD audio selection policy
+
+Player music selections include Enhanced OPL3 Stereo (`OPL3Stereo`),
+OPL2 (SB/ADLIB) (`OriginalOPL2`) and MT32EMU (`MT32Emu`). Keep retained IDs stable.
+The unpublished Early/Later MT-32 and CM-32L/LAPC-I music presets are retired;
+accept their old IDs as aliases of MT32Emu, not additional selectable drivers.
+Preserve retained MT32Emu synthesis and compatible conventional/split ROM loading,
+independent synthesized SFX/music settings, upstream backends and external MIDI.
+This scoped policy supersedes the experimental Roland preset choices only; all
+other accepted audio implementations and Enhanced OPL3 freeze remain protected.

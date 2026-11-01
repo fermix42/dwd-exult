@@ -193,3 +193,64 @@ results remain applicable to the unchanged local candidate. Hosted script execut
 remote downloads/tool availability and the first newly compiled hosted binaries
 remain to be verified after approval. See [READINESS.md](READINESS.md) for classified
 remaining risks and the exact staged approval sequence.
+
+## Audio selection simplification before first publication
+
+This follow-up supersedes the unpublished experimental Roland selections only.
+UI music labels are **Enhanced OPL3 Stereo**, **OPL2 (SB/ADLIB)** and **MT32EMU**;
+other upstream backends/external MIDI, Digital Music and separate sound effects
+remain available. Retained persistent IDs remain `OPL3Stereo`, `OriginalOPL2` and
+`MT32Emu`. The three retired IDs (`MT32EmuEarly`, `MT32EmuLater`, `MT32EmuCM32L`)
+are case-insensitive aliases to MT32Emu in startup, selection and driver creation.
+They are not registry entries or selectable presets. Existing unrelated keys/IDs
+remain unchanged. No migration framework, new gameplay or save format is involved.
+
+Inspection established that these were presets on one emulator with separate
+ROM-model filtering and original-score handling, not independent synthesizers.
+The preset descriptors/factories/model enum, exclusive model discovery/filtering,
+unused original-score policy, MyMidiPlayer profile hooks, and corresponding
+experimental-only tests were removed. The retained automatic MT32Emu synthesis,
+Munt settings, named CM32L/MT32 preference and interleaved MT32A/B loading remain.
+A discovered loader bug was fixed by flushing the merged control file before
+reopening it. This does not change synthesis or add another ROM selection policy.
+
+Protected Enhanced OPL3, authentic BG/SI OPL2, independent OriginalSfx and shared
+XMidiSequence implementations were compared to the preceding accepted commit and
+remain byte-identical. XMidiFile lost only the removed presets' note-pairing branch;
+its OPL3 and OriginalOPL2 conditions remain intact. Upstream original text documents
+were untouched. Only DWD additions in docs.xml were revised for current choices.
+
+Evidence root: `../test-output/dwd-audio-selection/`. The final `audio-review.json`
+records exact committed source, builds, final artifacts, executed results and
+hashes; do not apply older candidate checksums to these new binaries. Audio-only
+checks use the ordinary build's objects, not a second engine build. Retained Munt
+PCM checks use owner-supplied ROMs in ignored disposable copies; no ROM/game/sample
+assets enter a source or distribution ZIP. Normal startup checks use SDL dummy
+video/audio, observe completed initialization and persisted configuration, then
+terminate only for cleanup; they do not claim graceful-exit or human listening PASS.
+
+The preceding 287 installer/runtime/portable/shortcut/download assertions, 19
+read-only fixture checks and 34 read-only runtime assertions remain historical
+accepted evidence. Unrelated gameplay/save/load tests and the complete optional
+network-download suite are not repeated for this audio-only change. Relevant
+packaging/source/hash/startup checks are repeated on the rebuilt artifacts.
+
+Prior owner HUMAN PASS for Enhanced OPL3 plus independent OPL2 effects is retained;
+it is not relabeled as a fresh listening test of the rebuilt binary. New human
+inspection/listening of the simplified selector and retained MT32EMU choice is
+NOT TESTED and recommended, limited to the changed selection surface. No broad
+repeat of completed campaign, installer or other audio acceptance is required.
+Clean player Windows/hosted execution/attestations remain unperformed as previously
+classified. No source was pushed, tagged or published; version stays 1.0.0-rc.1.
+
+Executed audio regression: **PASS**, `audio-regression-8.log`. This includes exact
+registry labels, absence of preset entries, case-insensitive aliases and persisted
+configuration, real retained MT32EMU PCM/reinitialization using all three supplied
+ROM families, compatible split-ROM initialization, independent BG/SI OPL2 SFX PCM,
+existing OPL3 voice/pan/Guardian/score/ending and BG/SI OPL2 reference checks, and a
+matching legacy sequencer trace. Protected production FM/SFX files are unchanged.
+The split-ROM case exposed the missing flush described above. Earlier failed or
+incomplete runs are retained: test notes dispatched before normal queued setup,
+a factory used without its mixer pump, cross-game cached assets, and an absent
+standalone configuration. These fixture failures and the pre-fix split-ROM failure
+are not counted as PASS. No unrelated gameplay acceptance was rerun.

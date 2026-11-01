@@ -12,6 +12,8 @@ $scratch = Join-Path $BuildDirectory 'opl3-regression'
 if (Test-Path -LiteralPath $scratch) { throw "Remove the previous regression output first: $scratch" }
 New-Item -ItemType Directory -Path $scratch | Out-Null
 $originalPath = $env:PATH
+$originalAudioOutput = $env:EXULT_AUDIO_TEST_OUTPUT
+if (!$env:EXULT_AUDIO_TEST_OUTPUT) { $env:EXULT_AUDIO_TEST_OUTPUT = $scratch }
 $success = $false
 try {
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
@@ -30,9 +32,6 @@ try {
     if ($LASTEXITCODE) { Get-Content "$scratch/reference-compile.log"; throw 'Original OPL2 reference compilation failed' }
     & $compiler @options ("/I"+(Join-Path $PSScriptRoot 'original-opl2-reference')) ("/I"+(Join-Path $workspace 'ultima7-modern/game/include')) ("/I"+(Join-Path $workspace 'ultima7-modern/game/sound')) (Join-Path $PSScriptRoot 'serpent_opl2_reference.cpp') "/Fo$scratch/serpent-opl2-reference.obj" > "$scratch/serpent-reference-compile.log" 2>&1
     if ($LASTEXITCODE) { Get-Content "$scratch/serpent-reference-compile.log"; throw 'SI OPL2 reference compilation failed' }
-    & $compiler @options ("/I"+(Join-Path $PSScriptRoot 'roland-reference')) ("/I"+(Join-Path $PSScriptRoot 'original-opl2-reference')) ("/I"+(Join-Path $workspace 'ultima7-modern/game/include')) ("/I"+(Join-Path $workspace 'ultima7-modern/game/sound')) (Join-Path $PSScriptRoot 'roland_driver_reference.cpp') "/Fo$scratch/roland-reference.obj" > "$scratch/roland-reference-compile.log" 2>&1
-    if ($LASTEXITCODE) { Get-Content "$scratch/roland-reference-compile.log"; throw 'Roland reference compilation failed' }
-    # Compile the original shared sequencer solely for legacy event-trace comparison.
     & git -C $repo show HEAD:audio/midi_drivers/XMidiSequence.cpp | Set-Content "$scratch/baseline.cpp"
     & $compiler @options "$scratch/baseline.cpp" "/Fo$scratch/baseline.obj" > "$scratch/baseline-compile.log" 2>&1
     if ($LASTEXITCODE) { Get-Content "$scratch/baseline-compile.log"; throw 'Baseline compilation failed' }
@@ -40,7 +39,6 @@ try {
         $args = @('/NOLOGO','/SUBSYSTEM:CONSOLE','/ENTRY:wmainCRTStartup','/OPT:REF','/OPT:ICF','/LTCG','/MACHINE:X64',"/OUT:`"$scratch/$mode.exe`"", "`"$scratch/check.obj`"")
         $args += "`"$scratch/original-opl2-reference.obj`""
         $args += "`"$scratch/serpent-opl2-reference.obj`""
-        $args += "`"$scratch/roland-reference.obj`""
         foreach ($obj in Get-ChildItem -LiteralPath $objects -Filter '*.obj') {
             if ($obj.Name -in @('NukedOpl3.obj','OriginalOpl2MidiDriver.obj','Opl3StereoMidiDriver.obj')) { continue } # Emulator included in test TU for register checks.
             if ($mode -eq 'baseline' -and $obj.Name -eq 'XMidiSequence.obj') { continue }
@@ -70,6 +68,7 @@ try {
     $success = $true
 } finally {
     $env:PATH = $originalPath
+    $env:EXULT_AUDIO_TEST_OUTPUT = $originalAudioOutput
     # Keep failed-run evidence; remove only this exact generated directory after success.
     if ($success) {
         $resolvedScratch = (Resolve-Path -LiteralPath $scratch).Path

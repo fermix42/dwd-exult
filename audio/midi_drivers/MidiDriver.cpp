@@ -82,11 +82,6 @@ static void InitMidiDriverVector() {
 	midi_drivers.push_back(OriginalOpl2MidiDriver::getDesc());
 #endif
 
-#ifdef USE_MT32EMU_MIDI
-	midi_drivers.push_back(MT32EmuMidiDriver::getEarlyDesc());
-	midi_drivers.push_back(MT32EmuMidiDriver::getLaterDesc());
-	midi_drivers.push_back(MT32EmuMidiDriver::getCM32LDesc());
-#endif
 	midi_drivers.push_back(&Disabled_desc);
 }
 
@@ -107,13 +102,28 @@ std::string MidiDriver::getDriverName(uint32 index) {
 	return midi_drivers[index]->name;
 }
 
+std::string MidiDriver::canonicalDriverName(const std::string& name) {
+    for (const char* obsolete : {"MT32EmuEarly", "MT32EmuLater", "MT32EmuCM32L"})
+        if (!Pentagram::strcasecmp(name.c_str(), obsolete)) return "MT32Emu";
+    return name;
+}
+
+std::string MidiDriver::getDriverDisplayName(uint32 index) {
+    const auto name = getDriverName(index);
+    if (name == "OriginalOPL2") return "OPL2 (SB/ADLIB)";
+    if (name == "OPL3Stereo") return "Enhanced OPL3 Stereo";
+    if (name == "MT32Emu") return "MT32EMU";
+    return name;
+}
+
 // Create an Instance of a MidiDriver
 std::shared_ptr<MidiDriver> MidiDriver::createInstance(const std::string& desired_driver, uint32 sample_rate, bool stereo) {
 	InitMidiDriverVector();
 
 	std::shared_ptr<MidiDriver> new_driver = nullptr;
 
-	const char* drv = desired_driver.c_str();
+	const auto canonical = canonicalDriverName(desired_driver);
+	const char* drv = canonical.c_str();
 
 	// Has the config file specified disabled midi?
 	if (Pentagram::strcasecmp(drv, "disabled") != 0) {
@@ -139,16 +149,7 @@ std::shared_ptr<MidiDriver> MidiDriver::createInstance(const std::string& desire
 		// Uh oh, we didn't manage to load a driver!
 		// Search for the first working one
 		if (!new_driver) {
-#ifdef USE_MT32EMU_MIDI
-			if (MT32EmuMidiDriver::isExplicitDriver(desired_driver)) {
-				perr << "Requested Roland model unavailable; music disabled without substituting another backend." << std::endl;
-				return nullptr;
-			}
-#endif
 			for (const auto* midi_driver : midi_drivers) {
-#ifdef USE_MT32EMU_MIDI
-				if (MT32EmuMidiDriver::isExplicitDriver(midi_driver->name)) continue;
-#endif
 				pout << "Trying: `" << midi_driver->name << "'" << std::endl;
 
 				new_driver = midi_driver->createInstance();

@@ -13,8 +13,10 @@ DWD revision: Recorded per build in release-metadata.json and Exult version outp
     - Added original synthesized AdLib and Roland effects, including intro audio.
     - Added enhanced OPL3 Stereo music and a main-menu Music Player.
     - Restored original BG and SI OPL2 playback, including BG ending and credits.
-    - Added explicit early/later MT-32 and CM-32L model choices and original
-      Roland music behavior.
+    - Kept MT32EMU as the single emulated Roland music choice with compatible
+      ROM loading, and named original FM playback OPL2 (SB/ADLIB). Retained
+      settings keep their identifiers; unpublished Roland settings map to MT32EMU.
+      Split control ROMs are fully flushed before loading the merged image.
     - Added Native Wait for BG and SI, with guarded calendar advancement and
       saved fuel/effect timing. Waiting is not sleeping!
     - Set the BG/SI numeric quiz sliders to start on their correct answers while

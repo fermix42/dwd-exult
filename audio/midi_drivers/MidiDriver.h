@@ -238,6 +238,8 @@ public:
 	//! Get the name of a driver
 	//! \param index Driver number
 	static std::string getDriverName(uint32 index);
+	static std::string getDriverDisplayName(uint32 index);
+	static std::string canonicalDriverName(const std::string& name);
 
 	const std::string& getName() const {
 		return Name;

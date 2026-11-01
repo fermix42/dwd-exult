@@ -21,9 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "Midi.h"
 #include "midi_drivers/Opl3MusicPan.h"
-#ifdef USE_MT32EMU_MIDI
-#include "midi_drivers/MT32EmuMidiDriver.h"
-#endif
 #ifdef USE_FMOPL_MIDI
 #include "midi_drivers/FMOplMidiDriver.h"
 #include "midi_drivers/Opl3StereoMidiDriver.h"
@@ -217,14 +214,7 @@ bool MyMidiPlayer::start_music(int num, bool repeat, ForceType force, std::strin
         if(opl3->setEndingContext(false)) timbre_lib_filename.clear();
 #endif
     const int roland_conversion=setup_timbre_for_track(flex, GAME_BG && num >= 0 && num <= 2);
-    bool original_roland=false;
-#ifdef USE_MT32EMU_MIDI
-    if(auto roland=std::dynamic_pointer_cast<MT32EmuMidiDriver>(midi_driver)) {
-        original_roland=roland->hasOriginalMusic();
-        roland->prepareMusicTrack(mid_data.get(),0,flex==MAINMUS?num:-1);
-    }
-#endif
-	XMidiFile midfile(mid_data.get(), roland_conversion, (midi_driver->getName()=="OriginalOPL2" && !GAME_BG && Game::get_game_type()!=SERPENT_ISLE)?"FMOpl":midi_driver->getName(), original_roland || ((GAME_BG || Game::get_game_type()==SERPENT_ISLE) && midi_driver->getName()=="OriginalOPL2"), original_roland || (Game::get_game_type()==SERPENT_ISLE && midi_driver->getName()=="OriginalOPL2"));
+	XMidiFile midfile(mid_data.get(), roland_conversion, (midi_driver->getName()=="OriginalOPL2" && !GAME_BG && Game::get_game_type()!=SERPENT_ISLE)?"FMOpl":midi_driver->getName(), ((GAME_BG || Game::get_game_type()==SERPENT_ISLE) && midi_driver->getName()=="OriginalOPL2"), (Game::get_game_type()==SERPENT_ISLE && midi_driver->getName()=="OriginalOPL2"));
 
 #ifdef USE_FMOPL_MIDI
 	if(auto original=std::dynamic_pointer_cast<OriginalOpl2MidiDriver>(midi_driver)) original->setSerpentTrack(flex==MAINMUS_AD?num:-1);
@@ -346,13 +336,7 @@ bool MyMidiPlayer::start_music(std::string fname, int num, bool repeat, ForceTyp
         if(opl3->setEndingContext(GAME_BG && fname==ENDSCORE_XMI,&mid_data,num)) timbre_lib_filename.clear();
 #endif
     const int roland_conversion=setup_timbre_for_track(fname);
-    bool original_roland=false;
-#ifdef USE_MT32EMU_MIDI
-    if(auto roland=std::dynamic_pointer_cast<MT32EmuMidiDriver>(midi_driver)) {
-        original_roland=roland->hasOriginalMusic();roland->prepareMusicTrack(&mid_data,num,-1);
-    }
-#endif
-	XMidiFile midfile(&mid_data, roland_conversion, (midi_driver->getName()=="OriginalOPL2" && !GAME_BG && Game::get_game_type()!=SERPENT_ISLE)?"FMOpl":midi_driver->getName(), original_roland || ((GAME_BG || Game::get_game_type()==SERPENT_ISLE) && midi_driver->getName()=="OriginalOPL2"), original_roland || (Game::get_game_type()==SERPENT_ISLE && midi_driver->getName()=="OriginalOPL2"));
+	XMidiFile midfile(&mid_data, roland_conversion, (midi_driver->getName()=="OriginalOPL2" && !GAME_BG && Game::get_game_type()!=SERPENT_ISLE)?"FMOpl":midi_driver->getName(), ((GAME_BG || Game::get_game_type()==SERPENT_ISLE) && midi_driver->getName()=="OriginalOPL2"), (Game::get_game_type()==SERPENT_ISLE && midi_driver->getName()=="OriginalOPL2"));
 
 #ifdef USE_FMOPL_MIDI
 	if(auto original=std::dynamic_pointer_cast<OriginalOpl2MidiDriver>(midi_driver)) original->setSerpentTrack(-1);
@@ -532,11 +516,6 @@ void MyMidiPlayer::load_timbres() {
 #ifdef USE_FMOPL_MIDI
 	if(auto opl3=std::dynamic_pointer_cast<Opl3StereoMidiDriver>(midi_driver))
 		historical_context_changed=opl3->setClassicContext(GAME_BG && timbre_lib==TIMBRE_LIB_INTRO,GAME_BG && timbre_lib==TIMBRE_LIB_MAINMENU);
-#endif
-#ifdef USE_MT32EMU_MIDI
-    if((GAME_BG || Game::get_game_type()==SERPENT_ISLE))
-        if(auto roland=std::dynamic_pointer_cast<MT32EmuMidiDriver>(midi_driver))
-            historical_context_changed=roland->setMusicContext(GAME_BG,timbre_lib==TIMBRE_LIB_MAINMENU,timbre_lib==TIMBRE_LIB_INTRO,timbre_lib==TIMBRE_LIB_ENDGAME);
 #endif
 #ifdef USE_FMOPL_MIDI
 	if(Game::get_game_type()==SERPENT_ISLE) {
@@ -728,7 +707,7 @@ void MyMidiPlayer::set_midi_driver(const std::string& desired_driver, bool use_o
 	}
 
 	ogg_enabled      = use_oggs;
-	midi_driver_name = desired_driver;
+	midi_driver_name = MidiDriver::canonicalDriverName(desired_driver);
 
 	config->set("config/audio/midi/driver", midi_driver_name, true);
 	config->set("config/audio/midi/use_oggs", ogg_enabled ? "yes" : "no", true);
@@ -815,6 +794,7 @@ bool MyMidiPlayer::init_device(bool timbre_load) {
 
 	// Midi driver type.
 	config->value("config/audio/midi/driver", s, driver_default.c_str());
+	s = MidiDriver::canonicalDriverName(s);
 
 	if (s == "normal") {
 		config->set("config/audio/midi/driver", "default", true);

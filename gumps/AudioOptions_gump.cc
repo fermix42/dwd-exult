@@ -377,8 +377,7 @@ void AudioOptions_gump::rebuild_midi_driver_buttons() {
 	const unsigned int       num_midi_drivers = MidiDriver::getDriverCount();
 	std::vector<std::string> midi_drivertext;
 	for (unsigned int i = 0; i < num_midi_drivers; i++) {
-		const auto name=MidiDriver::getDriverName(i);
-		midi_drivertext.emplace_back(name=="OriginalOPL2" ? "Original OPL2 - AdLib / Sound Blaster" : name=="OPL3Stereo" ? "OPL3 Stereo" : name=="MT32EmuEarly" ? "Original MT-32 - Early" : name=="MT32EmuLater" ? "Original MT-32 - Later" : name=="MT32EmuCM32L" ? "Original CM-32L / LAPC-I" : name);
+		midi_drivertext.emplace_back(MidiDriver::getDriverDisplayName(i));
 	}
 	midi_drivertext.emplace_back(Strings::Default());
 
@@ -515,6 +514,7 @@ void AudioOptions_gump::load_settings() {
 		std::string driver_default = "default";
 
 		config->value("config/audio/midi/driver", s, driver_default.c_str());
+		s = MidiDriver::canonicalDriverName(s);
 
 		if (s == "digital") {
 			midi_ogg_enabled = true;
@@ -724,10 +724,10 @@ void AudioOptions_gump::save_settings() {
 			s = MidiDriver::getDriverName(midi_driver);
 		}
 		midi->set_midi_driver(s, midi_ogg_enabled != 0);
-		if (audio_enabled && midi_enabled && !midi_ogg_enabled && (s == "MT32Emu" || s == "MT32EmuEarly" || s == "MT32EmuLater" || s == "MT32EmuCM32L")
+		if (audio_enabled && midi_enabled && !midi_ogg_enabled && s == "MT32Emu"
 			&& midi->get_actual_midi_driver_name() != s) {
 			const auto actual = midi->get_actual_midi_driver_name();
-			backend_warning = s + " music could not initialize. Check the requested model ROM pair. Active music driver: "
+			backend_warning = s + " music could not initialize. Check the compatible control/PCM ROM pair. Active music driver: "
 				+ (actual.empty() ? std::string("none") : std::string(actual)) + ".\n";
 		}
 #ifdef ENABLE_MIDISFX

@@ -341,11 +341,13 @@ void Opl3VoiceRegression::serpentFidelity() {
 #include "opl3_credits_checks.h"
 
 #include "roland_model_regression.h"
-#include "roland_music_checks.h"
 
 int wmain(int argc,wchar_t**argv) {
-    try {if(argc>1&&std::wstring(argv[1])==L"--legacy-trace"){legacyTrace();return 0;}
+    try {Configuration test_config;
+    struct ConfigScope { Configuration* previous; ~ConfigScope(){config=previous;} } scope{config};
+    config=&test_config;
+    if(argc>1&&std::wstring(argv[1])==L"--legacy-trace"){legacyTrace();return 0;}
     if(argc>1&&std::wstring(argv[1])==L"--ending-only"){Opl3CreditsRegression::run();Opl3EndingRegression::run();return 0;}
-    RolandModelRegression::run();RolandMusicRegression::run();Opl3VoiceRegression::run();Opl3VoiceRegression::fidelity();Opl3VoiceRegression::serpentFidelity();Opl3VoiceRegression::guardian();sequencing();scoreRecovery();Opl3CreditsRegression::run();Opl3EndingRegression::run();OriginalOpl2Regression::run();SerpentOpl2Regression::run();std::cout<<"PASS all OPL3 and Original OPL2 regressions\n";return 0;}
+    RolandModelRegression::run();Opl3VoiceRegression::run();Opl3VoiceRegression::fidelity();Opl3VoiceRegression::serpentFidelity();Opl3VoiceRegression::guardian();sequencing();scoreRecovery();Opl3CreditsRegression::run();Opl3EndingRegression::run();OriginalOpl2Regression::run();SerpentOpl2Regression::run();std::cout<<"PASS all OPL3 and Original OPL2 regressions\n";return 0;}
     catch(const std::exception&e){std::cerr<<"FAIL "<<e.what()<<"\n";return 1;}
 }

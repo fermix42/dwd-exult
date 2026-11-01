@@ -81,18 +81,20 @@ Use Audio Options to select music and effects independently. The added music
 backends are opt-in; existing configurations retain their chosen settings.
 Disable digital music when auditioning a synthesized music backend.
 
-- **Original OPL2 - AdLib / Sound Blaster** plays the original game's FM music
+- **OPL2 (SB/ADLIB)** plays the original game's FM music
   using its game-specific sequencing and instruments. Black Gate includes its
   introduction, ending and credits behavior; Serpent Isle has its own OPL2 path.
-- **OPL3 Stereo** provides the accepted enhanced stereo arrangement rather than
+- **Enhanced OPL3 Stereo** provides the accepted enhanced stereo arrangement rather than
   reproducing the original mono OPL2 output. Guardian introduction percussion and
   enhanced notes are included. Choose another music driver to disable it.
-- **Original MT-32 - Early**, **Original MT-32 - Later**, and **Original CM-32L /
-  LAPC-I** select explicit Roland models and original game music behavior. You
-  must supply legally obtained, matching stock control and PCM ROMs in Exult's
-  data directory. An unavailable model/bank is reported rather than silently
-  substituting a different original music profile. Upstream MT32Emu remains a
-  separate option; its automatic ROM preference is not explicit model selection.
+- **MT32EMU** is the single emulated Roland music option, retaining Exult's
+  MT32Emu playback implementation. Supply legally obtained compatible control
+  and PCM ROMs in the data directory using `MT32_CONTROL.ROM`/`MT32_PCM.ROM`
+  or `CM32L_CONTROL.ROM`/`CM32L_PCM.ROM`. The existing CM-32L-first automatic
+  preference and split `MT32A.BIN`/`MT32B.BIN` control-ROM loading remain available.
+  Unpublished legacy DWD Roland selections map to this option on startup.
+  Missing/incompatible ROMs retain the existing initialization/fallback behavior;
+  the Audio Options warning identifies failure to activate MT32Emu.
 - Synthesized **AdLib/FMOpl** and **MT-32/MT32Emu** sound effects use original
   game resources, including synthesized introduction effects. The effects driver
   defaults to `digital`; choose digital effects to return to sound packs. Missing
@@ -155,7 +157,7 @@ Prefer the normal Audio and Video Options dialogs. Equivalent `exult.cfg` values
 | --- | --- |
 | `video/borderless` | `yes`, `no` (default `no`) |
 | `video/window_position` | `normal` (default), `left`, `right` |
-| `audio/midi/driver` | `OriginalOPL2`, `OPL3Stereo`, `MT32EmuEarly`, `MT32EmuLater`, `MT32EmuCM32L`, or an existing driver; existing/default selection retained |
+| `audio/midi/driver` | `OriginalOPL2` (OPL2), `OPL3Stereo` (Enhanced OPL3 Stereo), `MT32Emu` (MT32EMU), or an existing upstream driver; retained IDs/defaults stay stable |
 | `audio/effects/driver` | `digital` (default), `FMOpl`, `MT32Emu` |
 
 Custom key files can bind `WAIT` to replace Shift-W. `ORB_CHART` is initially

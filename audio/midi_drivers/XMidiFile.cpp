@@ -636,8 +636,7 @@ XMidiFile::XMidiFile(IDataSource* source, int pconvert, std::string_view drivern
 		: num_tracks(0), events(nullptr), convert_type(pconvert), metadata_only(metadata), original_dynamics(native_dynamics), do_reverb(false), do_chorus(false) {
 	std::memset(bank127, 0, sizeof(bank127));
 
-	instance_note_pairing = drivername == "OPL3Stereo" || drivername == "OriginalOPL2"
-        || (native_dynamics && (drivername == "MT32EmuEarly" || drivername == "MT32EmuLater" || drivername == "MT32EmuCM32L"));
+	instance_note_pairing = drivername == "OPL3Stereo" || drivername == "OriginalOPL2";
 	ExtractTracks(source, drivername);
 
 	// SysEx data
