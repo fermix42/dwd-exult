@@ -78,6 +78,7 @@ const struct Action {
 
 	const char* desc() const {
         if (std::string(s) == "WAIT") return "Wait";
+        if (std::string(s) == "ORB_CHART") return "Orb chart";
 		return get_text_msg(desg_msg_id - msg_file_start);
 	}
 
@@ -99,6 +100,7 @@ const struct Action {
 		// clang-format off
 		{        "VOLUME_MIXER",          ActionMixerGump,           nullptr, 0x800,  Action::normal_keys,         NONE,  true,  true,  true, false},
 		{                "WAIT",               ActionWait,           nullptr,     0,  Action::normal_keys,         NONE, false, false, false, false},
+		{           "ORB_CHART",           ActionOrbChart,           nullptr,     0,  Action::normal_keys,   BLACK_GATE, false, false, false, false},
 		{                "QUIT",               ActionQuit,           nullptr, 0x801,  Action::normal_keys,         NONE,  true,  true,  true, false},
 		{        "SAVE_RESTORE",           ActionFileGump,           nullptr, 0x802,  Action::normal_keys,         NONE,  true,  true,  true, false},
 		{           "QUICKSAVE",          ActionQuicksave,           nullptr, 0x803,  Action::normal_keys,         NONE, false,  true,  true, false},

@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "native_orb_chart.h"
 #ifdef HAVE_CONFIG_H
 #	include <config.h>
 #endif
@@ -137,6 +138,7 @@ static void get_plural_name(const char* name, int quantity, string& output_name)
  *  Returns the string to be displayed when the item is clicked on
  */
 string Game_object::get_name() const {
+	if (Orb_chart::is_chart(this)) return "Lord British's Orb chart";
 	const Shape_info&      info  = get_info();
 	const int              qual  = info.has_quality() && !info.is_npc() ? get_quality() : -1;
 	const Frame_name_info* nminf = info.get_frame_name(get_framenum(), qual);

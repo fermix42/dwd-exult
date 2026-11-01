@@ -1,4 +1,5 @@
 #include "Wait_gump.h"
+#include "native_orb_chart.h"
 #include "Slider_gump.h"
 #include "cli_driver.h"
 
@@ -43,6 +44,7 @@
 bool        cli_enabled = false;
 std::string cli_run_dir;
 void*       cli_input_paint = nullptr;
+bool SaveIMG_RW(SDL_Surface*, SDL_IOStream*, bool, int);
 
 namespace {
 	struct Inbox {
@@ -120,7 +122,9 @@ struct CliDriver {
 		}
 		std::string legal = "[]";
 		if (input) {
-			if (cli_input_paint == c && c->cli_choices_active()) {
+			if (!cli_input_paint && Mouse::mouse()->get_shape() == Mouse::greenselect) {
+				legal = "[\"target_object\",\"target_tile\",\"key\"]";
+			} else if (cli_input_paint == c && c->cli_choices_active()) {
 				legal = "[\"choose\"]";
 			} else if (cli_input_paint == c || dynamic_cast<Text_gump*>(static_cast<Paintable*>(cli_input_paint))) {
 				legal = "[\"continue\",\"dismiss\"]";
@@ -155,10 +159,17 @@ struct CliDriver {
 		  << ",\"dont_move\":" << w->main_actor_dont_move() << ",\"can_act\":" << w->main_actor_can_act()
 		  << ",\"moving\":" << a->is_moving() << ",\"combat\":" << w->in_combat() << ",\"input\":" << input
 		  << ",\"in_usecode\":" << uc->in_usecode() << ",\"legal_actions\":" << legal
+		  << ",\"orb_chart_layout\":" << uc->orb_chart_layout()
+		  << ",\"orb_given\":" << uc->get_global_flag_bool(0xdd)
+		  << ",\"orb_left_trinsic\":" << uc->get_global_flag_bool(87)
+		  << ",\"orb_sphere_broken\":" << uc->get_global_flag_bool(4)
+		  << ",\"orb_timelord_repaired\":" << uc->get_global_flag_bool(0x134)
+		  << ",\"target_intercept_pending\":" << bool(uc->get_intercept_click_on_item() || uc->get_intercept_click_on_tile())
 		  << ",\"dialogue_text\":" << cli_quote(c->cli_text()) << ",\"speaker_face\":" << c->cli_speaker_face()
 		  << ",\"input_owner\":"
 		  << cli_quote(
-					 input                                  ? (c->cli_choices_active()                                              ? "answer_menu"
+					 input                                  ? (!cli_input_paint && Mouse::mouse()->get_shape() == Mouse::greenselect ? "target"
+															   : c->cli_choices_active()                                              ? "answer_menu"
 															   : dynamic_cast<Text_gump*>(static_cast<Paintable*>(cli_input_paint)) ? "text"
 															   : cli_input_paint == c                                               ? "acknowledgement"
 																																	: "unsupported_input")
@@ -287,28 +298,30 @@ void cli_start() {
 namespace {
 	std::vector<int> command_arguments(const std::string& op, std::istringstream& in) {
 		int min = 0, max = 0;
-		if (op == "test_calendar" || op == "drop_item") {
+		if (op == "screenshot") {
+            min = 0; max = 1; // Optional full renderer capture, without guard-band cropping.
+        } else if (op == "test_calendar" || op == "drop_item") {
             min = max = 4;
-        } else if (op == "ready_inventory") {
+        } else if (op == "ready_inventory" || op == "transfer_item") {
             min = max = 2;
         } else if (op == "test_light_item" || op == "test_remove_fuel_receiver" || op == "test_stall" || op == "test_equipment" || op == "test_stale_event_metadata" || op == "test_legacy_clock" || op == "test_time_rate" || op == "test_temporary_effect" || op == "native_wait" || op == "inspect_inventory" || op == "interact_inventory" || op == "inspect_usecode") {
             min = max = 1;
-        } else if (op == "key" || op == "move" || op == "interact" || op == "click") {
+        } else if (op == "key" || op == "move" || op == "interact" || op == "click" || op == "control_at") {
 			min = max = 2;
 		} else if (op == "find_objects" || op == "find_actors" || op == "inspect_world") {
 			min = 2;
 			max = 4;
-		} else if (op == "inspect_tile" || op == "path_query" || op == "move_to") {
+		} else if (op == "inspect_tile" || op == "path_query" || op == "move_to" || op == "target_tile") {
 			min = 3;
 			max = 4;
 		} else if (
 				op == "choose" || op == "save" || op == "load" || op == "inspect_object" || op == "inspect_actor"
-				|| op == "interact_object" || op == "move_to_object" || op == "activate_control") {
+				|| op == "interact_object" || op == "move_to_object" || op == "activate_control" || op == "target_object") {
 			min = 1;
 			max = 2;
 		} else if (
 				op != "state" && op != "ui_state" && op != "exit" && op != "continue" && op != "dismiss" && op != "combat"
-				&& op != "test_exposure" && op != "wait_eligibility" && op != "controls" && op != "screenshot" && op != "quit_prompt" && op != "movement_status") {
+				&& op != "test_exposure" && op != "test_orb_chart_item" && op != "wait_eligibility" && op != "controls" && op != "screenshot" && op != "quit_prompt" && op != "movement_status") {
 			throw std::runtime_error("unknown_command");
 		}
 		std::vector<int> args;
@@ -424,6 +437,11 @@ int cli_poll(bool input, void*) {
             SDL_PushEvent(&event);
             event.type = SDL_EVENT_KEY_UP; event.key.down = false; SDL_PushEvent(&event);
             cli_reply(id, true, "\"category\":\"gameplay\",\"status\":\"dispatched\"");
+        } else if (op == "test_orb_chart_item") {
+            if (input || w->get_usecode()->in_usecode() || w->get_gump_man()->gump_mode())
+                throw std::runtime_error("chart_fixture_requires_gameplay");
+            const bool supplied = Orb_chart::give();
+            cli_reply(id, supplied, "\"category\":\"test_setup\",\"chart_supplied\":" + std::to_string(supplied));
         } else if (op == "inspect_usecode") {
             cli_reply(id, true, CliDriver::inspect_usecode(x));
         } else if (op == "state" || op == "ui_state") {
@@ -577,6 +595,12 @@ int cli_poll(bool input, void*) {
 			} else {
 				w->toggle_combat();
 			}
+		} else if (op == "control_at") {
+            auto* g = w->get_gump_man()->find_gump(x,y);
+            int lx=x,ly=y;
+            Gump_button* b=nullptr;
+            if (g && w->get_gump_man()->map_game_to_gump(g,x,y,lx,ly)) b=g->on_button(lx,ly);
+            cli_reply(id,true,"\"category\":\"inspection\",\"action\":" + cli_quote(b?b->cli_action():""));
 		} else if (op == "controls" || op == "activate_control" || op == "dismiss") {
 			std::ostringstream out;
 			out << "\"category\":\"inspection\",\"controls\":[";
@@ -697,7 +721,15 @@ int cli_poll(bool input, void*) {
 			if (!f) {
 				throw std::runtime_error("screenshot open failed");
 			}
-			bool ok = w->get_win()->screenshot(f, false);
+			bool ok;
+            if (x == 1) {
+                w->show(true);
+                auto* renderer = SDL_GetRenderer(w->get_win()->get_screen_window());
+                auto* surface = renderer ? SDL_RenderReadPixels(renderer, nullptr) : nullptr;
+                if (!surface) { SDL_CloseIO(f); throw std::runtime_error("renderer capture failed"); }
+                ok = SaveIMG_RW(surface, f, true, 0);
+                SDL_DestroySurface(surface);
+            } else ok = w->get_win()->screenshot(f, false);
 			if (!ok) {
 				throw std::runtime_error("screenshot failed");
 			}

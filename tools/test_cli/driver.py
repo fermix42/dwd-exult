@@ -125,9 +125,9 @@ class Driver:
    return {'ok':ok,'category':'inspection','assertion':c.get('label',expected),'expected':expected,'state':s}
   if op in ('find_objects','find_actors','inspect_world'):
    return self.raw(op,int(c.get('radius',12)),int(c.get('limit',50)),int(c.get('offset',0)),int(c.get('shape',-359)))
-  if op in ('inspect_object','inspect_actor','interact_object','move_to_object'):
+  if op in ('inspect_object','inspect_actor','interact_object','move_to_object','target_object'):
    return self.raw(op,int(c['ref']),0)
-  if op in ('inspect_tile','path_query','move_to'):
+  if op in ('inspect_tile','path_query','move_to','target_tile'):
    return self.raw(op,int(c['x']),int(c['y']),int(c.get('z',0)),int(float(c.get('timeout',10))*1000))
   if op=='inspect_usecode':return self.raw(op,int(c['function']))
   if op in ('inspect_inventory','interact_inventory'):return self.raw(op,int(c.get('ref',0)))
@@ -140,8 +140,9 @@ class Driver:
   if op=='test_remove_fuel_receiver':return self.raw(op,int(c['ref']))
   if op=='drop_item':return self.raw(op,int(c['ref']),int(c['x']),int(c['y']),int(c.get('z',0)))
   if op=='ready_inventory':return self.raw(op,int(c['ref']),int(c['slot']))
+  if op=='transfer_item':return self.raw(op,int(c['ref']),int(c['destination']))
   if op=='test_stall':return self.raw(op,int(c['milliseconds']))
-  if op=='test_exposure':return self.raw(op)
+  if op in ('test_exposure','test_orb_chart_item'):return self.raw(op)
   if op=='test_equipment':return self.raw(op,int(c['kind']))
   if op=='test_stale_event_metadata':return self.raw(op,int(c['ref']))
   if op=='test_calendar':return self.raw(op,int(c['day']),int(c['hour']),int(c['minute']),int(c.get('phase',0)))
@@ -155,9 +156,10 @@ class Driver:
    index=c.get('index')
    if index is None:index=self.state()['choices'].index(c['text'])
    return self.raw(op,int(index))
-  if op in ('move','interact','click'):return self.raw(op,int(c['x']),int(c['y']))
+  if op in ('move','interact','click','control_at'):return self.raw(op,int(c['x']),int(c['y']))
   if op in ('save','load'):return self.raw(op,int(c.get('slot',0)))
-  if op in ('state','ui_state','controls','continue','dismiss','quit_prompt','movement_status','combat','screenshot','exit'):return self.raw(op)
+  if op=='screenshot':return self.raw(op,1) if c.get('full',False) else self.raw(op)
+  if op in ('state','ui_state','controls','continue','dismiss','quit_prompt','movement_status','combat','exit'):return self.raw(op)
   raise ValueError('unknown command '+op)
  def close(self):
   if self.p and self.p.poll() is None:

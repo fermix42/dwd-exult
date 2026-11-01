@@ -40,6 +40,7 @@ void ActionDarker(const int* params);
 void ActionFullscreen(const int* params);
 
 void ActionUseItem(const int* params);
+void ActionOrbChart(const int* params);
 void ActionUseFood(const int* params);
 void ActionCallUsecode(const int* params);
 void ActionCombat(const int* params);

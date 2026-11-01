@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "native_orb_chart.h"
 #ifdef HAVE_CONFIG_H
 #	include <config.h>
 #endif
@@ -1024,3 +1025,5 @@ void ActionWait(const int*) {
     else if (std::string(result.reason) != "complete" && result.completed_ticks) message += "Thy wait was interrupted.";
     w->get_effects()->center_text(message.c_str());
 }
+
+void ActionOrbChart(const int*) { Orb_chart::open(); }

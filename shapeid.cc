@@ -21,6 +21,7 @@
 #endif
 
 #include "shapeid.h"
+#include "native_orb_chart.h"
 
 #include "Configuration.h"
 #include "Flex.h"
@@ -118,6 +119,7 @@ void Shape_manager::read_shape_info() {
 	shapes.init();
 	// Read in shape information.
 	shapes.read_info(Game::get_game_type(), Game::is_editing());
+	Orb_chart::install_shape(shapes);
 
 	// Set no_bit5 reflection flag in typeinfo as needed
 	for (int i = 0; i < shapes.get_num_shapes(); ++i) {

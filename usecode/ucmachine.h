@@ -162,6 +162,7 @@ public:
 	// Start speech, or show text.
 	virtual void do_speech(int num)                                      = 0;
 	virtual bool in_usecode()                                            = 0;    // Currently in a usecode function?
+	virtual int orb_chart_layout() = 0; // 0 unsupported, 1 retail BG, 2 supported Keyring.
 	virtual bool in_usecode_for(Game_object* item, Usecode_events event) = 0;
 
 	Keyring* getKeyring() const {

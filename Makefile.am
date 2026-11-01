@@ -62,6 +62,8 @@ EXULTSOURCES =	\
 	cli_world.h	\
 	gumps/Wait_gump.cc	\
 	gumps/Wait_gump.h	\
+	native_orb_chart.cc	\
+	native_orb_chart.h	\
 	native_wait.cc	\
 	native_wait.h	\
 	game_time.cc	\

@@ -19,6 +19,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "native_orb_chart.h"
 #ifdef HAVE_CONFIG_H
 #	include <config.h>
 #endif
@@ -990,6 +991,10 @@ void Game_object::paint_bbox(int pix) {
 void Game_object::activate(int event) {
 	if (edit()) {
 		return;    // Map-editing.
+	}
+	if (event == Usecode_machine::double_click && Orb_chart::is_chart(this)) {
+		Orb_chart::open(this);
+		return;
 	}
 	const int gump = get_info().get_gump_shape();
 	if (gump == game->get_shape("gumps/spell_scroll")) {

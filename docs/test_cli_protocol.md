@@ -36,13 +36,14 @@ are generally engine 0/1 values. Unknown observations use JSON null or the expli
 | choose | exact text OR zero-based index (0..34) | Gameplay. Select a reported response through the normal Get_click choice key path. Refuses absent/invalid choices. |
 | dismiss | none | Gameplay. Acknowledge current conversation page, native ESC-equivalent return for a supported book/sign input, or native Gump close/cancel control. Never silently chooses an answer. Unsupported/no-UI states refuse explicitly. |
 | controls | none | Inspection. controls array: id, gump_id/index, action, available, shape, checkmark, game-view x/y. |
+| control_at | x,y in game-view coordinates | Inspection. Action of the topmost native Gump button at that point, or empty string. No input is dispatched. |
 | activate_control | id | Gameplay. Re-resolve current control by per-instance identity; use current native hit target and local SDL button down/up. Underlying controls are unavailable while a modal owns input. |
 | quit_prompt | none | Gameplay. Ordinary ActionQuit: opens the real quit confirmation. Choose native cancel to return to play, or confirm to quit. |
 | combat | none | Gameplay. Ordinary combat toggle. Target interactions still use native double_clicked combat behavior, with conservative semantic reachability guards. |
 | save, load | slot 0..9 (default 0) | Lifecycle. Existing gamedat/archive APIs; refused in owned input/Usecode/incapacity contexts. Load invalidates all object refs. |
 | wait, run_until | until optional flat state field/value object; timeout seconds, capped at 120 | Inspection/orchestration. Poll actual state while normal engine events run. No time acceleration or native gameplay Wait implementation. Without until, allow elapsed real time. |
 | assert | state: flat expected field/value object; label optional | Inspection assertion against a fresh state snapshot. |
-| screenshot | none | Inspection. Optional renderer PNG in run/screenshot.png, overwriting earlier capture. No desktop capture. |
+| screenshot | full optional boolean | Inspection. Renderer PNG in run/screenshot.png, overwriting earlier capture. `full: true` captures the complete renderer without the legacy guard-band crop. No desktop capture. |
 | exit | none | Lifecycle. Idle request leads to normal Play cleanup and shutdown event. Nested unsupported exit/EOF explicitly cancels, exit 2, cleanup_complete=false. |
 | move, interact, click | x,y in engine game-view coordinates | Preserved legacy gameplay commands. Prefer world refs/tiles and semantic controls. click requires a Gump. |
 
@@ -231,3 +232,24 @@ and calls that actor's normal fit/readied path. interact_inventory and drop_item
 require an awake, nearby party owner and a current visible hit. Foreign NPC
 inventories remain refused. Keys1..8 use the standard native party inventory actions.
 This extension supports the natural SI torch found in Iolo's original backpack.
+
+## Orb chart verification adapters
+
+`test_orb_chart_item` supplies only the ordinary physical chart to party inventory.
+It does not grant an Orb, change plot flags or move actors; it is not evidence of
+Lord British acquisition. `state` exposes `orb_chart_layout` (0 unsupported,
+1 original BG, 2 supported Keyring), `orb_given`, `orb_left_trinsic`,
+`orb_sphere_broken`, `orb_timelord_repaired` and `target_intercept_pending`.
+These are read-only observations.
+
+`target_object` (`ref`) and `target_tile` (`x,y,z`) dispatch a normal local SDL
+button release only while the native green-selection Get_click owns input
+(`input_owner: target`). Object targets must be currently visible and unobscured;
+empty tile targets must be visible, unoccupied, and within eight tiles. These
+commands never install an intercept or call Usecode directly. Escape retains its
+ordinary cancellation path.
+
+`transfer_item` (`ref`, `destination`) uses the normal drag/drop machinery from a
+visible local world object or party inventory to a visible nearby party container
+or actor. It respects normal fit, weight and native interaction checks. Dispatch
+is not success: verify the resulting owner with inventory/object observations.

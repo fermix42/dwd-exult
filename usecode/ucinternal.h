@@ -498,6 +498,8 @@ public:
 	void read_usecode(std::istream& file, bool patch = false) override;
 	void read_usecode() override;
     bool native_light_contract();
+    int orb_chart_layout() override;
+    bool orb_chart_lord_british();
 	// Call desired function.
 	int         call_usecode(int id, Game_object* item, Usecode_events event) override;
 	bool        call_method(Usecode_value* inst, int id, Game_object* item) override;

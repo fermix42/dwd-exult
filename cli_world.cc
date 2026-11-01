@@ -1,5 +1,7 @@
 // GPL-2.0-or-later. Semantic adapter: all operations run on the engine thread.
 #include "cli_world.h"
+#include "cli_driver.h"
+#include "mouse.h"
 
 #include "Astar.h"
 #include "Gump_manager.h"
@@ -270,6 +272,74 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
         Game_time::dispatch(Game_time::now());
         return "\"category\":\"test_setup\",\"synthetic_receiver_removal\":true,\"receiver_expired\":"
             + std::to_string(weak.expired()) + ",\"remaining_events\":" + Game_time::describe();
+    }
+    if (op == "target_object" || op == "target_tile") {
+        if (!input || cli_input_paint || Mouse::mouse()->get_shape() != Mouse::greenselect)
+            throw std::runtime_error("target_input_not_active");
+        int gx,gy;
+        if(op=="target_object") {
+            auto object=resolve(x);
+            if(object->get_owner() || object->get_map_num()!=a->get_map_num())
+                throw std::runtime_error("target_requires_world_object");
+            const auto rect=w->get_shape_rect(object.get());
+            gx=rect.x+rect.w/2;gy=rect.y+rect.h/2;
+            if(gx<0 || gy<0 || gx>=w->get_width() || gy>=w->get_height())
+                throw std::runtime_error("target_not_visible");
+            if(w->find_object(gx,gy)!=object.get()) throw std::runtime_error("target_occluded");
+        } else {
+            const auto dest=destination(x,y,in);
+            w->get_shape_location(dest,gx,gy);
+            if(gx<0 || gy<0 || gx>=w->get_width() || gy>=w->get_height())
+                throw std::runtime_error("target_not_visible");
+            if(w->find_object(gx,gy)) throw std::runtime_error("target_tile_contains_object");
+        }
+        if(gx<0 || gy<0 || gx>=w->get_width() || gy>=w->get_height() || w->get_gump_man()->find_gump(gx,gy))
+            throw std::runtime_error("target_not_visible");
+        int sx,sy;
+        w->get_win()->game_to_screen(gx,gy,w->get_fastmouse(),sx,sy);
+        SDL_Event event{};
+        event.type=SDL_EVENT_MOUSE_BUTTON_UP;
+        event.button.button=1;event.button.x=sx;event.button.y=sy;
+        event.button.windowID=SDL_GetWindowID(w->get_win()->get_screen_window());
+        if(!SDL_PushEvent(&event)) throw std::runtime_error("target_event_refused");
+        cli_reply(sequence,true,"\"category\":\"gameplay\",\"status\":\"dispatched\"");
+        return {};
+    }
+    if (op == "transfer_item") {
+        if (input || w->get_usecode()->in_usecode() || w->main_actor_dont_move()
+            || !w->main_actor_can_act() || w->get_gump_man()->modal_gump_mode())
+            throw std::runtime_error("player_control_owned");
+        auto source_object = resolve(x);
+        auto target_object = resolve(y);
+        auto* destination = target_object->as_container();
+        auto* member = destination ? party_inventory_actor(destination) : nullptr;
+        if (!member || !member->can_act_charmed() || a->distance(member) > 8)
+            throw std::runtime_error("requires_nearby_party_container");
+        if (source_object->get_owner()) {
+            auto* source_member = party_inventory_actor(source_object.get());
+            if (!source_member || !source_member->can_act_charmed() || a->distance(source_member) > 8)
+                throw std::runtime_error("requires_nearby_party_inventory");
+        } else if (source_object->get_map_num() != a->get_map_num() || a->distance(source_object.get()) > 8)
+            throw std::runtime_error("pickup_outside_local_reach");
+        auto* win = w->get_win();
+        int sx=-1,sy=-1,dx=-1,dy=-1;
+        for(int gy=win->get_start_y();gy<win->get_start_y()+win->get_full_height();++gy)
+            for(int gx=win->get_start_x();gx<win->get_start_x()+win->get_full_width();++gx) {
+                auto* g=w->get_gump_man()->find_gump(gx,gy);
+                Game_object* hit=nullptr;
+                int lx=gx,ly=gy;
+                if(g) {
+                    if(!w->get_gump_man()->map_game_to_gump(g,gx,gy,lx,ly)) continue;
+                    hit=g->find_object(lx,ly);
+                } else hit=w->find_object(gx,gy);
+                if(sx<0 && hit==source_object.get()) { sx=gx;sy=gy; }
+                if(dx<0 && g && !g->on_button(lx,ly)
+                    && (hit==destination || (!hit && g->get_cont_or_actor(lx,ly)==destination))) { dx=gx;dy=gy; }
+            }
+        if(sx<0 || dx<0) throw std::runtime_error("source_or_destination_not_visible");
+        cli_reply(sequence,true,"\"category\":\"gameplay\",\"status\":\"dispatched\"");
+        if(w->start_dragging(sx,sy)) { w->drag(dx,dy);w->drop_dragged(dx,dy,true); }
+        return {};
     }
     if (op == "drop_item") {
         if (input || w->get_usecode()->in_usecode() || w->main_actor_dont_move()

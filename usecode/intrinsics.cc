@@ -21,6 +21,7 @@
 #endif
 
 #include "game_time.h"
+#include "native_orb_chart.h"
 #include "Audio.h"
 #include "Book_gump.h"
 #include "Dynamic_shape_widget.h"
@@ -918,6 +919,15 @@ USECODE_INTRINSIC(add_party_items) {
 	// Returns array of NPC's (->'s) who got the items.
 	Usecode_value temporary = parms.size() > 4 ? parms[4] : Usecode_value(0);
 	Usecode_value u(add_party_items(parms[0], parms[1], parms[2], parms[3], temporary));
+	if (parms[0].get_int_value() == 1 && parms[1].get_int_value() == 785
+		&& u.is_true() && orb_chart_lord_british()) {
+		// Original Orb handover and its return value remain untouched.
+		if (Orb_chart::give()) {
+			show_pending_text();
+			conv->show_npc_message("@Take my chart as well. It shows where to cast the Orb about thee.@");
+			show_pending_text();
+		}
+	}
 	return u;
 }
 

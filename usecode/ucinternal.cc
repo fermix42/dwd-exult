@@ -26,6 +26,7 @@
 #include "ucinternal.h"
 #include "game_time_compat.h"
 #include "quiz.h"
+#include "native_orb_chart.h"
 #include <sstream>
 
 #include "Audio.h"
@@ -1670,6 +1671,13 @@ void Usecode_internal::set_book(
  */
 
 const char* Usecode_internal::get_user_choice() {
+	// A separate, free chart-only topic, without replacing Lord British's script.
+	const bool chart_topic = orb_chart_lord_british() && get_global_flag_bool(0xdd)
+		&& conv->locate_answer("bye") >= 0;
+	if (chart_topic) {
+		Usecode_value chart_answer("Orb chart");
+		conv->add_answer(chart_answer);
+	}
 	if (!conv->get_num_answers()) {
 		return nullptr;    // This does happen (Emps-honey).
 	}
@@ -1677,7 +1685,14 @@ const char* Usecode_internal::get_user_choice() {
 	//  if (!user_choice)       // May have already been done.
 	// (breaks conversation with Cyclops on Dagger Isle ('foul magic' option))
 
-	get_user_choice_num();
+	for (;;) {
+		get_user_choice_num();
+		if (!chart_topic || !user_choice || std::strcmp(user_choice, "Orb chart")) break;
+		conv->show_npc_message(Orb_chart::give()
+			? "@Here is my chart for the Orb. Thou mayst keep it.@"
+			: "@Make room amongst thy belongings, and ask me again.@");
+		show_pending_text();
+	}
 	return user_choice;
 }
 
@@ -3454,4 +3469,46 @@ int Usecode_internal::set_location_breakpoint(int funcid, int ip) {
 // from a shape, callback number or bytecode. This compares the actual participant.
 bool Usecode_internal::native_light_contract() {
     return native_light_adapter && find_function(GAME_BG ? 0x905 : 0x950) == native_light_adapter;
+}
+
+namespace {
+struct Orb_signature { int id, size; uint64 hash; };
+const Orb_signature orb_retail[] = {
+    {0x311,800,0xbfd6f3e09e5f2965ULL}, {0x821,41,0x891c9e70d587e2ebULL},
+    {0x822,49,0x7c74673d5c42ed40ULL}, {0x823,183,0x276294b2cfc4ff56ULL},
+    {0x824,227,0x548ddfba8f4ffeb0ULL}, {0x825,214,0xe32638262cd047b9ULL},
+    {0x826,42,0xe494b4d28c9820afULL}, {0x93e,58,0xb9c2228caea822cdULL}
+};
+const Orb_signature orb_keyring[] = {
+    {0x311,1008,0x7d00982df52928c5ULL}, {0x821,41,0x891c9e70d587e2ebULL},
+    {0x822,49,0x7c74673d5c42ed40ULL}, {0x823,319,0xffefe5b0608e27e4ULL},
+    {0x824,224,0x9769209d48c79dULL}, {0x825,214,0xe32638262cd047b9ULL},
+    {0x826,43,0x8eb79bf21cef5bb2ULL}, {0x93e,58,0xb9c2228caea822cdULL},
+    {0x945,46,0xc769620a450c99f4ULL} // Keyring's outer-container helper.
+};
+bool orb_matches(const Usecode_function* f, const Orb_signature& sig) {
+    if (!f || f->extended || f->len != sig.size) return false;
+    uint64 h = 14695981039346656037ULL;
+    for (int i = 0; i < f->len; ++i) h = (h ^ f->code[i]) * 1099511628211ULL;
+    return h == sig.hash;
+}
+}
+int Usecode_internal::orb_chart_layout() {
+    if (!GAME_BG) return 0;
+    auto matches = [this](const auto& signatures) {
+        for (const auto& s : signatures) if (!orb_matches(find_function(s.id), s)) return false;
+        return true;
+    };
+    return matches(orb_retail) ? 1 : matches(orb_keyring) ? 2 : 0;
+}
+bool Usecode_internal::orb_chart_lord_british() {
+    const int layout = orb_chart_layout();
+    if (!layout || call_stack.empty() || !call_stack.front()
+        || call_stack.front()->function != find_function(0x417)) return false;
+    const auto* root = call_stack.back();
+    return root && root->caller_item && root->caller_item->as_actor()
+        && root->caller_item->as_actor()->get_npc_num() == 23
+        && root->eventid == double_click && root->function == find_function(0x417)
+        && orb_matches(root->function, {0x417, layout == 1 ? 14860 : 13817,
+            layout == 1 ? 0x26ac741b06448997ULL : 0x4b216c2e94d65d2cULL});
 }
