@@ -14,7 +14,7 @@ with tempfile.TemporaryDirectory() as directory:
     p = Path(directory)
     r.installer(p, m)
     text = (p / 'dwd_installer.iss').read_text()
-    for required in ['AppId=DWDExult', 'PrivilegesRequired=lowest', 'Software\\DWDExult', 'Uninstall DWD Exult', 'README-DWD.md', 'ChangeLog-DWD.txt', 'InstallMod(', 'SetExultGamePaths(']:
+    for required in ['AppId=DWDExult', 'PrivilegesRequired=lowest', 'Software\\DWDExult', 'Uninstall DWD Exult', 'README-DWD.md', 'ChangeLog-DWD.txt', 'InstallMod(', 'SetExultGamePaths(', 'uninsdeletevalue uninsdeletekeyifempty']:
         assert required in text, required
     assert "RegKeyExists(HKEY_LOCAL_MACHINE, 'Software\\Wine')" in text
     assert 'Software\\Exult' not in text

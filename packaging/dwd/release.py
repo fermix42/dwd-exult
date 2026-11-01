@@ -170,7 +170,14 @@ def package(args):
         for name in ['bgkeyring.zip', 'islefaq.zip', 'sifixes.zip']:
             copy(tools / name, payload / 'mods' / name)
             copy(tools / name, output / name)
-        copy(tools / 'mod-build-manifest.json', output / 'mod-build-manifest.json')
+        mod_info = json.loads((tools / 'mod-build-manifest.json').read_text())
+        for mod, info in mod_info.items():
+            source_tree = git('rev-parse', info['revision'] + ':content/' + mod)
+            assert source_tree == git('rev-parse', 'HEAD:content/' + mod), 'Mod sources differ from release: ' + mod
+            assert sha(tools / (mod + '.zip')) == info['sha256'], 'Mod archive hash mismatch'
+            info['source_tree'] = source_tree
+            info['equivalent_release_revision'] = meta['dwd_revision']
+        write(output / 'mod-build-manifest.json', json.dumps(mod_info, indent=2)+'\n')
     portable = output / ('DWD-Exult-' + meta['version'] + '-Windows-x64.zip')
     with zipfile.ZipFile(portable, 'w', zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(payload.rglob('*')):

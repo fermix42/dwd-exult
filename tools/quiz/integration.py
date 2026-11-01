@@ -48,7 +48,7 @@ def main():
         s = state()
         check('headless native engine', s['video'] == 'dummy' and s['studio_listener_active'] == 0)
         if args.mod:
-            modpath = next(r['path'] for r in init['resources'] if args.mod in r['path'] and Path(r['path']).name == 'usecode')
+            modpath = next(r['path'] for r in init['resources'] if args.mod.casefold() in r['path'].casefold() and Path(r['path']).name.casefold() == 'usecode')
             overrides = functions(Path(modpath).read_bytes())
             mod_functions = overrides
             for number, (body, _) in overrides.items():

@@ -23,4 +23,7 @@ DWD revision: Recorded per build in release-metadata.json and Exult version outp
       with readable destinations and normal Orb travel safeguards.
     - Added explicitly activated gameplay automation in the ordinary executable.
     - Prepared independent versioning, documentation and candidate packaging.
-      Installer and publication checks remain open; this is not a public release.
+      Candidate validation follow-up (November 1, 2026): built the Windows
+      installer and optional mods, verified isolated install/upgrade/uninstall,
+      and added matching external dependency sources. Downloads are unsigned
+      under the free project policy; publication still requires approval.

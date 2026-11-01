@@ -1,54 +1,98 @@
-# Local candidate validation — November 1, 2026
+# DWD Windows candidate validation — November 1, 2026
 
-Preparation branch: `codex/dwd-release-preparation`. No remote, repository visibility,
-default branch, public release or tag was changed. No player/game data was edited.
-The parent workspace's unrelated changes were left untouched.
+Branch: `codex/dwd-release-preparation`. DWD version: **1.0.0-rc.1**, unpublished.
+Upstream: Exult **1.13.1git**, incorporated revision
+`97984e9e0cbb4ccacaab0249da9c51b533818f74`.
+The exact final DWD revision is generated into every candidate's metadata, binary
+version output and source provenance; see the final artifact evidence. No push,
+tag, repository rename/visibility/default-branch change or release publication
+was performed. Accepted gameplay/audio/art code remains frozen and unchanged.
 
-## Completed checks
+## Results and evidence
 
-- Ordinary existing Windows Release/x64 MSVC build: PASS for Exult, expack and
-  exconfig. Existing manifest namespace/compiler warnings and optional vcpkg DLL
-  post-copy missing-path messages remain; packaging copies explicit verified DLLs.
-- Binary Windows identity: PASS, Dark Wraith Dragon's Exult, `1.0.0-rc.1`, original
-  filename `Exult.exe`. Generated version output embeds exact DWD/upstream commits.
-- Packaging checks: PASS, clean-commit provenance, original plus supplemental docs,
-  source archive, curated release notes, generated installer identity isolation,
-  SHA-256 file verification and payload path/extension inspection.
-- Source archive inspection: no ROM/save/private-key/executable/DLL filename
-  candidates. Only committed files are archived. Upstream-owned README, ChangeLog,
-  COPYING, AUTHORS, INSTALL and FAQ are unchanged by preparation.
-- Extracted candidate runtime (initial source commit `65e19c81c`): BG 8/8, SI 8/8,
-  Keyring 9/9 and SI Fixes 9/9 focused assertions PASS, zero failures, clean native
-  shutdown. Checks cover effective embedded quizzes, unrelated helpers, mod override
-  authority, save/reload and natural SI opening/companion conversation. Existing
-  feature acceptance records remain independent; no full campaign claim is made.
-- PE imports inspected: MSVC v14 runtime is required and not bundled. Existing
-  runtime DLLs loaded successfully on this host; clean-machine validation is open.
-- Frozen gameplay/audio/art implementations: unchanged by release preparation.
-- Inherited workflows preserved as `.yml.disabled`; only manual candidate review is
-  active. GitHub execution has not been tested.
+| Validation gate | Result | Evidence and limits |
+| --- | --- | --- |
+| Ordinary Windows Release/x64 compilation | PASS | Existing MSVC solution/build facilities; Exult, expack and exconfig built. Known manifest namespace/debug-option warnings and optional DLL post-copy missing-path messages remain; explicit payload copies are hash checked. |
+| Inno installer compilation | PASS | Official Inno Setup 6.7.4, SHA-256 a549929319f9120716677c685535ca4671e4b937b5fdc87e2585f32d8eb30e8c; download Authenticode signature valid, Pyrsys B.V. |
+| DWD installer identity | PASS | DWD filename, version, publisher, AppId DWDExult, HKCU registry, independent uninstall key/group and writable per-user default directory. Exult.exe retains its name. |
+| Independent installer manifest inspection | PASS | innounp 2.71.3 listed the actual compiled DWD installer, including helper, all three mod ZIPs, engine, runtime DLLs, FLX files, original/DWD docs and license notices. |
+| Official distribution comparison | PASS | Actual official Exult 1.12.1-1 manifest inspected, SHA-256 90f5495e7810d1ef847191779420f2abb93e56ebb99bd198ad3a374dd74c56db. All 30 upstream nonbinary application paths are present; 33 application paths common after architecture-name normalization. Binary differences are intentional (below). |
+| Fresh silent installation/file integrity | PASS | Every installed payload file checked against staging hashes; correct installed version output and independent uninstall entry. |
+| Game-path configuration | PASS | Actual upstream exconfig Set/Get round-trip with supplied BG/SI paths. Existing valid config preserved. Interactive browse widgets remain NOT TESTED. |
+| Source-built optional mods | PASS | Keyring, SI Fixes and SourceForge Island built using ordinary UCC/expack from committed source and upstream install lists. Native --installmod installed every file, verified byte-for-byte with package contents after filename-case normalization. |
+| Focused installed-engine regression | PASS | BG 8/8, SI 8/8, Keyring 9/9 and SI Fixes 9/9; save/load, embedded helpers, mod override authority, natural SI opening/conversation, zero failures and normal cleanup. No full campaign/audio/visual claim. |
+| Upgrade and paths-only installation | PASS | Silent same-version reinstall and paths-only mode preserve config values, binaries and disposable save sentinels. Cross-version migration awaits a future version. |
+| Uninstall and preservation | PASS | Engine and uninstall key removed; DWD install-path registry values cleaned; config, in-folder and external save sentinels preserved. All files under protected official Exult and both supplied game trees, and official registry entries, unchanged. |
+| Corresponding source audit | PASS | Engine source ZIP matches build commit, includes modified code/scripts, original notices and embedded Nuked OPL3 sources; extracted metadata works without Git. External source archives SHA-512 verified, installed DLL SHA-256 and recipes match installed SPDX records, exact patches/options and full pinned vcpkg script tree included. This is provenance/source completeness verification, not a bit-identical dependency rebuild. |
+| Artifact integrity | PASS | SHA-256 for installer, portable/source ZIPs and supporting assets; payload manifest; source archive commit and no proprietary ROM/game/save files staged. |
+| Microsoft Defender | PASS | Custom scan of candidate installer, executable/DLLs and archives found no threats; signatures updated successfully. A malware scan is evidence for that scan, not a guarantee against all malware. |
+| Authenticode signing | PASS (unsigned policy) | Publicly trusted signing is not required. Engine/installer intentionally unsigned; SHA-256 and provenance retained. No purchase/subscription initiated. |
+| Workflow source assessment | PASS | Prepared standard windows-2022 MSVC/vcpkg build, parser tools, pinned verified Inno compiler, source mod builds, dependency collection, packaging, available Defender scan and restricted manual release gates. YAML/PowerShell/Python syntax checked. Hosted behavior still unverified. |
+| Fresh disposable Windows VM/clean OS | NOT TESTED | No usable disposable VM was established. vmcompute was stopped; feature query required an elevated Windows token. No Windows feature/security settings were changed. Local tests were host-isolated with an already installed MSVC runtime. |
+| Interactive wizard/downloads/Start Menu | NOT TESTED | Silent tests suppress UI/icons and exclude remote audio/third-party downloads. Upstream download logic retained; interactive path browsing, shortcut appearance and live remote downloads need human verification. |
+| Human visual/audio/gameplay review | NOT TESTED | Existing accepted feature evidence is preserved. This pass did not perform new listening, visual inspection or full campaign testing. |
+| Hosted GitHub Actions execution | NOT TESTED | Requires an approved push/run. No branch or tag pushed, no hosted run claimed. |
+| GitHub public artifact attestations | NOT TESTED (prepared) | Dedicated public/tagged actions/attest@v4 job prepared, free for public repositories. No attestation generated; it is provenance, not Authenticode or a SmartScreen bypass. |
+| Public distribution | NOT TESTED / approval gate | Owner must approve exact commit/assets, remaining human checks, any push/tag/rename/visibility/default-branch operation and eventual publication. |
 
-The final candidate output's `release-metadata.json`, `SHA256SUMS.txt`,
-`payload-manifest.json` and runtime evidence identify the exact final build.
-Untracked review artifacts/evidence live under `../test-output/dwd-release/`.
-Do not redistribute these candidates as a validated stable release.
+No outstanding product failure is known from the passing rerun. Two earlier failures
+are retained transparently: the first upstream-derived uninstaller left a stale
+DWD path registry value (fixed with tracked Inno registry entries); the original
+quiz test assumed lowercase `usecode` while native Windows installation uses
+`USECODE` (test-only lookup corrected). An uninstaller test log also collided with
+the active uninstall log; command output now has a separate filename. None changed
+gameplay/audio. Failed test logs remain as historical evidence.
 
-## Open gates
+## Artifact/source differences from upstream
 
-No installer EXE was produced: Inno Setup 6 is absent, and the installer still needs
-three source-built optional mod ZIPs (the ordinary source-built exconfig is now
-available). Generated full upstream-derived Inno input is retained for inspection.
-Fresh install, upgrades, paths-only mode, optional mods/downloads and uninstall
-remain NOT TESTED. An actual official-release installer has not been extracted;
-comparison so far is to the exact upstream distribution recipes.
+- Current incorporated 1.13.1git uses SDL3 and the accepted MSVC Release/x64 toolchain;
+  official stable 1.12.1-1 uses SDL2/MinGW and supplies both x86/x64. DLL names and
+  dependency sets therefore differ. DWD only claims local x64 evidence.
+- All original documentation/resource categories are retained. DWD adds its README,
+  changelog, independent metadata, INSTALL, dependency inventory and component notices.
+- Installer uses per-user DWD identity and portable beside-executable configuration.
+  Registry changes are tracked for uninstall. Official Exult is not overwritten.
+- Mod ZIPs come from checked-in accepted sources rather than copying player mods.
+  They are embedded as upstream expects; portable users also receive optional ZIPs.
+  Remote audio/third-party download handling remains upstream behavior and untested.
+- Source ZIP additionally includes external dependency source archives, installed
+  SPDX/ABI inventory, exact vcpkg port patches/build options and the complete pinned
+  vcpkg source/scripts. Ordinary versioned registry rebuilding uses Git, Visual
+  Studio v143, Python and Win Flex/Bison; no offline or bit-identical rebuild claim.
+- Non-system redistributed components: SDL3 3.4.12, FluidSynth 2.5.5,
+  mt32emu 2.8.3, libpng 1.6.58, Ogg 1.3.6#1, Vorbis 1.3.7#4, zlib 1.3.2#1;
+  compiled headers gcem 1.18.0 and dirent 1.26, plus in-tree Nuked OPL3. Their
+  respective licenses and sources are retained; dynamic DLLs remain replaceable.
+- Windows API/UCRT and MSVC v14 runtime are system/toolchain prerequisites. No
+  Microsoft runtime DLL is bundled. A clean-machine test of the documented MSVC
+  runtime prerequisite remains NOT TESTED. Inno's applicable license is included;
+  its BSD-style compiler runtime is distinct from GPL engine/dependency sources.
 
-The source ZIP covers the engine commit, not a complete archive of the external
-vcpkg runtime sources. Matching dependency sources, package versions/patches,
-build recipes, redistribution terms and relinking availability require review
-before publication. No complete licensing-compliance certification is claimed.
+## Reproduction and responsibility
 
-Also pending: clean-machine runtime prerequisite handling, signing decision,
-human final-package visual/listening/gameplay review, hosted Actions execution,
-protected environment reviewers and an approved final tag/default-branch/repository
-publication plan. Existing accepted gameplay test limitations remain documented in
-the feature records and README. See RELEASE.md for the complete publication gate.
+Fully automated locally: build/stage, source/dependency/hash audit, silent installer
+checks, path helper, native mod installs, focused installed runtime, upgrade,
+paths-only, uninstall, preservation comparisons and Defender scan. The first full
+passing installer run recorded **167 installer assertions plus 34 runtime
+assertions** at source snapshot b7f12dba2 (with the test-only filename/log fixes).
+The final committed snapshot is rebuilt and its exact results are retained in the
+final evidence files rather than embedding a future self-referential SHA here.
+
+Human/environment work: clean Windows VM with documented runtime prerequisite,
+interactive wizard/Start Menu, live optional downloads and final visual/listening
+review. Signing is intentionally not a gate. Approval-dependent GitHub work:
+push/run prepared workflow, inspect hosted outputs, generate free attestations
+once public/tagged and approved, configure environment reviewers, then separately
+approve final publication. No paid service is required or authorized.
+
+Evidence root: `../test-output/dwd-release-validation/` (not committed), including
+build/package logs, actual installer manifests, upstream comparison, source audits,
+Defender logs and each isolated install/runtime run. Final artifacts carry their
+own `release-metadata.json`, `source-provenance.json`, `payload-manifest.json`,
+`dependency-sources.json`, curated notes and SHA256SUMS.txt.
+
+Primary tooling references:
+[Inno downloads](https://jrsoftware.org/isdl.php),
+[official Exult downloads](https://exult.info/download.html),
+[GitHub attestations](https://github.com/actions/attest),
+[Microsoft runtime deployment](https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files).

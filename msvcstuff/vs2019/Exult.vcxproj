@@ -285,7 +285,7 @@ exit /b 0
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\.git\index">
+    <CustomBuild Include="..\..\.git\index" Condition="Exists('$(MSBuildProjectDirectory)\..\..\.git\index')">
       <ExcludedFromBuild>false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <Command>

@@ -37,7 +37,7 @@ def main(a):
         assert condition,label
     def run(args,label):
         r=subprocess.run([str(v) for v in args],cwd=work,capture_output=True,creationflags=subprocess.CREATE_NO_WINDOW,timeout=120)
-        (work/(label+'.log')).write_bytes(r.stdout+r.stderr)
+        (work/(label+'-command.log')).write_bytes(r.stdout+r.stderr)
         check(label+' exit',r.returncode==0)
         return (r.stdout+r.stderr).decode(errors='replace')
     setup=next(candidate.glob('*-Setup.exe'))
@@ -104,7 +104,7 @@ def main(a):
         if installed and (app/'unins000.exe').is_file():
             run([app/'unins000.exe','/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/LOG='+str(work/'uninstall.log')],'uninstall')
             end=time.monotonic()+10
-            while (app/'Exult.exe').exists() and time.monotonic()<end:time.sleep(.1)
+            while ((app/'Exult.exe').exists() or registry(winreg.HKEY_CURRENT_USER,uninstall) is not None) and time.monotonic()<end:time.sleep(.1)
             check('installed executable removed',not (app/'Exult.exe').exists())
             check('DWD uninstall identity removed',registry(winreg.HKEY_CURRENT_USER,uninstall) is None)
             check('DWD install registry cleaned',registry(winreg.HKEY_CURRENT_USER,dwd) is None)
