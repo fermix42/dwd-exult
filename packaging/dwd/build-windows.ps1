@@ -1,5 +1,9 @@
 param([Parameter(Mandatory=$true)][string]$OutputDirectory)
 $ErrorActionPreference = 'Stop'
+$logDirectory = Join-Path (Split-Path ([IO.Path]::GetFullPath($OutputDirectory)) -Parent) 'dwd-build-logs'
+New-Item -ItemType Directory -Force $logDirectory | Out-Null
+Start-Transcript -Path (Join-Path $logDirectory 'build.log') | Out-Null
+try {
 $sourceRoot = (Resolve-Path "$PSScriptRoot/../..").Path
 $vs = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
 if (!$vs) { throw 'Visual Studio C++ tools are required' }
@@ -15,3 +19,7 @@ if ($LASTEXITCODE) { throw 'vcpkg integration failed' }
 if ($LASTEXITCODE) { throw 'MSBuild failed' }
 New-Item -ItemType Directory -Force "$outputPath/data" | Out-Null
 Copy-Item "$sourceRoot/data/exult*.flx" "$outputPath/data"
+foreach ($name in @('Exult.exe','expack.exe','exconfig-x86_64.exe','data/exult.flx','data/exult_bg.flx','data/exult_si.flx')) {
+    if (!(Test-Path -LiteralPath (Join-Path $outputPath $name))) { throw "Missing build output: $name" }
+}
+} finally { Stop-Transcript | Out-Null }

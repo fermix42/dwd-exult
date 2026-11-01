@@ -18,7 +18,7 @@ was performed. Accepted gameplay/audio/art code remains frozen and unchanged.
 | Independent installer manifest inspection | PASS | innounp 2.71.3 listed the actual compiled DWD installer, including helper, all three mod ZIPs, engine, runtime DLLs, FLX files, original/DWD docs and license notices. |
 | Official distribution comparison | PASS | Actual official Exult 1.12.1-1 manifest inspected, SHA-256 90f5495e7810d1ef847191779420f2abb93e56ebb99bd198ad3a374dd74c56db. All 30 upstream nonbinary application paths are present; 33 application paths common after architecture-name normalization. Binary differences are intentional (below). |
 | Fresh silent installation/file integrity | PASS | Every installed payload file checked against staging hashes; correct installed version output and independent uninstall entry. |
-| Game-path configuration | PASS | Actual upstream exconfig Set/Get round-trip with supplied BG/SI paths. Existing valid config preserved. Interactive browse widgets remain NOT TESTED. |
+| Game-path configuration | PASS | Actual upstream exconfig Set/Get round-trip with supplied BG/SI paths. Existing valid config preserved. Owner reports the interactive installer worked as expected (HUMAN PASS); specific browse-click sequences were not separately reported. |
 | Source-built optional mods | PASS | Keyring, SI Fixes and SourceForge Island built using ordinary UCC/expack from committed source and upstream install lists. Native --installmod installed every file, verified byte-for-byte with package contents after filename-case normalization. |
 | Focused installed-engine regression | PASS | BG 8/8, SI 8/8, Keyring 9/9 and SI Fixes 9/9; save/load, embedded helpers, mod override authority, natural SI opening/conversation, zero failures and normal cleanup. No full campaign/audio/visual claim. |
 | Upgrade and paths-only installation | PASS | Silent same-version reinstall and paths-only mode preserve config values, binaries and disposable save sentinels. Cross-version migration awaits a future version. |
@@ -29,11 +29,11 @@ was performed. Accepted gameplay/audio/art code remains frozen and unchanged.
 | Authenticode signing | PASS (unsigned policy) | Publicly trusted signing is not required. Engine/installer intentionally unsigned; SHA-256 and provenance retained. No purchase/subscription initiated. |
 | Workflow source assessment | PASS | Prepared standard windows-2022 MSVC/vcpkg build, parser tools, pinned verified Inno compiler, source mod builds, dependency collection, packaging, available Defender scan and restricted manual release gates. YAML/PowerShell/Python syntax checked. Hosted behavior still unverified. |
 | Fresh disposable Windows VM/clean OS | NOT TESTED | No usable disposable VM was established. vmcompute was stopped; feature query required an elevated Windows token. No Windows feature/security settings were changed. Local tests were host-isolated with an already installed MSVC runtime. |
-| Human wizard appearance/browse clicks | NOT TESTED | Automated inputs use the same validation controls; human visual review remains outstanding. |
-| Human visual/audio/gameplay review | NOT TESTED | Existing accepted feature evidence is preserved. This pass did not perform new listening, visual inspection or full campaign testing. |
+| Interactive Windows installer | HUMAN PASS (owner report) | Owner installed and operated the candidate successfully and reported the experience worked as expected. Specific browse-click sequences/appearance details were not separately reported and are not a new mandatory gate. |
+| Scoped human gameplay/audio acceptance | HUMAN PASS (owner report) | BG through Orb acquisition; BG/Keyring and SI/SI Fixes save/load; BG versus Keyring save separation; Enhanced OPL3 music with synthesized OPL2 effects sounded as expected, no audible problems reported. Not a full campaign/all-backend claim. |
 | Hosted GitHub Actions execution | NOT TESTED | Requires an approved push/run. No branch or tag pushed, no hosted run claimed. |
 | GitHub public artifact attestations | NOT TESTED (prepared) | Dedicated public/tagged actions/attest@v4 job prepared, free for public repositories. No attestation generated; it is provenance, not Authenticode or a SmartScreen bypass. |
-| Public distribution | NOT TESTED / approval gate | Owner must approve exact commit/assets, remaining human checks, any push/tag/rename/visibility/default-branch operation and eventual publication. |
+| Public distribution | NOT TESTED / approval gate | Owner must approve exact commit/assets and deployment operations. Scoped human acceptance is complete; remaining risks are classified in READINESS.md. |
 
 No outstanding product failure is known from the passing rerun. Two earlier failures
 are retained transparently: the first upstream-derived uninstaller left a stale
@@ -78,11 +78,11 @@ assertions** at source snapshot b7f12dba2 (with the test-only filename/log fixes
 The final committed snapshot is rebuilt and its exact results are retained in the
 final evidence files rather than embedding a future self-referential SHA here.
 
-Human/environment work: clean Windows VM with documented runtime prerequisite,
-human wizard appearance/browse clicks and final visual/listening
-review. Signing is intentionally not a gate. Approval-dependent GitHub work:
+Additional environment confidence: clean Windows VM with documented runtime
+prerequisite remains NOT TESTED. Scoped owner acceptance below supersedes earlier
+blanket human-testing gaps; do not request the completed observations again. Signing is intentionally not a gate. Approval-dependent GitHub work:
 push/run prepared workflow, inspect hosted outputs, generate free attestations
-once public/tagged and approved, configure environment reviewers, then separately
+once public/tagged and approved, then separately
 approve final publication. No paid service is required or authorized.
 
 Evidence root: `../test-output/dwd-release-validation/` (not committed), including
@@ -120,14 +120,76 @@ Ultima VI Remake and Glimmerscape, compared against every original package file.
 
 Protected original games, official engine and official profiles are compared by
 files AND directories. Official registry/uninstall state is preserved. Original
-game-tree ACLs were not changed; ACL-enforced read-only original-tree gameplay is
-NOT TESTED to preserve supplied source permissions. Runtime write guards and
-unchanged-source snapshots are tested. Inno's own transient Windows bootstrap and
+game-tree ACLs were not changed. The later read-only disposable-copy verification
+below closes the ACL-enforced source-read-only gap without changing owner permissions. Inno's own transient Windows bootstrap and
 download staging is outside the selected root; persistent data/runtime temp is owned.
 
-Clean-machine runtime prerequisites, human wizard/audio/visual/gameplay review,
-hosted Actions and public attestations remain NOT TESTED. Unsigned status is accepted.
+Clean-machine runtime prerequisites, hosted Actions and public attestations remain
+NOT TESTED. Scoped owner acceptance is recorded below. Unsigned status is accepted.
 No push/publication occurred. Earlier failures retained in logs: inherited native
 installation skipped Ultima VI Remake's root changelog (now preserved unchanged);
 an overly broad disposable ACL prevented Windows loading the executable (fixture
 corrected to deny creation only). Neither is reported as a passing run.
+
+## Owner human acceptance recorded November 1, 2026
+
+Provenance: the project owner's explicit sign-off supplied in the request titled
+"DWD Exult — Human Acceptance Sign-Off and GitHub Release Readiness" in this chat.
+The owner identifies the locally built candidate accepted at
+`7c07eab7906da69477678d656a3bb049b673d9ab`. The precise test time and instrumented
+session logs were not supplied; these are owner observations, not agent-executed
+assertions. Record date is not an invented execution timestamp.
+
+| Scope | Result | Owner observation |
+| --- | --- | --- |
+| Windows installer | HUMAN PASS | Installed and operated successfully; installation experience worked as expected. |
+| Unmodded Black Gate | HUMAN PASS | Launched, played through acquisition of the Orb of the Moons, saved and reloaded. Acquisition alone is not a claim that every Orb chart interaction was tested. |
+| Marzo's Keyring | HUMAN PASS | Saved and reloaded; unmodded BG and Keyring saves stored separately. |
+| Unmodded Serpent Isle | HUMAN PASS | Saved and loaded successfully. |
+| SI Fixes | HUMAN PASS | Saved and loaded successfully; tested configurations worked correctly. Owner did not separately report SI versus SI Fixes directory inspection. |
+| Enhanced OPL3 music + synthesized OPL2 effects | HUMAN PASS | Sounded as expected during gameplay; no audible problems reported in that test. |
+
+These completed tests must not be requested again for a checklist. They do not
+certify every audio backend, gameplay feature, language, platform, full campaign or
+installation scenario. No human acceptance entry was added to the public changelog.
+
+## Evidence preservation and newly performed verification
+
+The accepted `../test-output/dwd-paths/final-accepted/final-review.json` records
+**188 installer + 34 runtime + 39 portable + 16 default/shortcut + 10 real-download
+= 287 PASS**, zero failures, Defender no threats, and passing source/dependency/
+payload/checksum audits at the accepted candidate revision. These are preserved
+historical results, not 287 newly executed assertions. The 19 entries in its
+SHA256SUMS were rechecked now and match. Accepted artifacts were not rewritten.
+
+New evidence lives under `../test-output/dwd-readiness/`:
+
+- `readonly-assets/summary.json`: PASS, **19 fixture checks and 34 newly executed
+  focused runtime assertions**. `readonly-check.py` copied both original static
+  asset trees into fresh disposable roots, used inherited granular NTFS denies for
+  create/write/delete (not merely ReadOnly attributes), confirmed write opens were
+  denied, configured the accepted ordinary executable, installed original Keyring
+  and SI Fixes, and ran base/mod save/load scenarios. Before/after file hashes AND
+  directory inventories matched in the copies and owner's games. Only copied-tree
+  permissions were changed and those deny entries were removed afterward.
+- `candidate-audit.log`: PASS on the accepted packages, 19 artifact checksums and
+  61 payload files, complete source manifest/dependency hashes/portable contents,
+  and `--version` startup from a fresh extraction. This is the new hosted audit
+  exercised locally, not a clean-OS or gameplay claim.
+- `actionlint.log`: actionlint **1.7.12 PASS**, official release ZIP verified against
+  its published SHA-256 `6e7241b51e6817ea6a047693d8e6fed13b31819c9a0dd6c5a726e1592d22f6e9`.
+  Workflow policy, YAML, Python and PowerShell parsing also checked. A deliberate
+  missing-vcpkg prerequisite test exited nonzero and retained the build transcript
+  before any integration/compilation (`build-failure-fixture.log`).
+- Clean-environment availability rechecked: vmcompute stopped, no Get-VM command,
+  no WindowsSandbox.exe or detected VMware/VirtualBox installation; optional-feature
+  query requires an elevated OS token. No VM established and no host settings changed.
+  Hosted developer images with Visual Studio are not equivalent to a clean player OS.
+
+Only documentation, workflow and release-validation tooling changed in this pass.
+No engine/audio/gameplay/storage/mod source or package recipe changed. No full
+installer/download/portable suite or Defender scan was repeated; their accepted
+results remain applicable to the unchanged local candidate. Hosted script execution,
+remote downloads/tool availability and the first newly compiled hosted binaries
+remain to be verified after approval. See [READINESS.md](READINESS.md) for classified
+remaining risks and the exact staged approval sequence.

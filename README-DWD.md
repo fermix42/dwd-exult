@@ -194,11 +194,12 @@ unsigned, as permitted by this free project’s zero-budget policy. Windows may 
 SmartScreen or unknown-publisher warnings. Verify SHA-256 before running it.
 Free GitHub provenance attestations are prepared for approved public releases;
 they are not Windows Authenticode signatures and do not prevent SmartScreen warnings. The corresponding-source ZIP includes matching dependency archives, patches and
-vcpkg recipes. A clean Windows VM test and human wizard checks
-remain publication review items. Native quiz encounters, some late-game Orb story states and
+vcpkg recipes. A clean Windows VM test remains an additional confidence item.
+The owner completed scoped installer, BG/Keyring, SI/SI Fixes and Enhanced OPL3
+with synthesized OPL2 effects acceptance; see [validation](packaging/dwd/VALIDATION.md). Native quiz encounters, some late-game Orb story states and
 natural SI Fixes Batlin vision have the unperformed-test limits recorded in the
-feature documents. Fresh listening and human gameplay review of the final package
-remain necessary; prior acceptance is not a new test of this exact binary.
+feature documents. Owner acceptance applies to the tested local candidate and those observations; it
+does not certify every backend, gameplay feature, platform or installation scenario.
 
 ## 8. Reporting bugs and contributing
 

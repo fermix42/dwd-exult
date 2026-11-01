@@ -35,9 +35,8 @@ Local ordinary build: use AGENTS.md's existing build command; do not create anot
 engine build. The hosted script uses the upstream MSVC solution and pinned vcpkg
 baseline. Candidate workflow runs only manually, with read-only build permissions.
 It has not been run on GitHub. It uploads inspection artifacts, never a public
-release. Its optional attachment job only accepts an existing draft, requires a
-protected environment and refuses open validation gates. Configure required
-reviewers on `dwd-release-approval` before enabling attachments.
+release. The candidate workflow has no release attachment/publication job or contents-write
+permission. Public release creation/attachment is a separate owner-approved action.
 
 Example (use fresh output directory):
 
@@ -95,9 +94,9 @@ Exult Team credentials or infrastructure are needed by the DWD workflow.
 - Build/inspect the unsigned installer, review final curated notes and checksums, record
   tag/commit identity and approve exact assets before public publication.
 
-The attachment job deliberately refuses unresolved gates. No workflow automatically
-sets validation fields to PASS. Add verified evidence and an explicit reviewed
-publication procedure before enabling distribution.
+No candidate workflow job creates tags, releases or attachments. It does not turn
+local gameplay results into hosted PASS fields. Review actual hosted outputs before
+separately authorizing any distribution.
 
 ## Zero-budget follow-up
 
@@ -107,7 +106,7 @@ Defender scanning remain required. The optional public/tagged GitHub attestation
 job uses actions/attest@v4 with a dedicated OIDC/attestation permission scope. It is
 free for public repositories and is not a Windows signature or a SmartScreen bypass.
 No attestation has been generated locally; hosted execution requires approval to
-push and run the branch. Configure environment reviewers before release attachment.
+push and run the branch. Release creation/attachment requires separate approval.
 
 `build-mods.py` follows the checked-in upstream Makefile.mingw install file lists,
 using ordinary UCC/expack in disposable staging. It emits required directory ZIP
@@ -119,8 +118,9 @@ the included source archive is not a Git repository. No offline build is claimed
 
 The local install regression uses `installer-check.py`, same installed executable,
 disposable mods/configs/saves and protected-file hashes. It is a host-isolated test,
-not a fresh Windows VM. Human interactive controls, clean-OS prerequisites and
-hosted Actions remain separately recorded as NOT TESTED. See VALIDATION.md.
+not a fresh Windows VM. Scoped owner human acceptance is recorded in VALIDATION.md;
+clean-OS prerequisites and hosted execution remain untested. Do not repeat completed
+owner tests absent a relevant implementation change.
 
 ## Mandatory storage and additional tests
 
@@ -139,3 +139,30 @@ Use fresh work folders and protect both game trees, official install and profile
 Run installer/download/default tests sequentially (shared DWD registry identity).
 Use --downloads with verified archive cache for byte comparison, not substitution
 for actual Inno downloads. Protected snapshots include files AND directories.
+
+## First hosted candidate and approval staging
+
+Follow [READINESS.md](READINESS.md). The workflow is manual-only and checks the
+required `expected_revision` input against both checkout HEAD and GITHUB_SHA.
+Leave `tag` blank for the first review. The checked-out SHA also identifies binary
+metadata, matching source ZIP, generated checksums and artifact name. The workflow
+uses immutable official Node 24 action revisions, a supported standard windows-2022
+runner, Python 3.12, the source-pinned vcpkg baseline and hash/signature-verified Inno.
+All build inputs are committed or downloaded from public upstream sources; owner
+Ultima assets, private ROMs and local machine caches are not workflow dependencies.
+Quiz UCC and FLX resources come from the ordinary solution dependency graph.
+
+`audit-candidate.py` validates final checksums, portable payload bytes and identity,
+source commit/manifest, dependency archive hashes/DLL mappings, and ordinary
+packaged --version startup in a disposable extraction. It does not mark gameplay
+PASS. Build transcript and available Defender logs upload on failure; GitHub's
+per-step logs retain other tool/download diagnostics. Candidate assets are retained
+seven days. No paid cache/service or purchased signing is required.
+
+Private jobs are skipped unless the owner explicitly confirms sufficient free
+compute AND artifact storage with spending blocked via
+`private_free_usage_confirmed=true`. This input is an acknowledgement, not a billing
+API check or guarantee; verify account usage first. Standard public runners are
+free; larger runners and private overages are not authorized. Public/tagged runs
+can generate free attestations after independent approval; the first private,
+untagged run cannot. Do not enable billable resources to make a run succeed.
