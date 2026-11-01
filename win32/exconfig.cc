@@ -32,6 +32,7 @@
 #include "headers/ignore_unused_variable_warning.h"
 #include "utils.h"
 #include "dwd_paths.h"
+#include "exceptions.h"
 
 #include <array>
 #include <cstring>
@@ -424,7 +425,10 @@ EXCONFIG_EXPORT void __cdecl SetExultGamePaths(const char* ExultDir, const char*
 		}
 
 		dwd_configure_paths(config);
-		config.write_back();
+        auto output = U7open_out(p, true);
+        *output << config.dump() << std::endl;
+        output->flush();
+        if (!output->good()) throw file_write_exception(p);
         dwd_config_write_success = true;
 	} catch (const std::exception& error) {
         std::cerr << error.what() << std::endl;

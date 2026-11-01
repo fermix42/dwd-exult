@@ -31,7 +31,7 @@ inline void dwd_configure_paths(Configuration& cfg) {
     set("config/disk/data_path", "<HOME>/data");
     set("config/disk/music_path", "<HOME>/data/music");
     auto games = cfg.listkeys("config/disk/game", false);
-    for (const char* name : {"blackgate", "forgeofvirtue", "serpentisle", "silverseed", "serpentbeta", "exultdev"}) {
+    for (const char* name : {"blackgate", "forgeofvirtue", "serpentisle", "silverseed", "serpentbeta", "demo"}) {
         if (std::find(games.begin(), games.end(), name) == games.end()) games.emplace_back(name);
     }
     for (const auto& game : games) {

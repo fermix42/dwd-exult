@@ -108,7 +108,7 @@ def installer(stage, meta):
     text = text.replace('          DownloadPage.Download;', '          DownloadPage.Download;\n          DwdDownloadsReady := True;')
     text = text.replace('        BGEdit.Text := sBGPath;', "        if BGEdit.Text = '' then BGEdit.Text := sBGPath;")
     text = text.replace('        SIEdit.Text := sSIPath;', "        if SIEdit.Text = '' then SIEdit.Text := sSIPath;")
-    text += """
+    text += r"""
 // Preserve the same download page and validation in unattended installations.
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
@@ -117,6 +117,13 @@ begin
     if not NextButtonClick(wpReady) then
       Result := 'The requested optional DWD downloads could not be prepared.';
   end;
+  if (Result = '') and ((WizardIsComponentSelected('downloads\mods\keyring')) or
+      (WizardIsComponentSelected('downloads\mods\sfisland')) or
+      (WizardIsComponentSelected('downloads\3rdpartymods\ultima6'))) and (iBGVerified <> 1) then
+    Result := 'Select valid Black Gate game assets or deselect its optional mods.';
+  if (Result = '') and ((WizardIsComponentSelected('downloads\mods\sifixes')) or
+      (WizardIsComponentSelected('downloads\3rdpartymods\glimmerscape'))) and (iSIVerified <> 1) then
+    Result := 'Select valid Serpent Isle game assets or deselect its optional mods.';
 end;
 """
     # Initialize from command line or existing config even when no download step runs.

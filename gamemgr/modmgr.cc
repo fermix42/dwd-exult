@@ -968,8 +968,13 @@ int ModManager::InstallModZip(std::string& zipfilename, ModManager* game_overrid
 					}
 				}
 
+                // Preserve original package documentation named for this mod,
+                // such as Ultima6v1.3changes.txt, without changing mod contents.
+                const bool mod_document = dwd_portable_runtime() && directory.empty()
+                    && filepath.rfind(moddir, 0) == 0 && filepath.size() >= 4
+                    && filepath.substr(filepath.size() - 4) == ".txt";
 				// Skip any files not from this mod
-				if (topleveldir != moddir && filepath != cfgname) {
+				if (topleveldir != moddir && filepath != cfgname && !mod_document) {
 					continue;
 				}
 
