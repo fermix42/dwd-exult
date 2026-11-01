@@ -1,0 +1,91 @@
+name: DWD candidate review
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing approved dwd-v tag at the dispatched commit (blank for untagged review)
+        type: string
+        required: false
+      attach_to_draft:
+        description: Attach to an existing approved draft release after environment approval
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install host parser generators
+        shell: pwsh
+        run: choco install winflexbison3 --yes --no-progress
+      - name: Select upstream-pinned vcpkg
+        shell: pwsh
+        run: |
+          $baseline = (Get-Content msvcstuff/vs2019/vcpkg.json -Raw | ConvertFrom-Json).'builtin-baseline'
+          git -C $env:VCPKG_INSTALLATION_ROOT fetch origin $baseline
+          if ($LASTEXITCODE) { throw 'vcpkg fetch failed' }
+          git -C $env:VCPKG_INSTALLATION_ROOT checkout --detach $baseline
+          if ($LASTEXITCODE) { throw 'vcpkg checkout failed' }
+          & "$env:VCPKG_INSTALLATION_ROOT/bootstrap-vcpkg.bat"
+          if ($LASTEXITCODE) { throw 'vcpkg bootstrap failed' }
+      - name: Metadata and release invariants
+        run: python packaging/dwd/check.py
+      - name: Build ordinary Windows executable and upstream resources
+        shell: pwsh
+        run: ./packaging/dwd/build-windows.ps1 -OutputDirectory "$env:RUNNER_TEMP/dwd-bin"
+      - name: Stage and inspect candidate
+        shell: pwsh
+        env:
+          DWD_TAG: ${{ inputs.tag }}
+        run: |
+          $tagArgs = @()
+          if ($env:DWD_TAG) { $tagArgs = @('--tag', $env:DWD_TAG) }
+          python packaging/dwd/release.py package --binary-dir "$env:RUNNER_TEMP/dwd-bin" --runtime-dir msvcstuff/vs2019/vcpkg_installed/x64-windows/bin --dependency-share msvcstuff/vs2019/vcpkg_installed/x64-windows/share --output "$env:RUNNER_TEMP/dwd-candidate" @tagArgs
+          if ($LASTEXITCODE) { throw 'Candidate inspection failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dwd-candidate-${{ github.sha }}
+          path: ${{ runner.temp }}/dwd-candidate/
+          if-no-files-found: error
+  attach:
+    if: ${{ inputs.attach_to_draft && inputs.tag != '' }}
+    needs: build
+    runs-on: ubuntu-latest
+    # Configure required reviewers before enabling this job. It never creates a
+    # tag/release or changes draft status; public publication stays manual.
+    environment: dwd-release-approval
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dwd-candidate-${{ github.sha }}
+          path: candidate
+      - name: Attach only to the reviewed existing draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DWD_TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh release view "$DWD_TAG" --json isDraft --jq .isDraft)" = true
+          (cd candidate && sha256sum -c SHA256SUMS.txt)
+          # Installer, runtime and third-party source gates must be closed first.
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('candidate/validation.json').read_text())
+          assert not report['blockers'], report['blockers']
+          assert report['runtime'] == 'PASS'
+          assert report['installer_behavior'] == 'PASS'
+          assert report['dependency_source_compliance'] == 'PASS'
+          PY
+          gh release upload "$DWD_TAG" candidate/*.zip candidate/*-Setup.exe candidate/SHA256SUMS.txt candidate/release-notes.txt

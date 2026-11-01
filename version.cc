@@ -25,6 +25,9 @@
 #include "endianio.h"
 #include "ignore_unused_variable_warning.h"
 #include "version.h"
+#if __has_include("dwd_version_generated.h")
+#include "dwd_version_generated.h"
+#endif
 
 #include <array>
 #include <cstdint>
@@ -170,7 +173,14 @@ void getVersionInfo(std::ostream& out) {
 	 * 1. Exult version
 	 */
 
-	out << "Exult version " << VERSION << '\n';
+	#ifdef DWD_VERSION
+    out << "Dark Wraith Dragon's Exult " << DWD_VERSION << '\n'
+        << "Based on Exult " << DWD_UPSTREAM_VERSION << '\n'
+        << "Upstream revision: " << DWD_UPSTREAM_REVISION << '\n'
+        << "DWD revision: " << DWD_REVISION << '\n'
+        << "Source: " << DWD_SOURCE_URL << '\n';
+#endif
+    out << "Exult version " << VERSION << '\n';
 	/*
 	 * 4. Git revision information
 	 */

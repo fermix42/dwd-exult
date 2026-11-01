@@ -903,6 +903,9 @@ for /f "tokens=* delims=" %%u in ('git ls-remote --get-url') do echo #define GIT
           Outputs="$(QuizBuildDir)quiz_compat.h">
     <Exec Command="$(QuizPython) &quot;$(MSBuildProjectDirectory)\..\..\tools\compile_quiz.py&quot; --ucc &quot;$(QuizBuildDir)ucc.exe&quot; --output &quot;$(QuizBuildDir)quiz_compat.h&quot;" />
   </Target>
+  <Target Name="GenerateDwdVersion" BeforeTargets="ClCompile;ResourceCompile">
+    <Exec Command="$(QuizPython) &quot;$(MSBuildProjectDirectory)\..\..\packaging\dwd\release.py&quot; metadata" />
+  </Target>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

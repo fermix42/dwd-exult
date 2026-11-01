@@ -106,3 +106,40 @@ $env:PATH = "$env:EXULT_TEST_RUNTIME_DIR;" + $env:PATH
 
 Do not launch this visible test automatically. It has audio disabled and skips the
 BG opening; it is not an audio test or proof that initial NPC story scripts ran.
+
+## DWD release governance
+
+- Dark Wraith Dragon's Exult (DWD Exult) is an independent fork, never an official
+  Exult Team release. Keep `Exult.exe`, upstream history, credits, licenses and
+  upstream-owned README, ChangeLog, COPYING, AUTHORS, INSTALL and FAQ intact.
+- `packaging/dwd/version.json` is the authoritative DWD SemVer and exact incorporated
+  upstream revision. Generate binary/installer/artifact metadata from it and the
+  exact build commit; never label upstream development versions as stable releases.
+  Use `dwd-vMAJOR.MINOR.PATCH` (including prerelease suffixes). Compatible fixes bump
+  patch, compatible features minor, intentional breaks major; upstream updates do
+  not automatically dictate a DWD increment.
+- `README-DWD.md` describes features, configuration and behavior of the currently
+  released DWD Exult version (explicitly mark unpublished candidates).
+  `ChangeLog-DWD.txt` permanently records chronological changes between DWD releases.
+  The README explains current behavior and use; the changelog records what changed,
+  when and in which version. Review and update both whenever a release changes
+  documented functionality. Neither substitutes for the other. Preserve original
+  Exult documentation and changelog independently. Correct historical mistakes
+  transparently; do not silently rewrite release history.
+- Release only verified, accepted functionality. Preserve frozen gameplay/audio/art;
+  exclude dormant experiments, private configs, saves, build products, backups,
+  credentials, proprietary Ultima data and unlicensed ROMs from source and payloads.
+- Prefer upstream build/distribution targets and Inno architecture. Use independent
+  installer, directory, registry and uninstall identity; preserve mod workflows.
+  Include original and DWD docs, exact source provenance, component notices and
+  corresponding source. Stage from explicit file lists, never a player directory.
+- Before release: build the exact clean tagged commit; run relevant automated and
+  available isolated runtime checks; inspect archive and installer contents,
+  dependencies, metadata, checksums, installation/upgrade/uninstall and source
+  completeness. Compare with upstream packaging and record intentional differences,
+  unperformed checks and required human gameplay/listening/signing checks. Existing
+  accepted evidence remains valid; packaging work does not reopen frozen features.
+- Never publish, rename the remote, change visibility, push final tags, merge the
+  public default branch or rewrite shared history without explicit user approval.
+  Manual candidate workflows upload review artifacts only. Publication requires
+  separate approval of the exact commit, tag, assets and curated changelog notes.
