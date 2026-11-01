@@ -129,6 +129,7 @@ class Driver:
    return self.raw(op,int(c['ref']),0)
   if op in ('inspect_tile','path_query','move_to'):
    return self.raw(op,int(c['x']),int(c['y']),int(c.get('z',0)),int(float(c.get('timeout',10))*1000))
+  if op=='inspect_usecode':return self.raw(op,int(c['function']))
   if op in ('inspect_inventory','interact_inventory'):return self.raw(op,int(c.get('ref',0)))
   if op=='key':
    names={'w':119,'escape':27,'enter':13,'left':0x40000050,'right':0x4000004f,'up':0x40000052,'down':0x40000051,'home':0x4000004a,'end':0x4000004d}

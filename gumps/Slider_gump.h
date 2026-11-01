@@ -39,6 +39,9 @@ public:
 	int get_val() {    // Get last value set.
 		return widget->getselection();
 	}
+	int minimum() const { return widget->minimum(); }
+	int maximum() const { return widget->maximum(); }
+	int increment() const { return widget->increment(); }
 
 	// Paint it and its contents.
 	void paint() override;

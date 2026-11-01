@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CPPFLAGS = -I$(srcdir) -I$(srcdir)/headers -I$(srcdir)/imagewin -I$(srcdir)/shapes \
+AM_CPPFLAGS = -I$(top_builddir)/usecode -I$(srcdir) -I$(srcdir)/headers -I$(srcdir)/imagewin -I$(srcdir)/shapes \
 	-I$(srcdir)/server -I$(srcdir)/data -I$(srcdir)/gamemgr \
 	-I$(srcdir)/objs -I$(srcdir)/conf -I$(srcdir)/files -I$(srcdir)/gumps \
 	-I$(srcdir)/audio -I$(srcdir)/audio/midi_drivers -I$(srcdir)/pathfinder \
@@ -67,6 +67,10 @@ EXULTSOURCES =	\
 	game_time.cc	\
 	game_time.h	\
 	usecode/game_time_compat.h	\
+	usecode/quiz.cc	\
+	usecode/quiz.h	\
+	data/quiz_bg.uc	\
+	data/quiz_si.uc	\
 	data/game_time_bg.uc	\
 	data/game_time_si.uc	\
 	exult.h		\
@@ -369,7 +373,25 @@ $(srcdir)/.git/config:
 
 BUILT_SOURCES=gitinfo.h
 
-CLEANFILES = gitinfo.h *~
+CLEANFILES = gitinfo.h usecode/quiz_compat.h *~
+
+# Keep quiz.cc in the executable, rather than libusecode: UCC links the latter.
+# This avoids making the compiler depend on resources it must itself compile.
+PYTHON_FOR_BUILD = python3
+UCC_FOR_BUILD = $(top_builddir)/tools/compiler/ucc$(EXEEXT)
+QUIZ_UCC_INPUTS = $(wildcard $(srcdir)/tools/compiler/*.cc $(srcdir)/tools/compiler/*.h \
+ $(srcdir)/tools/compiler/*.yy $(srcdir)/tools/compiler/*.ll $(srcdir)/headers/*.h \
+ $(srcdir)/usecode/*intrinsics.h $(srcdir)/usecode/ucsymtbl.* $(srcdir)/usecode/opcodes.h)
+$(top_builddir)/tools/compiler/ucc$(EXEEXT): $(QUIZ_UCC_INPUTS) usecode/libusecode.la
+	$(MAKE) -C tools/compiler ucc$(EXEEXT)
+
+usecode/quiz_compat.h: $(srcdir)/data/quiz_bg.uc $(srcdir)/data/quiz_si.uc $(srcdir)/tools/compile_quiz.py $(UCC_FOR_BUILD)
+	$(PYTHON_FOR_BUILD) $(srcdir)/tools/compile_quiz.py --ucc "$(UCC_FOR_BUILD)" --output "$@"
+
+usecode/exult-quiz.$(OBJEXT) usecode/quiz.lo: usecode/quiz_compat.h
+
+EXTRA_DIST += tools/compile_quiz.py tools/build_quiz_ucc.ps1 \
+ tools/quiz/verify.py tools/quiz/integration.py tools/quiz/slider_smoke.py docs/quiz_sliders.md
 
 
 if MACOSX

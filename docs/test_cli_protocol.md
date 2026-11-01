@@ -94,6 +94,14 @@ acknowledgement/answer_menu/text, or unsupported_input. Legal actions identify
 supported command families; a control action still needs a current available ID.
 Speaker face is not falsely equated to an NPC number.
 
+Numeric `Slider_gump` entries additionally expose `value`, `minimum`, `maximum`,
+and `increment`. Existing `key` left/right/enter/escape use the native slider
+handlers; Escape only cancels sliders that normally permit cancellation.
+`inspect_usecode` takes `function` (numeric function ID) in the Python client,
+or one integer in the wire protocol. It returns the effective function body as
+hexadecimal `bytes`, its `length`, and `has_original`. This is read-only; it does
+not invoke functions, set flags, or alter quest progress.
+
 Object refs are weak and monotonic within a process. Save/load and current-map
 changes clear the reference registry; deleted/off-world objects refuse resolution.
 The driver keeps no unsafe raw object pointers across those boundaries. Requery

@@ -41,6 +41,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #		define PRINTF_FORMAT(fmtarg, firstvararg) __attribute__((__format__(gnu_printf, fmtarg, firstvararg)))
 #	endif
 #elif defined(_MSC_VER)
+#	define PRINTF_FORMAT(fmtarg, firstvararg)
 #	if _MSC_VER >= 1400
 #		include <sal.h>
 #		if _MSC_VER > 1400
@@ -50,7 +51,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #		endif /* FORMAT_STRING */
 #	else
 #		define FORMAT_STRING(p) p
-#		define PRINTF_FORMAT(fmtarg, firstvararg)
 #	endif /* _MSC_VER */
 #endif
 

@@ -1571,4 +1571,12 @@
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\usecode\quiz.cc"><Filter>Source Files</Filter></ClCompile>
+    <ClInclude Include="..\..\usecode\quiz.h"><Filter>Header Files</Filter></ClInclude>
+    <None Include="..\..\data\quiz_bg.uc" />
+    <None Include="..\..\data\quiz_si.uc" />
+    <None Include="..\..\tools\compile_quiz.py" />
+    <None Include="..\..\tools\build_quiz_ucc.ps1" />
+  </ItemGroup>
 </Project>

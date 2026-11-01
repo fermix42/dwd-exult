@@ -1,4 +1,5 @@
 #include "Wait_gump.h"
+#include "Slider_gump.h"
 #include "cli_driver.h"
 
 #include "Configuration.h"
@@ -82,6 +83,19 @@ static bool cli_listener_active() {
 }
 
 struct CliDriver {
+    static std::string inspect_usecode(int number) {
+        if (number < 0) throw std::runtime_error("invalid_function_id");
+        auto* uc = dynamic_cast<Usecode_internal*>(Game_window::get_instance()->get_usecode());
+        auto* function = uc->find_function(number);
+        if (!function) throw std::runtime_error("usecode_function_not_found");
+        std::ostringstream out;
+        out << "\"category\":\"inspection\",\"function\":" << number
+            << ",\"length\":" << function->len << ",\"bytes\":\"";
+        for (int i = 0; i < function->len; ++i)
+            out << std::hex << std::setw(2) << std::setfill('0') << int(function->code[i]);
+        out << "\",\"has_original\":" << (function->orig != nullptr);
+        return out.str();
+    }
     static std::string queue_snapshot() {
         auto* q = Game_window::get_instance()->get_tqueue();
         std::ostringstream out;
@@ -178,6 +192,9 @@ struct CliDriver {
             if (auto* wait = dynamic_cast<Wait_gump*>(g))
                 o << ",\"hours\":" << wait->duration() << ",\"current_minutes\":" << wait->start_time()
                   << ",\"result_minutes\":" << wait->end_time() << ",\"result_text\":" << cli_quote(wait->result_time());
+            if (auto* slider = dynamic_cast<Slider_gump*>(g))
+                o << ",\"value\":" << slider->get_val() << ",\"minimum\":" << slider->minimum()
+                  << ",\"maximum\":" << slider->maximum() << ",\"increment\":" << slider->increment();
             o << '}';
 		}
 		o << "],\"nearby\":[";
@@ -274,7 +291,7 @@ namespace {
             min = max = 4;
         } else if (op == "ready_inventory") {
             min = max = 2;
-        } else if (op == "test_light_item" || op == "test_remove_fuel_receiver" || op == "test_stall" || op == "test_equipment" || op == "test_stale_event_metadata" || op == "test_legacy_clock" || op == "test_time_rate" || op == "test_temporary_effect" || op == "native_wait" || op == "inspect_inventory" || op == "interact_inventory") {
+        } else if (op == "test_light_item" || op == "test_remove_fuel_receiver" || op == "test_stall" || op == "test_equipment" || op == "test_stale_event_metadata" || op == "test_legacy_clock" || op == "test_time_rate" || op == "test_temporary_effect" || op == "native_wait" || op == "inspect_inventory" || op == "interact_inventory" || op == "inspect_usecode") {
             min = max = 1;
         } else if (op == "key" || op == "move" || op == "interact" || op == "click") {
 			min = max = 2;
@@ -407,6 +424,8 @@ int cli_poll(bool input, void*) {
             SDL_PushEvent(&event);
             event.type = SDL_EVENT_KEY_UP; event.key.down = false; SDL_PushEvent(&event);
             cli_reply(id, true, "\"category\":\"gameplay\",\"status\":\"dispatched\"");
+        } else if (op == "inspect_usecode") {
+            cli_reply(id, true, CliDriver::inspect_usecode(x));
         } else if (op == "state" || op == "ui_state") {
 			cli_reply(id, true, CliDriver::state(input));
 		} else if (op == "exit") {

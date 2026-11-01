@@ -25,6 +25,7 @@
 
 #include "ucinternal.h"
 #include "game_time_compat.h"
+#include "quiz.h"
 #include <sstream>
 
 #include "Audio.h"
@@ -1768,6 +1769,10 @@ void Usecode_internal::read_usecode() {
         read_usecode(support, true);
         native_light_adapter = find_function(GAME_BG ? 0x905 : 0x950);
     }
+	// Built-in defaults precede player patches: mods retain override authority.
+	if (GAME_BG || (GAME_SI && !GAME_SIB)) {
+		load_builtin_quiz(*this, GAME_BG);
+	}
 	// Get custom usecode functions.
 	if (is_system_path_defined("<PATCH>") && U7exists(PATCH_USECODE)) {
 		auto pFile = U7open_in(PATCH_USECODE);

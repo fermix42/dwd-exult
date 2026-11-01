@@ -923,19 +923,19 @@ int Uc_array_expression::gen_values(Basic_block* out) {
 	return actual;
 }
 
-inline bool Uc_call_expression::is_struct() const {
+bool Uc_call_expression::is_struct() const {
 	return sym && sym->get_struct() != nullptr;
 }
 
-inline Uc_struct_symbol* Uc_call_expression::get_struct() const {
+Uc_struct_symbol* Uc_call_expression::get_struct() const {
 	return sym ? sym->get_struct() : nullptr;
 }
 
-inline bool Uc_call_expression::is_class() const {
+bool Uc_call_expression::is_class() const {
 	return sym && sym->get_cls() != nullptr;
 }
 
-inline Uc_class* Uc_call_expression::get_cls() const {
+Uc_class* Uc_call_expression::get_cls() const {
 	return sym ? sym->get_cls() : nullptr;
 }
 

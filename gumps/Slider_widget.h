@@ -69,6 +69,9 @@ private:
 	std::unique_ptr<Gump_button> left, right;
 
 public:
+	int minimum() const { return min_val; }
+	int maximum() const { return max_val; }
+	int increment() const { return step_val; }
 	int getselection() const override {    // Get last value set.
 		return val;
 	}

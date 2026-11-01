@@ -882,6 +882,26 @@ for /f "tokens=* delims=" %%u in ('git ls-remote --get-url') do echo #define GIT
   <ItemGroup>
     <ResourceCompile Include="..\..\win32\exultico.rc" />
   </ItemGroup>
+  <PropertyGroup>
+    <QuizBuildDir>$(IntDir)quiz\</QuizBuildDir>
+    <QuizPython Condition="'$(QuizPython)'==''">python</QuizPython>
+  </PropertyGroup>
+  <ItemGroup>
+    <QuizCompilerInput Include="..\..\tools\compiler\*.cc;..\..\tools\compiler\*.h;..\..\tools\compiler\*.yy;..\..\tools\compiler\*.ll;..\..\headers\*.h;..\..\usecode\ucsymtbl.*;..\..\usecode\*intrinsics.h;..\..\usecode\opcodes.h;..\..\tools\build_quiz_ucc.ps1" />
+    <ClCompile Include="..\..\usecode\quiz.cc">
+      <AdditionalIncludeDirectories>$(QuizBuildDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClInclude Include="..\..\usecode\quiz.h" />
+    <None Include="..\..\data\quiz_bg.uc;..\..\data\quiz_si.uc;..\..\tools\compile_quiz.py;..\..\tools\build_quiz_ucc.ps1" />
+  </ItemGroup>
+  <Target Name="BuildQuizUcc" BeforeTargets="CompileQuizResources" Inputs="@(QuizCompilerInput)" Outputs="$(QuizBuildDir)ucc.exe">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\..\tools\build_quiz_ucc.ps1&quot; -OutputDirectory &quot;$(QuizBuildDir).&quot; -VsInstallPath &quot;$(VSInstallDir).&quot;" />
+  </Target>
+  <Target Name="CompileQuizResources" BeforeTargets="ClCompile" DependsOnTargets="BuildQuizUcc"
+          Inputs="..\..\data\quiz_bg.uc;..\..\data\quiz_si.uc;..\..\tools\compile_quiz.py;$(QuizBuildDir)ucc.exe"
+          Outputs="$(QuizBuildDir)quiz_compat.h">
+    <Exec Command="$(QuizPython) &quot;$(MSBuildProjectDirectory)\..\..\tools\compile_quiz.py&quot; --ucc &quot;$(QuizBuildDir)ucc.exe&quot; --output &quot;$(QuizBuildDir)quiz_compat.h&quot;" />
+  </Target>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>
