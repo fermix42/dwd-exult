@@ -491,3 +491,121 @@ The necessary retry will identify its own immutable SHA. No gameplay/audio/mod o
 installer-policy changes are involved. Existing 53/39/7 evidence remains scoped to
 78d1537; new exact-build artifact checks follow. Normalize two report heading
 encodings in this documentation correction; no player payload is affected.
+
+
+### Verified hosted candidate and matching retry artifacts
+
+Successful run: [DWD candidate review](https://github.com/fermix42/dwd-exult/actions/runs/41362896916), source
+`41a83ac4f2f4f73c080655f29d7946f7944deacb`, default branch `codex/dwd-release-preparation`.
+Both Windows build and public attestation jobs: **PASS**. This is one successful
+candidate generation after the recorded first attempt's packaging-path failure;
+no unrelated rerun, tag, GitHub Release/prerelease or announcement was made.
+Standard public windows-2022/ubuntu runners only; no paid/signing services enabled.
+
+Matching local clean retry: ordinary rebuild, source/package/startup/hash audit,
+seven real HTTPS installer assertions and Defender no-threat scan PASS. The CI-only
+correction leaves the already-tested installer policy, engine/audio/mod sources
+unchanged; retain the 53/39/7 clean-candidate evidence rather than repeat it solely
+for CI path/logging/documentation changes. All reports now use valid UTF-8.
+
+Downloaded hosted artifact checks:
+
+| Check | Result |
+| --- | --- |
+| All eight SHA256SUMS entries and source ZIP CRC/member hashes | PASS |
+| DWD 1.0.0-rc.1, upstream 1.13.1git / 97984e9e0cbb4ccacaab0249da9c51b533818f74, exact clean build SHA | PASS |
+| Hosted ordinary executable packaged --version | PASS |
+| Actual installer inventory, 58 app files; no three mod archives/installable payloads | PASS |
+| Actual embedded catalog compared byte-for-byte with local production catalog | PASS, six independent pinned HTTPS packages |
+| Actual hosted installer: fresh no mods, live three mods, rerun, old-engine replacement, deselection, repair acknowledgement/backups/config/save preservation | 23 PASS with canonical Windows game paths |
+| Hosted ZIP ordinary paths/relocation, mod save isolation, nonwritable roots, archive traversal | 39 PASS |
+| Original BG/SI asset files AND directories before/after native and portable tests | PASS, unchanged |
+| Dependency imports and notices/source completeness | PASS; nine packaged runtime DLLs, Windows APIs/MSVC runtime remain system prerequisites |
+| Hosted Windows Defender custom scan | PASS, no threats found |
+| Four downloaded files verified against the published attestation with gh attestation verify | PASS, exact SHA/workflow/run and github-hosted certificate identity checked |
+
+The executable/DLL hashes and runtime SPDX/ABI metadata differ from local builds,
+as expected for independent builds. All three compiled engine FLX resources match.
+Payload inventories, original/DWD documentation, source manifests, dependency
+versions/licenses/upstream source hashes and approved download catalog match.
+Nuked OPL3 LICENSE differs only in Git-checkout CRLF/LF text line endings; its full
+license text is unchanged. Byte-identical archive/binary reproducibility is not claimed.
+No obsolete Roland profiles, gameplay/audio or mod edits were introduced; those
+sources are identical to the accepted predecessor. This is not fresh listening or
+clean player-OS/runtime-prerequisite certification.
+
+The corresponding-source ZIP contains intact current upstream source, including
+`docs/usecode.dis` and `content/islefaq/patch/equip.dat`. Historical `docs/usedis.zip`
+remains reachable in the public Git history but is absent from the current source
+ZIP. The source/mod distinction is deliberate and owner-approved, not a universal
+absence-of-game-content or legal-rights claim.
+
+#### Separate pre-existing command-line path limitation
+
+Initial hosted-native preservation check using `/BGDIR=C:/...` and `/SIDIR=C:/...`:
+**FAIL** for byte/timestamp preservation of configuration. Optional actions were
+PRESERVE, zero downloads were scheduled and mods/saves were retained. The path
+helper returns backslashes; the installer compares literal path spellings and
+rewrites config, losing comments/formatting. Reproduced with the actual previously
+accepted `efa7b679fa73f34bd129e4df1a6ebbf71ea97e24` installer in disposable folders,
+so this is not introduced by download-only packaging or hosted compilation.
+Per the owner's unrelated-failure scope boundary it is reported, not implemented
+away here. Canonical Windows paths (as used by the browse wizard and existing
+idempotence facilities), or omission of unchanged path options, preserve config.
+The subsequent actual hosted native run using canonical paths passed 23 assertions.
+Do not claim forward-slash alias/config-preservation coverage as PASS or silently
+discard this failed case. Full command-line path-alias preservation remains a known
+limitation for owner review before an unqualified release claim.
+
+#### Hosted artifacts and provenance
+
+Candidate Actions artifact:
+`dwd-candidate-41a83ac4f2f4f73c080655f29d7946f7944deacb` (ID 13106221647,
+87,402,720 bytes; outer digest
+`sha256:734de530984393aeb2ed85a0ae50c10831f98fb0bdceff26bf4373d5e823c2e5`).
+Diagnostics ID 13105899809 includes native msbuild.log and the Defender report.
+Retention is seven days, currently expiring November 8, 2026 (23:43 UTC); these
+are review artifacts, not permanent public release assets.
+
+| Hosted file | SHA-256 |
+| --- | --- |
+| `dependency-sources.json` | `664121fa222e4458ea4dd709c780849e0b7c43135c289f362a19716f05b2655e` |
+| `DWD-Exult-1.0.0-rc.1-Setup.exe` | `561a1bd2ea4bebdb0fd1710dd6533f1e14fa0f13305d68bde813d1b1eb7d1fa9` |
+| `DWD-Exult-1.0.0-rc.1-Source.zip` | `860e747db1ed343a4ed1cb282b673aa9641bfb4ad3de16c5866d3c696646f584` |
+| `DWD-Exult-1.0.0-rc.1-Windows-x64.zip` | `5c9716f2fab539df70bd85f59b725f682aabbbff96e622b3b9dce2198c45fce1` |
+| `optional-downloads.json` | `1e59a4029e79048f6fce0ee33df6571f3f42053cec296745183d0e81d0b9a828` |
+| `payload-manifest.json` | `b094a46353a9e5c0d3c36bf21f68677a5d61b420bc625a1caffe195a70eddbbf` |
+| `release-notes.txt` | `b0d5b2d282c75de8999dcc19c1f7671385ea84b211963e79404c1c3bdc2011e1` |
+| `validation.json` | `b748776df7326740b248ba7472d7640c87eefff209055ce69a518157ec42d734` |
+
+
+Raw ordinary `Exult.exe` SHA-256:
+`1807aa8816a81ae9d6ec4412782443becdd45305a450fb2d05ce9fbe9073ac9e`.
+[Verified public provenance](https://github.com/fermix42/dwd-exult/attestations/62439805)
+binds installer, portable/source ZIPs and this executable to the exact build SHA,
+manual workflow and [run attempt](https://github.com/fermix42/dwd-exult/actions/runs/41362896916/attempts/1). Free GitHub/Sigstore
+attestations are not Windows Authenticode signatures; binaries remain unsigned.
+
+Local evidence: `../test-output/dwd-download-delivery/hosted-candidate`,
+`hosted-native-canonical` (23 PASS), `hosted-portable` (39 PASS), `hosted-smoke`,
+`hosted-native` (retained failed path-alias case), `legacy-path-alias/result.json`,
+`hosted-comparison.json`, `verified-provenance.json`, `attestation-*.json`,
+`hosted-imports.txt`, actual installer/catalog extraction and full run/diagnostic
+logs. The exact SHA remains immutable after later documentation-only updates.
+
+### Remaining readiness and human classifications
+
+Prior accepted installation, BG/Keyring and SI/SI Fixes save/load, isolated saves,
+Enhanced OPL3/OPL2 effects and idempotent upgrades retain their original HUMAN PASS
+scope. New downloader interactive owner acceptance: **HUMAN NOT TESTED**, required
+before binary publication. Fresh simplified audio-selector/MT32EMU listening:
+**NOT TESTED** (existing recommendation, no broad repeat cycle). Clean player
+Windows OS/runtime prerequisites remain NOT TESTED. The pre-existing explicit CLI
+path-alias/config rewrite limitation is recorded above for owner review.
+
+Source, hosted build, hashes, provenance and affected canonical-path packaging
+checks are ready for owner prerelease review. Do not publish yet: new downloader
+interactive acceptance and separate exact tag/asset/Release authorization remain.
+No final tag, Release/prerelease, unrelated merge, force push, commercial signing or
+billable resource was created. Subsequent report commits are documentation-only;
+artifact provenance remains 41a83ac4f2f4f73c080655f29d7946f7944deacb, not the newer branch tip.

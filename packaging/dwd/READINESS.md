@@ -1,141 +1,113 @@
-# Current candidate readiness  --  November 1, 2026
+# DWD 1.0.0-rc.1 candidate readiness -- November 1, 2026
 
-The owner has resolved the prior inherited-content audit hold: retain upstream
-source/history without deletion or rewriting. The earlier report below is historical
-and its stop instruction is superseded by this explicit owner decision. Publication
-of audited source, nondestructive default-branch selection and one exact-SHA hosted
-candidate run are authorized; tags, Releases and binary announcements are not.
+**Hosted candidate verified; awaiting owner downloader acceptance and separate
+binary-publication approval.** No GitHub Release/prerelease or tag was created.
+A pre-existing command-line path-alias limitation remains explicitly recorded.
 
-Upstream provenance: `docs/usecode.dis` was added by `d55f5ac46`; historical
-`docs/usedis.zip` by `0cefe13a8` and removed from the tree by `dd815f983`;
-`content/islefaq/patch/equip.dat` by `a30022f59`. These predate DWD. The owner accepts
-retaining them with original notices and history, without claiming that upstream
-publication proves every redistribution right. The source ZIP retains current
-upstream source, including equip.dat and usecode.dis. Historical usedis.zip stays
-reachable in Git, not in the current source tree. Independent publication-risk
-checks remain required before push.
+| Identity/result | Verified value |
+| --- | --- |
+| Public repository | https://github.com/fermix42/dwd-exult |
+| Default branch | `codex/dwd-release-preparation` |
+| Immutable successful build SHA | `41a83ac4f2f4f73c080655f29d7946f7944deacb` |
+| Incorporated upstream | Exult 1.13.1git, `97984e9e0cbb4ccacaab0249da9c51b533818f74` |
+| Hosted run | [DWD candidate review](https://github.com/fermix42/dwd-exult/actions/runs/41362896916): build PASS, attest PASS |
+| Preserved unrelated placeholder main | `6fbda9a8d887c5ddfced99412502a36ae48665e2` |
+| Later reporting changes | Documentation-only; do not substitute the newer branch tip for the artifact build SHA |
 
-Binary distribution now obtains Keyring 0.11.25, SI Fixes 0.15.15 and SourceForge
-Island only on demand from the official Exult HTTPS snapshot links. Their archives
-and installable payloads are excluded from installer/portable ZIP; source trees stay
-intact. SHA-256 pins are locally computed from verified official downloads, not
-publisher-published checksums. Compiled mod bytes match the accepted source-built
-packages; only CR/CRLF text line endings differ. Existing packages remain preserved
-by default. Download/integrity failure skips that package and permits main setup;
-extraction/manifest failure removes partial content and restores prior backups.
+The first [attempt](https://github.com/fermix42/dwd-exult/actions/runs/41361780387)
+compiled successfully at 78d1537, then stopped before packaging because downstream
+steps used the parent of the actual nested vcpkg triplet directory. The successful
+retry fixes that CI path and diagnostic capture only. There was one successful
+candidate generation and one failed preparatory attempt, not two accepted builds.
+The source was pushed normally without tags/force or unrelated history merges.
+Inherited scheduled/release/external-upload workflows are .disabled on the prepared
+default; the manual candidate workflow uses free standard public runners and
+attestation permissions, with no release job or contents-write build permission.
 
-Hosted build and final local checks: pending below. New downloader interactive human
-acceptance: NOT TESTED. Fresh simplified audio-selector/MT32EMU listening: NOT TESTED.
-Prior owner gameplay/save/audio and idempotent-upgrade acceptance remain valid for
-the builds actually tested. No gameplay/audio change is made by this packaging work.
+## Distribution and upstream retention
 
-## Historical pre-decision audit report (superseded disposition)
+Keyring 0.11.25, SI Fixes 0.15.15 and SourceForge Island are independently selected,
+official HTTPS on-demand downloads. Their archives and installable payloads are
+absent from installer and portable ZIP. New selections require connectivity;
+existing/customized/damaged/unverified content is preserved by default independently
+of engine updates. Explicit repair requires overwrite acknowledgement and backups;
+isolated saves remain protected. Download/checksum failure skips that package and
+allows the engine to complete; extraction/manifest failure removes partial files
+and restores prior backups. Native loopback failure tests and live URLs passed.
 
-# DWD 1.0.0-rc.1 hosted-build readiness — November 1, 2026
+The official Exult [download page](https://exult.info/download.html) links
+[Keyring.zip](https://exult.sourceforge.io/snapshots/Keyring.zip),
+[Sifixes.zip](https://exult.sourceforge.io/snapshots/Sifixes.zip) and
+[SFisland.zip](https://exult.sourceforge.io/snapshots/SFisland.zip).
+Pins and per-file manifests are committed in downloads.json/content-manifests;
+SHA-256 provenance is locally computed from verified official downloads, not a
+publisher-issued checksum. Compiled mod bytes match accepted original packages;
+only text line endings differ. No mod gameplay code or frozen engine/audio changed.
 
-**BLOCKED before push: original game content remains in the proposed source and
-its reachable history.** The owner explicitly requested stopping on a material
-publication risk. No push or repository setting change was performed in this pass.
-This report is evidence; AGENTS.md remains the authoritative governance.
+The owner expressly accepted retaining inherited `docs/usecode.dis` (added by
+`d55f5ac46`), historical `docs/usedis.zip` (added `0cefe13a8`, tree removal
+`dd815f983`) and `content/islefaq/patch/equip.dat` (added `a30022f59`). These predate
+DWD and retain upstream notices, attribution and history. This decision supersedes
+the prior audit hold without asserting that upstream publication establishes every
+redistribution right. Current usecode.dis/equip.dat remain in corresponding-source;
+usedis.zip remains only in reachable Git history. Binary-package absence must not
+be misrepresented as absence from every source/history distribution.
 
-## Repository and exact source identities
+The whole-history inventory/434 asset and ROM comparisons were retained; final
+Gitleaks findings were four independently verified package-member SHA-256 values,
+not credentials. No new independent material source-publication risk was found.
+No history was rewritten, inherited source stripped, or ROM introduced by DWD.
 
-- Public repository: https://github.com/fermix42/dwd-exult. The owner already renamed
-  it and made it public; neither operation was repeated.
-- Local prepared branch: `codex/dwd-release-preparation`. Prior accepted functional
-  source/installer: `efa7b679fa73f34bd129e4df1a6ebbf71ea97e24`.
-- Current public default, verified read-only through GitHub: `main`, commit
-  `6fbda9a8d887c5ddfced99412502a36ae48665e2`. It was not changed. The proposed
-  nondestructive default remains the prepared branch, keeping placeholder main intact.
-- Exact pushed DWD source SHA: **NONE in this task**. The local final documentation
-  commit is reported by the handoff and generated local audit summary; resolve it
-  with `git rev-parse HEAD`. It is not a hosted build source or artifact revision.
-- Hosted run URL/result: **NOT RUN — blocked by pre-push audit**, not a runner failure.
-- Hosted artifact names/checksums/provenance/attestations: **NOT GENERATED**.
-  Prior local candidate artifacts and checksums retain their accepted source SHA;
-  they were not rebuilt or relabeled in this documentation/audit pass.
+## Verification
 
-## Completed acceptance retained
+Clean local delivery implementation: 53 instrumented native installer assertions,
+39 portable/path assertions and seven real official HTTPS installer assertions
+passed. The retry's matching local package passed source/hash/startup audit, live
+seven-assertion check and Defender. The CI-only correction did not change policy,
+engine, mod or audio code.
 
-The owner's latest explicit sign-off is **HUMAN PASS** for installed optional-content
-recognition, existing audio/mod detection, no repeated downloads of unchanged
-packages, explicit reinstall override, and the in-place installation experience.
-This supplements accepted Windows installation, BG play through Orb acquisition,
-BG/Keyring and SI/SI Fixes save/load, independent saves, and Enhanced OPL3 music
-with synthesized OPL2 effects. Do not request those completed tests again absent a
-relevant implementation change.
+Downloaded successful hosted artifacts: eight checksum entries, 58 payload files,
+exact metadata/source manifest, nine runtime DLLs and corresponding sources/notices,
+installer catalog, absent mod payloads and packaged startup PASS. Actual hosted
+installer passed 23 canonical-path assertions; hosted ZIP passed 39 path assertions.
+Original game files AND directories, isolated saves and customized files stayed
+intact. All compiled FLX resources match local output; compiler/runtime hashes,
+SPDX/ABI metadata and one license's checkout line endings differ as documented.
+Byte-identical binary reproducibility is not claimed. Hosted Defender: no threats.
 
-The owner's observed absence of downloads is not a claim of instrumented zero
-external network requests. Existing **46 targeted automated PASS** (36 upgrade/
-repair/offline plus 10 live-download assertions), older 287 PASS, audio regressions,
-73 audio-startup/configuration assertions, and read-only-copy evidence remain scoped
-historical evidence. No gameplay/audio/installer suite was rerun merely for hosting.
+[Provenance verified for all four files](https://github.com/fermix42/dwd-exult/attestations/62439805)
+bind the installer, portable/source ZIPs and Exult.exe to 41a83ac4f2f4f73c080655f29d7946f7944deacb and https://github.com/fermix42/dwd-exult/actions/runs/41362896916.
+These are free provenance attestations, not Authenticode signing. Candidate and
+diagnostic Actions artifacts expire after seven days (November 8, 2026); no
+permanent release assets have been published. Full inventories, all hashes and
+scoped evidence are in [VALIDATION.md](VALIDATION.md).
 
-## Whole-history publication audit findings
+| Hosted package | SHA-256 |
+| --- | --- |
+| `DWD-Exult-1.0.0-rc.1-Setup.exe` | `561a1bd2ea4bebdb0fd1710dd6533f1e14fa0f13305d68bde813d1b1eb7d1fa9` |
+| `DWD-Exult-1.0.0-rc.1-Source.zip` | `860e747db1ed343a4ed1cb282b673aa9641bfb4ad3de16c5866d3c696646f584` |
+| `DWD-Exult-1.0.0-rc.1-Windows-x64.zip` | `5c9716f2fab539df70bd85f59b725f682aabbbff96e622b3b9dce2198c45fce1` |
 
-All 10,372 reachable commits / 84,329 objects / 47,959 blobs were inventoried.
-Gitleaks 8.30.1 produced three findings, all checked and identified as manifest
-SHA-256 values, not credentials. Whole-file Git hashes were compared with 434
-original static asset/ROM files. The following inherited content blocks clearance:
 
-| Finding | Evidence | Why the requested push is stopped |
-| --- | --- | --- |
-| `docs/usecode.dis` at HEAD | 6,382,277-byte Git blob; added by `d55f5ac46`; all 17,098 checked long dialogue chunks match original BG Usecode | Original game code/dialogue is present; its redistribution permission was not established in reviewed notices. |
-| `content/islefaq/patch/equip.dat` at HEAD | 961 bytes, identical to original BG EQUIP.DAT; added by `a30022f59` | Original game asset match conflicts with the requested no-proprietary-assets clearance; the original mod was not altered. |
-| Historical `docs/usedis.zip` | Reachable deleted ZIP contains older 6,374,693-byte disassembly and the same matching dialogue; added `0cefe13a8`, tree removal `dd815f983` | Removing only current files would not clean the history being pushed. |
+## Outstanding items and recommendation
 
-The findings predate DWD release preparation. Upstream public availability and the
-preserved engine GPL notices do not establish the missing permission needed to
-clear these particular game-content findings against the owner's requirement.
-No ROM matches or confirmed secrets were found by the performed checks. Because
-material findings already block publication, this report does not claim exhaustive
-license/source clearance or a completed review of every remaining historical asset.
+- **HUMAN NOT TESTED:** interactive acceptance of the new downloader before binary
+  publication. Existing owner gameplay/save/audio/idempotent acceptance stays valid
+  for the builds actually tested; automated live downloads are not HUMAN PASS.
+- **NOT TESTED:** fresh simplified audio-selector/MT32EMU listening (recommended)
+  and clean player Windows OS/runtime prerequisite testing. No unrelated campaign,
+  platform or full audio acceptance cycle was repeated.
+- **Known pre-existing limitation:** explicit forward-slash `/BGDIR=C:/...` and
+  `/SIDIR=C:/...` aliases cause a config rewrite and loss of formatting/comments;
+  no mod reinstall or save loss. This FAIL reproduces in accepted efa7b679, outside
+  the downloader change. Use canonical Windows backslashes or omit unchanged path
+  options. It is reported under the owner's unrelated-failure boundary, not hidden
+  or silently fixed. Full path-alias preservation is not certified.
+- **Authorization still required:** exact tag, assets and GitHub Release/prerelease
+  publication. No tag/release/announcement or paid service is authorized here.
 
-Do not delete a licensed third-party package component, rewrite history, push a
-sanitized tip while retaining offending ancestors, or discard placeholder history
-silently. Resolve the identified rights/provenance, or obtain approval for a concrete
-reviewed publication-history strategy that satisfies the source/history boundaries.
-No source/mod cleanup or remote remediation was attempted here.
-
-## Remaining items classified
-
-| Class | Item | Status |
-| --- | --- | --- |
-| BLOCKER | Source/history publication clearance | Resolve the three linked original-game-content findings before any prepared-branch push/default change/build dispatch. |
-| BLOCKER for accepting hosted assets | Hosted build and artifact verification | NOT RUN because of the audit stop. No compile, package, hosted checksum or attestation success is claimed. |
-| BLOCKER for binary publication | Separate exact-tag/asset/release approval | Still not granted. No final tag, GitHub Release/prerelease or binary announcement is allowed. |
-| RECOMMENDED | Fresh simplified audio-selector/MT32EMU listening and visual review | NOT TESTED beyond existing scoped acceptance. No broad repeat of completed listening/gameplay tests. |
-| RECOMMENDED | Clean player Windows OS/runtime prerequisite | NOT TESTED; no usable disposable environment was established previously. A VS runner would not be a clean player OS test. |
-| OPTIONAL | Other platforms/backends/languages, full campaign and cross-version migration | No expanded certification or new migration claims; retain previously documented limits. |
-
-## Authorized continuation after resolving the audit hold
-
-The current owner authorization covers pushing the complete audited release branch
-without force, preserving placeholder main, establishing the appropriate default,
-registering/running one immutable-SHA candidate workflow, downloading/inspecting
-Actions artifacts and updating/pushing validation documentation. Do not ask again
-merely for those already-authorized operations. The material audit hold must first
-be resolved; no current action is implied by this plan.
-
-Use the prepared manual workflow and standard public GitHub-hosted runners only.
-[GitHub's billing policy](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
-confirms standard public runner compute is free; no paid runner, cache service,
-commercial signing or billable-resource change is authorized. Public attestations
-are [available on free plans](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations).
-The currently prepared attestation job is tag-gated: before an approved untagged
-candidate run, adjust that workflow condition to allow public immutable-commit
-attestations rather than create an unauthorized release tag. No workflow edit or
-run was necessary while the publication audit is blocked.
-
-After a cleared push, verify the GitHub branch SHA and default, dispatch against
-that exact expected_revision with tag blank, retain run/image/tool logs and match
-all hosted checksum entries, version/upstream/source metadata, payload/docs/licenses,
-audio identifiers/aliases, portable roots, upgrade manifests, optional mod packaging
-and corresponding dependency sources. Compare local/hosted inventories and record
-compiler/timestamp differences rather than promise byte-identical builds. Reuse
-accepted human evidence. Record the actual run URL, artifact names/digests and
-verified attestations here before recommending a prerelease. No hosted result
-can be inferred from the prior local package or workflow lint.
-
-Full scoped evidence and provenance are in VALIDATION.md. Local audit evidence is
-under `../test-output/dwd-hosted/`; no additional governance system was created.
+Recommend owner review of this verified hosted candidate for the first prerelease,
+with downloader interactive acceptance completed and the existing CLI path-alias
+limitation reviewed before any unqualified config-preservation claim. Do not publish
+binaries yet. The final report update is documentation-only and does not regenerate
+or relabel these immutable 41a83ac4f2f4f73c080655f29d7946f7944deacb artifacts.

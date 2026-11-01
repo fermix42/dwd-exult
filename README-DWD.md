@@ -88,6 +88,12 @@ For unattended use, supply `/REINSTALLCONTENT=<comma-separated-package-ids>` plu
 `audio-original`, `keyring-upstream`, `sifixes-upstream`, `sfisland-original`,
 `ultima6-original`, and `glimmerscape-original`. Without acknowledgement an existing
 package replacement is refused. Linked content requires manual management.
+For unattended `/BGDIR` and `/SIDIR`, use canonical Windows backslash paths
+(e.g. `C:\GOG Games\Ultima 7`), or omit those options when the saved paths are
+unchanged. An existing command-line limitation rewrites configuration when
+forward-slash aliases are supplied, losing formatting/comments. This also affects
+the prior accepted installer; mod files and isolated saves remain preserved.
+
 
 Verified per-file manifests and independent receipts under `content-state/` record
 the offered original packages. Legacy exact matches can be recognized without

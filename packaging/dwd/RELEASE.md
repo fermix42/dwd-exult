@@ -171,3 +171,14 @@ API check or guarantee; verify account usage first. Standard public runners are
 free; larger runners and private overages are not authorized. Public/tagged runs
 can generate free attestations after independent approval; the first private,
 untagged run cannot. Do not enable billable resources to make a run succeed.
+
+
+Hosted upstream MSBuild currently places its installed triplet at
+`msvcstuff/vs2019/vcpkg_installed/x64-windows/x64-windows`: the first x64-windows
+is the integration's install root, the second is vcpkg's triplet. Collection and
+runtime/notices packaging must read that exact path; local AGENTS.md overrides use
+a different explicitly supplied installation. See VALIDATION.md for the first
+failed path lookup and the successful corrected run. Native MSBuild output is
+preserved separately from PowerShell transcripts. Hosted candidate identity,
+attestations and pending human checks are in READINESS.md; later documentation-only
+updates never change the source revision embedded in existing artifacts.
