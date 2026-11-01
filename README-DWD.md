@@ -27,7 +27,8 @@ The locally prepared Windows x64 ZIP is for review. Extract its entire `DWD Exul
 folder to a writable location and keep `Exult.exe`, DLLs and `data` together. This
 Windows build keeps `exult.cfg` beside the executable; its configuration and save
 paths must remain separate from an official installation. Configure paths to your
-own BG/SI game installations using Exult's normal setup. No game files, soundfonts
+own BG/SI game installations using Exult's normal setup. The MSVC v14 x64 runtime (including MSVCP140 and VCRUNTIME140 DLLs) is required;
+this review ZIP does not install it. No game files, soundfonts
 or Roland ROMs are supplied. Do not extract over an official Exult installation.
 
 The prepared Inno installer uses its own DWD application, registry, Start Menu and

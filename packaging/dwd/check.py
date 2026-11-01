@@ -16,6 +16,7 @@ with tempfile.TemporaryDirectory() as directory:
     text = (p / 'dwd_installer.iss').read_text()
     for required in ['AppId=DWDExult', 'PrivilegesRequired=lowest', 'Software\\DWDExult', 'Uninstall DWD Exult', 'README-DWD.md', 'ChangeLog-DWD.txt', 'InstallMod(', 'SetExultGamePaths(']:
         assert required in text, required
+    assert "RegKeyExists(HKEY_LOCAL_MACHINE, 'Software\\Wine')" in text
     assert 'Software\\Exult' not in text
     assert 'DefaultDirName={code:GetExultInstDir|{autopf}\\Exult}' not in text
 assert [p.name for p in (r.ROOT / '.github/workflows').glob('*.yml')] == ['dwd-candidate.yml']

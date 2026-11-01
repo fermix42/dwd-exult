@@ -77,6 +77,7 @@ def installer(stage, meta):
     extra = '\n'.join('Source: Exult\\' + name + '; DestDir: {app}; Flags: ignoreversion; Components: GPL'
                       for name in ['README-DWD.md', 'ChangeLog-DWD.txt', 'release-metadata.json', 'INSTALL.txt'])
     extra += '\nSource: Exult\\licenses\\*; DestDir: {app}\\licenses; Flags: ignoreversion recursesubdirs; Components: GPL\n'
+    text = text.replace("HKEY_CURRENT_USER, 'Software\\Wine'", "HKEY_LOCAL_MACHINE, 'Software\\Wine'")
     text = text.replace('[Icons]', extra + '\n[Icons]')
     text = text.replace('[Run]', 'Name: {group}\\DWD Readme; Filename: {app}\\README-DWD.md; Components: Icons\n\n[Run]')
     write(stage / 'dwd_installer.iss', text)
@@ -122,7 +123,7 @@ def package(args):
     copy(ROOT / 'audio/midi_drivers/nuked-opl3/README.exult', payload / 'licenses/NukedOPL3-NOTICE.txt')
     # Collect dependency notices from the matching vcpkg installation, never player files.
     share = Path(args.dependency_share).resolve()
-    for name in ['sdl3', 'fluidsynth', 'libpng', 'libmt32emu', 'libogg', 'libvorbis', 'zlib']:
+    for name in ['sdl3', 'fluidsynth', 'libpng', 'libmt32emu', 'libogg', 'libvorbis', 'zlib', 'dirent', 'gcem']:
         copy(share / name / 'copyright', payload / 'licenses' / (name + '-copyright.txt'))
     write(payload / 'release-metadata.json', json.dumps(meta, indent=2) + '\n')
     write(payload / 'Exult Source Code.url', '[InternetShortcut]\nURL=' + meta['source_url'] + '/tree/' + meta['dwd_revision'] + '\n')
