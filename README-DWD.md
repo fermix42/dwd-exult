@@ -210,11 +210,27 @@ English BG/Forge of Virtue, SI/Silver Seed, Keyring 0.11.25 and SI Fixes 0.15.15
 the focused scenarios recorded in the linked feature documents. This is not a full
 campaign certification. Mods can override embedded quiz/light helpers; unknown Orb
 layouts are guarded. Other languages, mod versions and custom game rules require
-testing. Optional source-built Keyring, SI Fixes and SourceForge Island ZIPs are embedded
-in the installer and supplied with the portable ZIP under `mods`. Install them
-through the installer or ordinary `Exult.exe --installmod <ZIP>` workflow using
-your intended configuration. They are not automatically enabled by the portable
-ZIP. Current Keyring and SI Fixes remain original editions. Future DWD editions
+testing. The installer offers Marzo's Keyring 0.11.25, SI Fixes 0.15.15 and
+SourceForge Island as downloads from the official Exult distribution. New optional
+installations need internet access. Neither the installer nor the portable binary
+ZIP contains these three archives or their installable payloads. Portable users
+can obtain the official ZIPs from https://exult.info/download.html and use the
+ordinary `Exult.exe --installmod <ZIP>` workflow with their intended configuration.
+Upstream mod source trees remain in Git and the corresponding-source ZIP; that
+source distribution includes `content/islefaq/patch/equip.dat`.
+
+Downloads are pinned to locally computed SHA-256 hashes of verified official HTTPS
+archives, not publisher-issued checksum claims. A changed remote archive is rejected.
+Existing, customized, damaged or version-unknown content is preserved during engine
+upgrades, including when its checkbox remains selected or is deselected. Repair
+requires the separate explicit replacement acknowledgement; backups are retained
+and isolated saves are never deleted. Without new optional content, installation
+works offline. A failed optional download is reported and skipped while the engine
+installation continues. An extraction/manifest failure removes partial content and
+restores the prior package backup when present; no success receipt is written.
+Retry a missing package by selecting it, or request explicit repair for an existing
+package. All mod authorship, credits and original editions are preserved.
+Current Keyring and SI Fixes remain original editions. Future DWD editions
 require independent acceptance, versions, identities and save compatibility review.
 The planned Virtue Stone case is not implemented. No mod is merged into original game data by this release preparation.
 

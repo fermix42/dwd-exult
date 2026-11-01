@@ -210,6 +210,7 @@ def package(args):
         optional_policy_module().catalog(stage, args.installer_tools)
     installer(stage, meta)
     write(output / 'release-notes.txt', release_notes(meta))
+    copy(ROOT / 'packaging/dwd/downloads.json', output / 'optional-downloads.json')
     # A source archive includes only committed files, never ignored runtime data.
     subprocess.run(['git', '-C', str(ROOT), 'archive', '--format=zip', '--prefix=dwd-exult/',
                     '-o', str(output / ('DWD-Exult-' + meta['version'] + '-Source.zip')), 'HEAD'], check=True)
@@ -234,17 +235,6 @@ def package(args):
     if args.installer_tools:
         tools = Path(args.installer_tools)
         copy(tools / 'exconfig.exe', stage / 'exconfig.exe')
-        for name in ['bgkeyring.zip', 'islefaq.zip', 'sifixes.zip']:
-            copy(tools / name, payload / 'mods' / name)
-            copy(tools / name, output / name)
-        mod_info = json.loads((tools / 'mod-build-manifest.json').read_text())
-        for mod, info in mod_info.items():
-            source_tree = git('rev-parse', info['revision'] + ':content/' + mod)
-            assert source_tree == git('rev-parse', 'HEAD:content/' + mod), 'Mod sources differ from release: ' + mod
-            assert sha(tools / (mod + '.zip')) == info['sha256'], 'Mod archive hash mismatch'
-            info['source_tree'] = source_tree
-            info['equivalent_release_revision'] = meta['dwd_revision']
-        write(output / 'mod-build-manifest.json', json.dumps(mod_info, indent=2)+'\n')
     portable = output / ('DWD-Exult-' + meta['version'] + '-Windows-x64.zip')
     with zipfile.ZipFile(portable, 'w', zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(payload.rglob('*')):
@@ -261,7 +251,7 @@ def package(args):
         for path in stage.glob('*-Setup.exe'):
             copy(path, output / path.name)
     else:
-        blockers.append('Installer NOT BUILT: supply source-built exconfig.exe, three source-built optional mod ZIPs and Inno Setup 6 (--installer-tools, --iscc).')
+        blockers.append('Installer NOT BUILT: supply source-built exconfig.exe, Inno Setup 6 (--installer-tools, --iscc).')
     files = {str(p.relative_to(payload)): sha(p) for p in sorted(payload.rglob('*')) if p.is_file()}
     write(output / 'payload-manifest.json', json.dumps(files, indent=2) + '\n')
     write(output / 'validation.json', json.dumps({'metadata': meta, 'payload_files': len(files),

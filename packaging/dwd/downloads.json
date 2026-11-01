@@ -13,5 +13,38 @@
     "url": "https://exult.info/snapshots/Glimmerscape_SI_mod_by_Donfrow.zip",
     "sha256": "cb3c51db0620996fef3a43a1edf5fa1837c41f011864c0f8a01f3544661dbe00",
     "bytes": 13187091
+  },
+  "bgkeyring.zip": {
+    "url": "https://exult.sourceforge.io/snapshots/Keyring.zip",
+    "resolved_url": "https://exult.sourceforge.io/snapshots/Keyring.zip",
+    "sha256": "134fb3605932e4c76861bba3a1d5d39c78b616bc5fe9f80d0e0714c9602ff5fe",
+    "bytes": 777962,
+    "checksum_provenance": "Locally computed SHA-256 from live official HTTPS archive; no official SHA-256 publisher checksum located",
+    "official_listing": "https://exult.info/download.html",
+    "official_archive_name": "Keyring.zip",
+    "text_line_endings_only": true,
+    "verified_date": "2026-11-01"
+  },
+  "sifixes.zip": {
+    "url": "https://exult.sourceforge.io/snapshots/Sifixes.zip",
+    "resolved_url": "https://exult.sourceforge.io/snapshots/Sifixes.zip",
+    "sha256": "ff4dd633572b10911965291c3379d8af05086c661077150880fcf284e9d39ebb",
+    "bytes": 344937,
+    "checksum_provenance": "Locally computed SHA-256 from live official HTTPS archive; no official SHA-256 publisher checksum located",
+    "official_listing": "https://exult.info/download.html",
+    "official_archive_name": "Sifixes.zip",
+    "text_line_endings_only": true,
+    "verified_date": "2026-11-01"
+  },
+  "islefaq.zip": {
+    "url": "https://exult.sourceforge.io/snapshots/SFisland.zip",
+    "resolved_url": "https://exult.sourceforge.io/snapshots/SFisland.zip",
+    "sha256": "f9d982eccdc03aabb6964ef7f5c48cbf6fcc5a2788bde1c2a0a21937a59ba22c",
+    "bytes": 289182,
+    "checksum_provenance": "Locally computed SHA-256 from live official HTTPS archive; no official SHA-256 publisher checksum located",
+    "official_listing": "https://exult.info/download.html",
+    "official_archive_name": "SFisland.zip",
+    "text_line_endings_only": true,
+    "verified_date": "2026-11-01"
   }
 }

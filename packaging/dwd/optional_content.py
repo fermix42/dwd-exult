@@ -2,7 +2,6 @@
 import hashlib
 import json
 from pathlib import Path
-import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -14,13 +13,9 @@ def catalog(stage, tools):
     lines = ['[packages]', 'count=' + str(len(packages))]
     for index, p in enumerate(packages):
         archive = p.get('package', p.get('download'))
-        if p.get('package'):
-            with zipfile.ZipFile(Path(tools) / archive) as z:
-                files = {i.filename: hashlib.sha256(z.read(i)).hexdigest() for i in z.infolist() if not i.is_dir()}
-        else:
-            manifest = json.loads((ROOT / 'packaging/dwd/content-manifests' / (archive + '.json')).read_text())
-            assert manifest['archive_sha256'] == downloads[archive]['sha256'], 'Refresh the verified archive manifest: ' + archive
-            files = manifest['files']
+        manifest = json.loads((ROOT / 'packaging/dwd/content-manifests' / (archive + '.json')).read_text())
+        assert manifest['archive_sha256'] == downloads[archive]['sha256'], 'Refresh the verified archive manifest: ' + archive
+        files = manifest['files']
         assert files and len(files) == len({n.casefold() for n in files})
         for n in files:
             assert not Path(n).is_absolute() and '..' not in Path(n).parts and ':' not in n
@@ -64,5 +59,7 @@ end;
     text = text.replace("MsgBox('Error Installing mod '+modname+sNewLine+sNewLine+ stderr,mbError, MB_OK)", "RaiseException('Error installing mod '+modname+': '+stderr)")
     text = text.replace("MsgBox('Error Installing '+name+sNewLine+sNewLine+ stderr,mbError, MB_OK)", "RaiseException('Error installing '+name+': '+stderr)")
     text = text.replace('    if Success then begin', "    if not Success then RaiseException('Could not execute optional-content installer');\n    if Success then begin")
+    import re
+    text = re.sub(r'^Source: Exult\\mods\\(?:bgkeyring|sifixes|islefaq)\.zip;[^\n]*\n', '', text, flags=re.M)
     text = text.replace('[Files]', '[Files]\nSource: dwd-content.ini; Flags: dontcopy')
     return text

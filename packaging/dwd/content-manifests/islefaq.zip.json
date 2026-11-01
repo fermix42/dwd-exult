@@ -1,0 +1,25 @@
+{
+  "archive_sha256": "f9d982eccdc03aabb6964ef7f5c48cbf6fcc5a2788bde1c2a0a21937a59ba22c",
+  "files": {
+    "islefaq/License.txt": "da0eca0fb517ac939d167924c9d4b3f8750a6b7191932ef2cb145acfa624ac7e",
+    "islefaq/patch/equip.dat": "e04a9d200c80a27b04c843e82faec63e105b64e4c98b39b11100bd1689e6ce8f",
+    "islefaq/patch/faces.vga": "cfe6333f500e054d3d09220bde04741eb0375220a20c00bc8b990ee9e0628f84",
+    "islefaq/patch/initgame.dat": "5db07dea153d94f806e8d5dd3f0b0506eaf99478509dde1cdfe4e4d7702a76ba",
+    "islefaq/patch/minimaps.vga": "84d20c404735b8ad42b32fa19a41ceafd81273bc67b98a0f23e6e881f5798255",
+    "islefaq/patch/occlude.dat": "387e7030ed468186ffd0953ed77fe65ed9b0382d0c551dfd019134e1229af230",
+    "islefaq/patch/ready.dat": "ff6f9e5bae94e299903f0c63dbbc53dfee45ef47c1690adc6603a88cdb885c97",
+    "islefaq/patch/shapes.vga": "e80537357eb371923d6630e520cce0a3ded873bca08d8404edb0fcd602bf9763",
+    "islefaq/patch/shpdims.dat": "bd4c8ad58bc997a17d92af4f8c2eefa79fdf251726cc63e1624c9ddaf786e2e1",
+    "islefaq/patch/textmsg.txt": "9d51f6f7571c94bf5d17b01243ba9ddeac57e78172a3d8d9f19c5d19317dceaa",
+    "islefaq/patch/tfa.dat": "1a4475546adba56f57d2980fe27b2a8a3ad860f86396de20934d69e898831316",
+    "islefaq/patch/u7ifix0d": "3808f74b2bc8131513f1eeda9fe66071cdd2ce2ce7d510dc59dcdd6d9e61e71e",
+    "islefaq/patch/u7ifix64": "637fd6a426266ffbebe48e0576f93a5e8fd22cca4521bc6812049049e9230bc4",
+    "islefaq/patch/u7ifix65": "6c580e72f507d7e6d5a0b9d2ad4c77bdddaea55d98bea5b5305e53f17bd8a895",
+    "islefaq/patch/u7map": "9c3b7cf1bfd4d9951df7a035288b3910207e784513c3da2d661715ae9c65bd41",
+    "islefaq/patch/usecode": "b667b045fa221bb429d1079720437563b28e12b9b5bcdf85c45484a206b1b59d",
+    "islefaq/patch/wgtvol.dat": "938d0ff212f53e19e269aa136c3d507d4c89746e588d9dff97fe1202c7beea4c",
+    "islefaq/patch/wihh.dat": "e277c853fa06392146135a11ff22037d3682f3f89ef275d83ab5935896a73057",
+    "islefaq/Readme.txt": "832728374bfcafd4a32c882b5d6419b1ecf5abca999b9f4e7d9eb2bfd158a122",
+    "islefaq.cfg": "77cd3264a4cba06b6557f1fed62e2711b808504fbeaa7abb470b103abf162801"
+  }
+}

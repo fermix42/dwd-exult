@@ -18,6 +18,7 @@ with tempfile.TemporaryDirectory() as directory:
         assert required in text, required
     assert "RegKeyExists(HKEY_LOCAL_MACHINE, 'Software\\Wine')" in text
     assert 'Software\\Exult' not in text
+    assert 'Source: Exult\\mods\\' not in text
     assert 'DefaultDirName={code:GetExultInstDir|{sd}\\Games\\DWDExult}' in text
     assert 'DisableDirPage=no' in text
     assert "sBGmods := ExpandConstant('{app}\\mods\\blackgate')" in text

@@ -14,6 +14,8 @@ def main(a):
         (work/'results.json').write_text(json.dumps(checks,indent=2)+'\n');assert ok,label
     setup=next(candidate.glob('*-Setup.exe'))
     components='Exult,Docs,GPL,Paths,downloads/audio,downloads/mods/keyring,downloads/mods/sfisland,downloads/mods/sifixes,downloads/3rdpartymods/ultima6,downloads/3rdpartymods/glimmerscape'.replace('/','\\')
+    if a.mods_only:
+        components='Exult,Docs,GPL,Paths,downloads/mods/keyring,downloads/mods/sfisland,downloads/mods/sifixes'.replace('/','\\')
     args=[str(setup),'/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOICONS','/DIR='+str(app),'/TYPE=custom','/COMPONENTS='+components,'/BGDIR='+str(a.bg.resolve()),'/SIDIR='+str(a.si.resolve()),'/LOG='+str(work/'setup.log')]
     try:
         r=subprocess.run(args,cwd=work,capture_output=True,creationflags=subprocess.CREATE_NO_WINDOW,timeout=600)
@@ -21,13 +23,14 @@ def main(a):
         check('real Inno optional download installation exit',r.returncode==0)
         log=(work/'setup.log').read_text(encoding='utf-8-sig',errors='replace')
         for archive,game in [('exult_audio.zip',None),('Ultima6-1.3.zip','blackgate'),('Glimmerscape_SI_mod_by_Donfrow.zip','serpentisle'),('bgkeyring.zip','blackgate'),('sifixes.zip','serpentisle'),('islefaq.zip','blackgate')]:
-            source=(a.downloads/archive) if game is None or archive in ['Ultima6-1.3.zip','Glimmerscape_SI_mod_by_Donfrow.zip'] else candidate/archive
+            if a.mods_only and archive not in ['bgkeyring.zip','sifixes.zip','islefaq.zip']: continue
+            source=a.downloads/archive
             root=app/'data' if game is None else app/'mods'/game
             files={p.relative_to(root).as_posix().casefold():p for p in root.rglob('*') if p.is_file()}
             with zipfile.ZipFile(source) as z:
                 infos=[i for i in z.infolist() if not i.is_dir()]
                 check('optional content installed '+archive,bool(infos) and all(i.filename.casefold() in files and files[i.filename.casefold()].read_bytes()==z.read(i) for i in infos))
-        check('audio download succeeded through wizard','Successfully downloaded file' in log and 'exult_audio.zip' in log)
+        check('selected live downloads succeeded through wizard','Successfully downloaded file' in log and 'DWD OPTIONAL SKIPPED' not in log and 'DWD OPTIONAL INSTALL FAILED' not in log)
     finally:
         if (app/'unins000.exe').exists():
             r=subprocess.run([str(app/'unins000.exe'),'/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/LOG='+str(work/'uninstall.log')],capture_output=True,creationflags=subprocess.CREATE_NO_WINDOW,timeout=60)
@@ -41,4 +44,5 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for name in ['candidate','work','downloads','bg','si']:p.add_argument('--'+name,type=Path,required=True)
     p.add_argument('--protect',type=Path,action='append',default=[])
+    p.add_argument('--mods-only',action='store_true',help='Retest only the three newly download-delivered mods')
     main(p.parse_args())

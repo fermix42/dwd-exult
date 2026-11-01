@@ -40,8 +40,8 @@ def audit(a):
                      'data/exult_bg.flx', 'data/exult_si.flx', 'licenses/sdl3-copyright.txt']:
             assert 'DWDExult/' + name in z.namelist(), 'Missing resource/document: ' + name
         assert json.loads(z.read('DWDExult/release-metadata.json')) == meta
-        for name in ['bgkeyring.zip', 'sifixes.zip', 'islefaq.zip']:
-            assert z.read('DWDExult/mods/' + name) == (root / name).read_bytes()
+        assert not any(n.startswith('DWDExult/mods/') for n in z.namelist()), 'Optional mod payload bundled'
+        assert not any(n.rsplit('/',1)[-1].lower() in ['bgkeyring.zip','sifixes.zip','islefaq.zip'] for n in z.namelist())
         if a.smoke_root:
             assert not a.smoke_root.exists(), 'Use a fresh smoke directory'
             z.extractall(a.smoke_root)

@@ -389,3 +389,43 @@ Evidence (local, not committed): `../test-output/dwd-hosted/public-source-audit.
 `gitleaks-history.json`, `gitleaks-history.log` and `gitleaks-tool.json`.
 Hosted build/artifacts/checksums/attestations remain **NOT RUN**, not failed build
 results. See READINESS.md for the blocked handoff and remaining classified gates.
+
+
+## November 1, 2026 — approved download-only packaging follow-up
+
+The owner's subsequent explicit retention decision supersedes the prior audit hold
+for inherited usecode.dis, historical usedis.zip and SourceForge Island equip.dat.
+Source/history remain intact with upstream attribution; no legal permission claim
+is inferred. See READINESS.md for provenance and distribution distinctions.
+
+Official Exult download.html links verified live: Keyring.zip, Sifixes.zip and
+SFisland.zip under https://exult.sourceforge.io/snapshots/. Locally computed hashes
+and per-file manifests are committed in downloads.json/content-manifests. All
+compiled mod files match the previously accepted source-built packages; only text
+line endings differ. No engine, audio or mod gameplay source changed. Prior 46
+assertions and owner acceptance are retained as historical evidence. New native
+installer tests and exact-source artifact verification will be recorded here.
+New download UI: HUMAN NOT TESTED; simplified audio fresh listening: NOT TESTED.
+
+Prototype validation before the clean candidate commit: **52 PASS** native Inno
+assertions using pinned official bytes served by instrumented loopback HTTP, and
+**7 PASS** against the real production HTTPS URLs through the native installer.
+This includes no selection, each mod separately, multiple selections, same-version
+and synthetic-newer-engine preservation, selected new content, explicit repair,
+503/checksum failures, deliberately incomplete test-only ZIP extraction rollback,
+fresh partial cleanup, offline upgrade/update failure, config/saves and original
+asset file/directory snapshots. The test-only incomplete archive uses a separate
+fixture pin to reach extraction; production pins reject it before extraction.
+Prototype engine metadata is the prior accepted build; final exact-source artifact
+checks follow separately. The sandbox-only attempt could not create HKCU installer
+registration; rerun outside that restriction passed. No gameplay/audio rerun.
+Evidence: ../test-output/dwd-download-delivery/prototype-tests-2 and prototype-live.
+
+Whole-history Gitleaks rerun: three findings, all the previously reviewed SHA-256
+manifest values, no confirmed secret. DWD delta from incorporated upstream through
+e9b9991: 390 blob versions, no suspicious private/config/save paths or blobs over
+1 MB. Original whole-history inventory and 434 asset/ROM comparisons remain
+applicable; the owner-retained upstream findings are recorded, not erased. No new
+independent material publication risk was found in this review. Inherited scheduled/
+release workflows remain disabled; the only active workflow is manual, pinned,
+read-only for build, with public attestation-only write permissions and no Releases.

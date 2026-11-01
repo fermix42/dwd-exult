@@ -8,6 +8,13 @@ Based on: Exult 1.13.1git (upstream development version)
 Upstream revision: 97984e9e0cbb4ccacaab0249da9c51b533818f74
 DWD revision: Recorded per build in release-metadata.json and Exult version output.
 
+    - Changed original Keyring, SI Fixes and SourceForge Island delivery to
+      pinned official HTTPS downloads only when selected and needed. Removed their
+      archives/payloads from Windows binary packages; retained upstream source.
+      Unchanged/customized installed packages remain preserved on engine upgrades.
+      Optional download/integrity failures are reported without blocking the engine;
+      extraction failures remove partial files and restore prior package backups.
+
     - Added borderless windows, left/right window placement and aspect-correct
       sizing, with an independent Windows configuration identity.
     - Added original synthesized AdLib and Roland effects, including intro audio.

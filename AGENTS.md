@@ -221,3 +221,20 @@ preservation, new selections, unknown/custom/damaged content, explicit repair an
 backups, offline operation, original assets and config/save preservation. Reuse
 release facilities and retain exact-source artifacts/checksums; no unrelated
 retesting or changes to protected engine/audio/mod functionality.
+
+### Approved optional-download distribution and upstream retention
+
+Keyring, SI Fixes and SourceForge Island must remain official HTTPS on-demand
+installer downloads, never embedded archives or installable payloads in the Windows
+installer or portable binary ZIP. Keep independently pinned archive/file manifests,
+record checksum provenance, preserve selection/idempotent upgrades, and require
+explicit acknowledged repair for existing content. Failed downloads must preserve
+existing packages; failed extraction must remove partial content/restore backups
+without deleting isolated saves. Engine-only installs must remain offline.
+Keep corresponding mod source and upstream history, licenses and attribution.
+The owner explicitly accepted retention of upstream `docs/usecode.dis`, historical
+`docs/usedis.zip` and `content/islefaq/patch/equip.dat` (November 1, 2026). Record
+provenance in READINESS.md; do not delete these files/rewrite history or repeat the
+same publication hold. This acceptance does not establish every redistribution
+right. Continue auditing independently substantiated secrets/private/proprietary
+material newly introduced by DWD and stop on a new material publication risk.

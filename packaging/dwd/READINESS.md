@@ -1,3 +1,36 @@
+# Current candidate readiness — November 1, 2026
+
+The owner has resolved the prior inherited-content audit hold: retain upstream
+source/history without deletion or rewriting. The earlier report below is historical
+and its stop instruction is superseded by this explicit owner decision. Publication
+of audited source, nondestructive default-branch selection and one exact-SHA hosted
+candidate run are authorized; tags, Releases and binary announcements are not.
+
+Upstream provenance: `docs/usecode.dis` was added by `d55f5ac46`; historical
+`docs/usedis.zip` by `0cefe13a8` and removed from the tree by `dd815f983`;
+`content/islefaq/patch/equip.dat` by `a30022f59`. These predate DWD. The owner accepts
+retaining them with original notices and history, without claiming that upstream
+publication proves every redistribution right. The source ZIP retains current
+upstream source, including equip.dat and usecode.dis. Historical usedis.zip stays
+reachable in Git, not in the current source tree. Independent publication-risk
+checks remain required before push.
+
+Binary distribution now obtains Keyring 0.11.25, SI Fixes 0.15.15 and SourceForge
+Island only on demand from the official Exult HTTPS snapshot links. Their archives
+and installable payloads are excluded from installer/portable ZIP; source trees stay
+intact. SHA-256 pins are locally computed from verified official downloads, not
+publisher-published checksums. Compiled mod bytes match the accepted source-built
+packages; only CR/CRLF text line endings differ. Existing packages remain preserved
+by default. Download/integrity failure skips that package and permits main setup;
+extraction/manifest failure removes partial content and restores prior backups.
+
+Hosted build and final local checks: pending below. New downloader interactive human
+acceptance: NOT TESTED. Fresh simplified audio-selector/MT32EMU listening: NOT TESTED.
+Prior owner gameplay/save/audio and idempotent-upgrade acceptance remain valid for
+the builds actually tested. No gameplay/audio change is made by this packaging work.
+
+## Historical pre-decision audit report (superseded disposition)
+
 # DWD 1.0.0-rc.1 hosted-build readiness â€” November 1, 2026
 
 **BLOCKED before push: original game content remains in the proposed source and

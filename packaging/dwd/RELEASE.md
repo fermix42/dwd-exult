@@ -46,10 +46,15 @@ python packaging/dwd/release.py package --binary-dir ../build-exult-fork/bin --r
 ```
 
 For installer compilation additionally supply `--installer-tools <directory>` with
-source-built `exconfig.exe`, `bgkeyring.zip`, `islefaq.zip`, `sifixes.zip`, and
-`--iscc <Inno Setup 6 ISCC.exe>` and `--dependency-sources <verified source cache>`. These mod snapshots must match recorded source;
-do not take arbitrary player-installed packages. The generated installer input
-retains upstream mod/download/path code. Do not claim a ZIP is an installer.
+source-built `exconfig.exe` only, plus `--iscc <Inno Setup 6 ISCC.exe>` and
+`--dependency-sources <verified source cache>`. Do not stage mod ZIPs or player
+content. `downloads.json` pins official optional archives, while committed
+`content-manifests` supply independent installed-content identities. The three
+original upstream mods are downloaded only when selected and needed; they are
+absent from both Windows binary packages. Their source remains in Git and the
+corresponding-source ZIP. The generated installer retains the upstream game-path
+wizard and native extraction with DWD preservation/repair and failure handling.
+Do not claim a ZIP is an installer.
 
 ## Comparison with upstream packaging
 

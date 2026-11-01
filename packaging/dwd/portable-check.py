@@ -35,7 +35,8 @@ def main(a):
     version=run([app/'Exult.exe','--version'],'version-from-unrelated-cwd')
     check('ordinary executable version',"Dark Wraith Dragon's Exult" in version)
     for game,archive in [('bg','bgkeyring.zip'),('si','sifixes.zip'),('bg','islefaq.zip')]:
-        run([app/'Exult.exe','--'+game,'--installmod',(a.candidate/archive).resolve()],'portable-install-'+archive)
+        assert not (a.candidate/archive).exists(), 'Optional archives must stay outside binary packages'
+        run([app/'Exult.exe','--'+game,'--installmod',(a.downloads/archive).resolve()],'portable-install-'+archive)
     run([app/'Exult.exe','--bg','--verify-files'],'normal-path-initialization')
     for game,mod in [('blackgate','Keyring'),('serpentisle','sifixes')]:
         check('separate mod save directory '+mod,(app/'saves'/game/'mods'/mod).is_dir())

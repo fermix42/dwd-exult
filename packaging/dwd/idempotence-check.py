@@ -12,6 +12,7 @@ import subprocess
 import threading
 import time
 import winreg
+import zipfile
 from pathlib import Path
 
 spec = importlib.util.spec_from_file_location('installer_common', Path(__file__).with_name('installer-check.py'))
@@ -33,13 +34,24 @@ def main(a):
         (work / 'results.json').write_text(json.dumps(checks, indent=2) + '\n')
         assert ok, name
     requests = []
+    responses = {}
     downloads = a.downloads.resolve()
     class Handler(http.server.BaseHTTPRequestHandler):
         def do_GET(self):
             name = self.path.removeprefix('/')
             requests.append(name)
+            if responses.get(name) == 'unavailable':
+                self.send_error(503)
+                return
+            if isinstance(responses.get(name), bytes):
+                data = responses[name]
+                self.send_response(200)
+                self.send_header('Content-Length', str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+                return
             path = downloads / name
-            if name not in ['exult_audio.zip', 'Ultima6-1.3.zip', 'Glimmerscape_SI_mod_by_Donfrow.zip']:
+            if name not in ['exult_audio.zip', 'Ultima6-1.3.zip', 'Glimmerscape_SI_mod_by_Donfrow.zip', 'bgkeyring.zip', 'sifixes.zip', 'islefaq.zip']:
                 self.send_error(404)
                 return
             self.send_response(200)
@@ -101,9 +113,21 @@ def main(a):
         result['cfg'] = (app / 'exult.cfg').read_bytes().hex()
         return result
     try:
+        base_components = ['Exult', 'Docs', 'GPL', 'Paths']
+        mainapp = app
+        for index in [None, 1, 2, 3]:
+            app = work / ('fresh-' + str(index))
+            requests.clear()
+            run('fresh-selection-' + str(index), base_components + ([] if index is None else [ini[str(index)]['component']]))
+            check('fresh independent selection ' + str(index), requests == ([] if index is None else [ini[str(index)]['archive']]) and (index is None or verified(index)))
+            subprocess.run([str(app / 'unins000.exe'), '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'], creationflags=subprocess.CREATE_NO_WINDOW, check=True, timeout=60)
+            end = time.monotonic() + 15
+            while (app / 'Exult.exe').exists() and time.monotonic() < end: time.sleep(.1)
+        app = mainapp
+        requests.clear()
         run('fresh', initial_components)
         check('fresh selected audio and Keyring exact bytes', verified(0) and verified(1))
-        check('fresh only selected remote content requested', requests == ['exult_audio.zip'])
+        check('fresh only selected remote content requested', requests == ['exult_audio.zip', 'bgkeyring.zip'])
         cfg = app / 'exult.cfg'
         cfg.write_bytes(cfg.read_bytes() + b'\n<!-- preserve owner formatting -->\n')
         keycfg = app / 'mods/blackgate/Keyring.cfg'
@@ -119,7 +143,7 @@ def main(a):
         check('same-version no HTTP requests or native reinstalls', requests == [] and 'network requests scheduled: 0' in log and 'InstallMod:' not in log and 'InstallData:' not in log)
         check('same-version preserves customized content config saves receipts', state() == saved)
         run('new-selection')
-        check('new selection downloads only new remote packages', sorted(requests) == ['Glimmerscape_SI_mod_by_Donfrow.zip', 'Ultima6-1.3.zip'])
+        check('new selection downloads only new remote packages', sorted(requests) == sorted(['Glimmerscape_SI_mod_by_Donfrow.zip', 'Ultima6-1.3.zip', 'sifixes.zip', 'islefaq.zip']))
         check('newly selected optional packages verified', all(verified(i) for i in range(2, count)))
         check('new selection preserves existing customization/config/save', keycfg.read_bytes().endswith(b'<!-- customized mod -->\n') and cfg.read_bytes().hex() == saved['cfg'] and save.read_bytes() == b'player save sentinel')
         # A receiptless independently managed third-party installation is never guessed away.
@@ -138,11 +162,40 @@ def main(a):
         run('repair-not-approved', extra=['/REINSTALLCONTENT=keyring-upstream'], success=False)
         check('unapproved explicit replacement changed no content/config/saves', state() == saved and not requests)
         log = run('approved-repair', extra=['/REINSTALLCONTENT=keyring-upstream,audio-original', '/ALLOWCONTENTREPLACEMENT=yes'])
-        check('explicit repair only audio network request', requests == ['exult_audio.zip'])
+        check('explicit repair only requested audio and Keyring transfers', requests == ['exult_audio.zip', 'bgkeyring.zip'])
         check('explicit repair restores exact package files', verified(0) and verified(1))
         backups = list((app / 'content-backups').rglob('*'))
         check('custom mod and audio backups retained', any(p.is_file() and p.name == 'custom-file.txt' and p.read_bytes() == b'custom content' for p in backups) and any(p.is_file() and p.name == damaged.name and p.read_bytes().endswith(b'customized audio') for p in backups))
         check('repair leaves separate saves and config unchanged', save.read_bytes() == b'player save sentinel' and cfg.read_bytes().hex() == saved['cfg'])
+        saved = state()
+        for label, response in [('network-failure', 'unavailable'), ('checksum-failure', b'tampered archive')]:
+            requests.clear()
+            responses['bgkeyring.zip'] = response
+            log = run(label, extra=['/REINSTALLCONTENT=keyring-upstream', '/ALLOWCONTENTREPLACEMENT=yes'])
+            check(label + ' preserves content and completes main install', state() == saved and requests == ['bgkeyring.zip'] and 'DWD OPTIONAL SKIPPED keyring-upstream' in log and (app / 'Exult.exe').is_file())
+        responses.clear()
+        # Test-only SHA approves a deliberately incomplete ZIP so extraction/manifest
+        # failure, rather than the production SHA check, exercises real rollback.
+        partial = work / 'partial.zip'
+        with zipfile.ZipFile(downloads / 'bgkeyring.zip') as source, zipfile.ZipFile(partial, 'w') as target:
+            for info in source.infolist():
+                if info.is_dir() or info.filename.lower().endswith(('keyring.cfg', 'initgame.dat')):
+                    target.writestr(info, source.read(info))
+        production_sha = ini['1']['sha256']
+        ini['1']['sha256'] = common.digest(partial)
+        with (stage / 'dwd-content.ini').open('w', encoding='utf-16') as stream: ini.write(stream)
+        malformed = compile_fixture('partial-archive')
+        responses['bgkeyring.zip'] = partial.read_bytes()
+        log = run('extraction-rollback', extra=['/REINSTALLCONTENT=keyring-upstream', '/ALLOWCONTENTREPLACEMENT=yes'], program=malformed)
+        check('partial extraction restores prior custom package receipt config saves', {k:v for k,v in state().items() if k != 'mtimes'} == {k:v for k,v in saved.items() if k != 'mtimes'} and 'DWD OPTIONAL INSTALL FAILED keyring-upstream' in log)
+        app = work / 'fresh-partial'
+        log = run('fresh-partial-rejected', components=base_components + [ini['1']['component']], program=malformed)
+        check('fresh partial removed without success receipt main install completes', not (app / 'mods/blackgate/Keyring').exists() and not (app / 'mods/blackgate/Keyring.cfg').exists() and not (app / 'content-state/keyring-upstream.ini').exists() and 'DWD OPTIONAL INSTALL FAILED keyring-upstream' in log)
+        subprocess.run([str(app / 'unins000.exe'), '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'], creationflags=subprocess.CREATE_NO_WINDOW, check=True, timeout=60)
+        time.sleep(2)
+        app = mainapp
+        responses.clear()
+        ini['1']['sha256'] = production_sha
         # Metadata-only future package fixture: update is offered, never inferred
         # from the engine version or installed by a leftover component checkbox.
         ini['1']['release'] = '2'
@@ -174,7 +227,7 @@ def main(a):
         run('approved-independent-update', extra=['/REINSTALLCONTENT=keyring-upstream', '/ALLOWCONTENTREPLACEMENT=yes'], program=future)
         receipt = configparser.ConfigParser()
         receipt.read(app / 'content-state/keyring-upstream.ini')
-        check('explicit independently versioned package update recorded', receipt['Package']['Release'] == '2' and receipt['Package']['Version'] == 'future-version-fixture' and verified(1))
+        check('offline explicit update failure preserves previous receipt and files', receipt['Package']['Release'] == '1' and state() == saved)
         check('independent update retains existing saved game', save.read_bytes() == b'player save sentinel')
 
     finally:

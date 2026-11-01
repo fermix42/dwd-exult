@@ -7,12 +7,12 @@
       "edition": "upstream",
       "game": "blackgate",
       "installed_id": "Keyring",
-      "package": "bgkeyring.zip",
       "source": "content/bgkeyring",
       "version_document": "content/bgkeyring/Readme.txt",
       "version": "0.11.25",
       "release": 1,
-      "component": "downloads/mods/keyring"
+      "component": "downloads/mods/keyring",
+      "download": "bgkeyring.zip"
     },
     {
       "id": "sifixes-upstream",
@@ -20,12 +20,12 @@
       "edition": "upstream",
       "game": "serpentisle",
       "installed_id": "sifixes",
-      "package": "sifixes.zip",
       "source": "content/sifixes",
       "version_document": "content/sifixes/Readme.txt",
       "version": "0.15.15",
       "release": 1,
-      "component": "downloads/mods/sifixes"
+      "component": "downloads/mods/sifixes",
+      "download": "sifixes.zip"
     },
     {
       "id": "sfisland-original",
@@ -33,11 +33,11 @@
       "edition": "third-party-original",
       "game": "blackgate",
       "installed_id": "islefaq",
-      "package": "islefaq.zip",
       "source": "content/islefaq",
       "version": "original-source",
       "release": 1,
-      "component": "downloads/mods/sfisland"
+      "component": "downloads/mods/sfisland",
+      "download": "islefaq.zip"
     },
     {
       "id": "ultima6-original",
