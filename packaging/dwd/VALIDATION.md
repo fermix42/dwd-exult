@@ -308,3 +308,84 @@ regressions remain historical evidence. Protected engine/audio/mod functionality
 and upstream installer source are untouched. Manual visual inspection of the new
 status/confirmation page is NOT TESTED; clean-player Windows/hosted execution/
 attestations remain as previously classified. No push, tag or publication.
+
+## Final owner upgrade acceptance and pre-push history audit
+
+Record date: November 1, 2026. Provenance: the owner's explicit request titled
+"DWD Exult — Final Human Acceptance and First GitHub-Hosted Build" in this chat,
+identifying accepted installer source `efa7b679fa73f34bd129e4df1a6ebbf71ea97e24`.
+Actual session timestamps or independent network capture were not supplied.
+
+| Owner observation | Result |
+| --- | --- |
+| Previously installed optional content detected correctly | HUMAN PASS |
+| Existing audio and mod packages recognized | HUMAN PASS |
+| Unchanged packages not downloaded again | HUMAN PASS |
+| Reinstallation required an explicit user override | HUMAN PASS |
+| In-place updated installer behaved as expected | HUMAN PASS |
+
+These supplement the completed installer, BG/Keyring, SI/SI Fixes, separate-save
+and Enhanced OPL3 plus OPL2-effects acceptance. They are not 46 new assertions or
+an instrumented claim of zero external network traffic. The existing final
+`../test-output/dwd-idempotence/candidate/upgrade-review.json` still records **36
+instrumented upgrade/repair/offline checks + 10 live-production-download checks =
+46 PASS**. Its zero-request fixture/server-closed observations remain separate
+from the owner's observed lack of downloads. No accepted functional test was rerun.
+Fresh listening/visual validation of the simplified audio selector remains NOT
+TESTED beyond the previously stated scope.
+
+The owner has already renamed/made public `https://github.com/fermix42/dwd-exult`
+and authorized branch push, a nondestructive default-branch change, one hosted
+candidate build, artifacts and free attestations. No rename/visibility operation
+was repeated. Read-only GitHub verification found the current default is `main`
+at `6fbda9a8d887c5ddfced99412502a36ae48665e2`. No remote mutation was performed
+because the required pre-push audit found the material risk below.
+
+### BLOCKER: original game content in the proposed public history
+
+The audit covered all **10,372 commits / 84,329 objects / 47,959 blobs** reachable
+from the accepted branch. An inventory of historical binary/archive paths and
+exact Git-blob hashes of 434 supplied original static assets/ROM files was reviewed.
+Gitleaks 8.30.1 scanned history (10,158 nonempty diff commits reported by the tool).
+Its three generic-key findings were verified as SHA-256 manifest values in the
+Glimmerscape content manifest, not credentials. The official scanner ZIP was
+verified against its published SHA-256 before execution. No detected ROM-file
+matches or confirmed secrets were found by these checks; this is not an exhaustive
+license/secret clearance of all remaining content.
+
+Material findings, all inherited from upstream rather than introduced by the DWD
+release-preparation changes:
+
+- `docs/usecode.dis` is present at HEAD and contains 6,382,277 Git-blob bytes of
+  annotated Black Gate Usecode disassembly. Commit `d55f5ac46` describes adding it.
+  All 17,098 checked dialogue chunks of at least 24 characters also occur verbatim
+  in the supplied original Black Gate Usecode. No separate redistribution grant
+  establishing permission for this game content was located in the reviewed notices.
+- `content/islefaq/patch/equip.dat` is a 961-byte exact match to original Black Gate
+  `EQUIP.DAT`. Commit `a30022f59` introduced this inherited SourceForge Island file.
+  Its redistribution permission under the owner's no-proprietary-assets requirement
+  remains unresolved; the approved original mod was not altered to remove it.
+- Deleted `docs/usedis.zip` remains reachable in history, blob
+  `6af59f9e606082a9844af91a5c9b41081f6444f9`. It contains a 6,374,693-byte earlier
+  `usecode.dis`, also with all 17,098 checked dialogue chunks matching original BG.
+  It was added at `0cefe13a8` and removed from the tree at `dd815f983`.
+
+The original GPL/COPYING, authorship and component notices remain intact and the
+prior corresponding-source/hash checks remain valid for their documented scope.
+Those facts do not resolve this specific original-game-content permission question.
+Prior artifact audits did not perform this full-history publication audit; their
+functional/hash PASS results must not be presented as clearance of this new risk.
+
+Per the owner's explicit stop-on-material-risk instruction, **no push, default-
+branch switch, workflow dispatch, attestation, tag or GitHub Release was performed**.
+Deleting only current files would leave their historical blobs reachable. No
+history rewrite, source deletion, mod alteration or workaround publication was
+attempted. Rights/provenance must be resolved, or a separately reviewed publication
+history strategy authorized, before continuing. Current local source/artifacts
+are not cleared for public distribution by this audit.
+
+Evidence (local, not committed): `../test-output/dwd-hosted/public-source-audit.json`,
+`history-blob-inventory.json`, `history-archive-review.json`, redacted
+`gitleaks-history.json`, `gitleaks-history.log` and `gitleaks-tool.json`.
+Hosted build/artifacts/checksums/attestations remain **NOT RUN**, not failed build
+results. See READINESS.md for the blocked handoff and remaining classified gates.

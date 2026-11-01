@@ -1,145 +1,108 @@
-# DWD 1.0.0-rc.1 release readiness — November 1, 2026
+# DWD 1.0.0-rc.1 hosted-build readiness — November 1, 2026
 
-Ready for the first **owner-approved hosted candidate build**, subject to dispatch
-registration and zero-cost preflight below. No known local product defect blocks
-that build. This report is evidence and a deployment plan; AGENTS.md remains the
-authoritative governance. Version remains 1.0.0-rc.1; no engine, gameplay, audio,
-portable storage or third-party mod implementation changed in this pass.
+**BLOCKED before push: original game content remains in the proposed source and
+its reachable history.** The owner explicitly requested stopping on a material
+publication risk. No push or repository setting change was performed in this pass.
+This report is evidence; AGENTS.md remains the authoritative governance.
 
-## Source and accepted candidate
+## Repository and exact source identities
 
-Branch: `codex/dwd-release-preparation`. Resolve the current readiness commit with
-`git rev-parse HEAD`; the final handoff and generated local readiness evidence
-record its full SHA. The previously built and human-accepted local candidate is
-exactly `7c07eab7906da69477678d656a3bb049b673d9ab`. These are different identities:
-this documentation/workflow follow-up does not relabel the accepted binaries or
-rewrite their corresponding source/checksums. A hosted build will identify the new
-dispatched commit and generate its own matching source ZIP and checksums.
+- Public repository: https://github.com/fermix42/dwd-exult. The owner already renamed
+  it and made it public; neither operation was repeated.
+- Local prepared branch: `codex/dwd-release-preparation`. Prior accepted functional
+  source/installer: `efa7b679fa73f34bd129e4df1a6ebbf71ea97e24`.
+- Current public default, verified read-only through GitHub: `main`, commit
+  `6fbda9a8d887c5ddfced99412502a36ae48665e2`. It was not changed. The proposed
+  nondestructive default remains the prepared branch, keeping placeholder main intact.
+- Exact pushed DWD source SHA: **NONE in this task**. The local final documentation
+  commit is reported by the handoff and generated local audit summary; resolve it
+  with `git rev-parse HEAD`. It is not a hosted build source or artifact revision.
+- Hosted run URL/result: **NOT RUN — blocked by pre-push audit**, not a runner failure.
+- Hosted artifact names/checksums/provenance/attestations: **NOT GENERATED**.
+  Prior local candidate artifacts and checksums retain their accepted source SHA;
+  they were not rebuilt or relabeled in this documentation/audit pass.
 
-Owner HUMAN PASS covers successful interactive Windows installation/operation, BG
-play through Orb acquisition, BG and Keyring save/load with separate saves, SI and
-SI Fixes save/load, and Enhanced OPL3 music with synthesized OPL2 effects sounding
-as expected with no audible problems reported. Provenance is the owner's explicit
-sign-off in this chat, recorded in VALIDATION.md; the exact session time was not
-supplied. These observations are completed and will not be requested again absent
-a relevant change. They do not certify all backends/features/platforms/campaigns.
+## Completed acceptance retained
 
-Prior accepted automated evidence remains **287 PASS**: 188 installer, 34 runtime,
-39 portable, 16 default/shortcut, 10 real-download assertions; zero failures,
-Defender no threats and passing source/dependency/payload/checksum audits. The
-completeness review covers validated game selection, independent HKCU/AppId and
-uninstall identity, ZIP relocation, isolated base/mod saves/config, all optional
-audio/mod installations, preserved user state on uninstall, and unchanged original
-game/official Exult trees. The full suite was not rerun in this pass.
+The owner's latest explicit sign-off is **HUMAN PASS** for installed optional-content
+recognition, existing audio/mod detection, no repeated downloads of unchanged
+packages, explicit reinstall override, and the in-place installation experience.
+This supplements accepted Windows installation, BG play through Orb acquisition,
+BG/Keyring and SI/SI Fixes save/load, independent saves, and Enhanced OPL3 music
+with synthesized OPL2 effects. Do not request those completed tests again absent a
+relevant implementation change.
 
-New verification: ACL-enforced disposable copies passed 19 fixture checks and 34
-focused runtime assertions across BG/SI and Keyring/SI Fixes. Write access was
-actually denied; hashes and directory inventories were unchanged. Owner source
-permissions were never modified. The new hosted artifact audit passed locally on
-the accepted packages (19 checksums, 61 payload files, source/dependency integrity,
-packaged --version startup). actionlint 1.7.12, workflow policy checks and Python/
-PowerShell/YAML parsing passed. Evidence: `../test-output/dwd-readiness/` relative to
-the repository root; historical packages remain in `../test-output/dwd-paths/final-accepted/`.
+The owner's observed absence of downloads is not a claim of instrumented zero
+external network requests. Existing **46 targeted automated PASS** (36 upgrade/
+repair/offline plus 10 live-download assertions), older 287 PASS, audio regressions,
+73 audio-startup/configuration assertions, and read-only-copy evidence remain scoped
+historical evidence. No gameplay/audio/installer suite was rerun merely for hosting.
 
-## Outstanding items and risk classification
+## Whole-history publication audit findings
 
-| Class | Item | Decision / remaining evidence |
+All 10,372 reachable commits / 84,329 objects / 47,959 blobs were inventoried.
+Gitleaks 8.30.1 produced three findings, all checked and identified as manifest
+SHA-256 values, not credentials. Whole-file Git hashes were compared with 434
+original static asset/ROM files. The following inherited content blocks clearance:
+
+| Finding | Evidence | Why the requested push is stopped |
 | --- | --- | --- |
-| BLOCKER before hosted dispatch | Owner approval, workflow registration, verified no-spend private usage | No remote operation is authorized yet. Confirm Actions access/policy and default-branch presence of this workflow. Verify account-specific free compute/storage headroom with paid usage blocked; quota is not known locally. |
-| BLOCKER before public distribution of hosted assets | First hosted build and inspection | Hosted toolchain, parser installation, vcpkg fetch/build, source downloads, compiler installation, upload/download and actual hosted artifacts are NOT TESTED. A failed build or mismatched source/payload must be resolved; no hosted PASS is claimed from lint. |
-| BLOCKER before public distribution | Exact source/assets and separate publication approval | Review hosted source ZIP, licenses, checksums and build identity; ensure the final source URL works after approved rename/visibility changes. Approve the actual tag/commit/assets and curated notes. Never publish a stale local checksum file with hosted binaries. |
-| RECOMMENDED | Clean player Windows OS and runtime prerequisite | NOT TESTED. No usable VM/Sandbox available: vmcompute stopped; Get-VM/WindowsSandbox absent; feature query requires elevation. No host feature was enabled. MSVC v14 x64 runtime remains documented prerequisite. Hosted VS image startup is not a clean-player-OS test. |
-| RECOMMENDED | Public free attestations | NOT TESTED. Prepared for an explicitly approved existing version tag at the exact public source revision. Verify with gh attestation verify after generation. No paid private-attestation plan is required or authorized. |
-| OPTIONAL | Detailed browse-click/shortcut appearance or full visible gameplay from every launch surface | Owner installer acceptance plus prior shell-verifier tests suffice for this candidate. Exact browse sequences and every graphical launch surface were not individually reported. No repeated owner acceptance is required. |
-| OPTIONAL | Broader campaign/backend/platform/language coverage and cross-version save migration | NOT TESTED beyond existing feature-specific evidence and scoped acceptance. No expanded support or migration claim; future modified DWD mod editions and Virtue Stone case remain outside this release. |
+| `docs/usecode.dis` at HEAD | 6,382,277-byte Git blob; added by `d55f5ac46`; all 17,098 checked long dialogue chunks match original BG Usecode | Original game code/dialogue is present; its redistribution permission was not established in reviewed notices. |
+| `content/islefaq/patch/equip.dat` at HEAD | 961 bytes, identical to original BG EQUIP.DAT; added by `a30022f59` | Original game asset match conflicts with the requested no-proprietary-assets clearance; the original mod was not altered. |
+| Historical `docs/usedis.zip` | Reachable deleted ZIP contains older 6,374,693-byte disassembly and the same matching dialogue; added `0cefe13a8`, tree removal `dd815f983` | Removing only current files would not clean the history being pushed. |
 
-There is no outstanding observed engine/package failure. The BLOCKER labels above
-describe deployment prerequisites, not invented additional human QA requirements.
-Unsigned Authenticode status is accepted zero-budget policy, not a blocker.
+The findings predate DWD release preparation. Upstream public availability and the
+preserved engine GPL notices do not establish the missing permission needed to
+clear these particular game-content findings against the owner's requirement.
+No ROM matches or confirmed secrets were found by the performed checks. Because
+material findings already block publication, this report does not claim exhaustive
+license/source clearance or a completed review of every remaining historical asset.
 
-## Hosted workflow audit
+Do not delete a licensed third-party package component, rewrite history, push a
+sanitized tip while retaining offending ancestors, or discard placeholder history
+silently. Resolve the identified rights/provenance, or obtain approval for a concrete
+reviewed publication-history strategy that satisfies the source/history boundaries.
+No source/mod cleanup or remote remediation was attempted here.
 
-The workflow is manual-only, with no release creation/attachment or contents-write
-job. Full approved `expected_revision` must equal both checked-out HEAD and
-GITHUB_SHA. `tag` may be blank; nonblank tags are verified against the DWD version
-and exact commit by release.py. Checkout credentials are not persisted. Build uses
-read-only contents permission; only public/tagged attestation receives scoped
-OIDC/attestation/metadata writes. No Exult Team credentials/services are used.
+## Remaining items classified
 
-Official checkout v6, setup-python v6, upload-artifact v6, download-artifact v7 and
-attest v4 are pinned to immutable upstream tag commit SHAs. Standard windows-2022
-(v143), Python 3.12, public Win Flex/Bison, source-pinned vcpkg, and independently
-hash/signature-verified Inno 6.7.4 provide the build chain. The ordinary solution
-generates UCC/embedded resources/FLX; mods are source-built; dependency sources are
-collected and verified. No workstation-only directory, proprietary game data,
-ROM, save or local dependency cache is an input.
+| Class | Item | Status |
+| --- | --- | --- |
+| BLOCKER | Source/history publication clearance | Resolve the three linked original-game-content findings before any prepared-branch push/default change/build dispatch. |
+| BLOCKER for accepting hosted assets | Hosted build and artifact verification | NOT RUN because of the audit stop. No compile, package, hosted checksum or attestation success is claimed. |
+| BLOCKER for binary publication | Separate exact-tag/asset/release approval | Still not granted. No final tag, GitHub Release/prerelease or binary announcement is allowed. |
+| RECOMMENDED | Fresh simplified audio-selector/MT32EMU listening and visual review | NOT TESTED beyond existing scoped acceptance. No broad repeat of completed listening/gameplay tests. |
+| RECOMMENDED | Clean player Windows OS/runtime prerequisite | NOT TESTED; no usable disposable environment was established previously. A VS runner would not be a clean player OS test. |
+| OPTIONAL | Other platforms/backends/languages, full campaign and cross-version migration | No expanded certification or new migration claims; retain previously documented limits. |
 
-Final artifact audit checks installer presence, portable payloads/docs/licenses/
-resources, source commit/manifest, dependency hashes/DLL mapping, checksums and
-startup from a disposable extraction. Available Defender scanning remains enabled.
-Step failures have explicit messages; build transcript and Defender logs are
-uploaded even on failure, with other diagnostics in GitHub step logs. Assets and
-diagnostics retain seven days; download before expiry. Runtime gameplay remains
-the separately accepted local evidence, not a fabricated hosted test.
+## Authorized continuation after resolving the audit hold
 
-## Zero-cost requirements
+The current owner authorization covers pushing the complete audited release branch
+without force, preserving placeholder main, establishing the appropriate default,
+registering/running one immutable-SHA candidate workflow, downloading/inspecting
+Actions artifacts and updating/pushing validation documentation. Do not ask again
+merely for those already-authorized operations. The material audit hold must first
+be resolved; no current action is implied by this plan.
 
-[GitHub billing documentation](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
-confirms standard public hosted runners are free; private jobs/storage draw on the
-owner's included allowance and may otherwise incur overages. This workflow uses
-standard runners, no paid services/larger runners, no paid signing and no cache
-service. Private allocation is skipped unless the owner explicitly sets
-`private_free_usage_confirmed=true`. This acknowledgement cannot inspect billing.
+Use the prepared manual workflow and standard public GitHub-hosted runners only.
+[GitHub's billing policy](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
+confirms standard public runner compute is free; no paid runner, cache service,
+commercial signing or billable-resource change is authorized. Public attestations
+are [available on free plans](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations).
+The currently prepared attestation job is tag-gated: before an approved untagged
+candidate run, adjust that workflow condition to allow public immutable-commit
+attestations rather than create an unauthorized release tag. No workflow edit or
+run was necessary while the publication audit is blocked.
 
-Before setting it, verify remaining included Windows compute and artifact storage,
-account-wide concurrent consumption and paid-usage blocking. Review applicable
-[budget stop-usage controls](https://docs.github.com/en/billing/how-tos/set-up-budgets);
-an alert alone is not a spending block. One build has a 90-minute timeout, at most
-one 10-minute public attestation job, and seven-day asset retention. These bound
-usage but do not guarantee it fits a private allowance; no spend is authorized.
-If free allowance is insufficient, wait for reset or separately approve public
-visibility before execution rather than buy capacity. Free public attestations
-are supported by [GitHub's documented availability](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations).
+After a cleared push, verify the GitHub branch SHA and default, dispatch against
+that exact expected_revision with tag blank, retain run/image/tool logs and match
+all hosted checksum entries, version/upstream/source metadata, payload/docs/licenses,
+audio identifiers/aliases, portable roots, upgrade manifests, optional mod packaging
+and corresponding dependency sources. Compare local/hosted inventories and record
+compiler/timestamp differences rather than promise byte-identical builds. Reuse
+accepted human evidence. Record the actual run URL, artifact names/digests and
+verified attestations here before recommending a prerelease. No hosted result
+can be inferred from the prior local package or workflow lint.
 
-## Staged deployment sequence — plan only, no remote actions performed
-
-1. **Local:** review the clean readiness commit, scoped acceptance, exact accepted
-   candidate evidence and lint results. No full suite repeat is justified by these
-   tooling/documentation changes. Recheck only changes made to fix actual defects.
-2. **APPROVAL REQUIRED:** push this exact prepared branch to
-   `fermix42/exult-custom` without force-push, tags, merge or publication. Verify
-   remote branch HEAD equals the approved full SHA after pushing.
-3. **APPROVAL REQUIRED if necessary:** register this workflow on the default
-   branch. GitHub requires [default-branch presence for manual dispatch](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow).
-   The prepared approach is to set the default to `codex/dwd-release-preparation`
-   after its push, keeping old `main` intact. Do not merge unrelated roots or change
-   the default implicitly. If the owner prefers another registration method,
-   prepare that narrow alternative before seeking approval for its mutation.
-4. **APPROVAL REQUIRED:** after zero-cost preflight and Actions policy checks,
-   dispatch `dwd-candidate.yml` on that branch with `expected_revision=<approved
-   full SHA>`, `tag` blank, and private free-usage acknowledgement only if verified.
-   This builds review artifacts, not a GitHub Release. Confirm the run head SHA.
-5. **Read-only inspection after approved run:** download `dwd-candidate-<SHA>` and
-   diagnostics, verify all SHA256SUMS entries, inspect installer manifest and
-   source/dependency records, and retain logs/run URL/image/tool versions. Inspect
-   hosted outputs without proprietary fixtures in GitHub. Diagnose actual failures.
-6. **Read-only comparison:** compare normalized archive/installer file lists,
-   documentation/licenses, source revision, mod source trees and dependency
-   inventory against local accepted artifacts. Engine/toolchain binaries, PE/ZIP
-   timestamps, generated identity, documentation and compressed mod bytes can
-   differ because the source commit/toolchain/environment differs; record each
-   expected difference. Do not promise byte-identical builds. Unexpected resources,
-   missing licenses/runtime files, source mismatch or private data block publication.
-7. **SEPARATE APPROVAL REQUIRED:** rename repository to `fermix42/dwd-exult` and
-   verify the new source links, redirects and local origin URL deliberately.
-8. **SEPARATE APPROVAL REQUIRED:** make the reviewed repository public after checking
-   its full history/settings for private material. This review does not claim a
-   full remote-history disclosure audit. Existing inherited automation stays disabled.
-9. **SEPARATE APPROVAL REQUIRED:** create the exact approved `dwd-v1.0.0-rc.1` tag
-   without moving an existing tag, run/review a public tagged candidate and free
-   attestations if chosen, and prepare a draft prerelease with its matching source,
-   checksums, notices and curated changelog. Inspect its exact assets/provenance.
-   Creation of even a draft needs approval; public prerelease publication is a
-   further explicit approval. Do not silently substitute new hosted artifacts for
-   previously reviewed ones. Completed owner acceptance is retained unless a
-   relevant implementation change invalidates its scope.
+Full scoped evidence and provenance are in VALIDATION.md. Local audit evidence is
+under `../test-output/dwd-hosted/`; no additional governance system was created.

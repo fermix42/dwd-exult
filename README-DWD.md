@@ -18,8 +18,8 @@ stable release. It preserves the familiar interface and `Exult.exe` name. The
 original [README](README), [ChangeLog](ChangeLog), [AUTHORS](AUTHORS), [COPYING](COPYING),
 [INSTALL](INSTALL) and [FAQ](FAQ) remain the upstream references. DWD additions below
 supplement their descriptions, including the original README's audio choices.
-The proposed project address is https://github.com/fermix42/dwd-exult; repository
-renaming and publication have not been approved.
+The public source repository is https://github.com/fermix42/dwd-exult. The owner
+renamed it and made it public; this does not announce or publish a DWD binary release.
 
 ## 2. Installation and upgrading
 
