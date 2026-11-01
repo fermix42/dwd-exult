@@ -32,15 +32,16 @@ this review ZIP does not install it. No game files, soundfonts
 or Roland ROMs are supplied. Do not extract over an official Exult installation.
 
 The prepared Inno installer uses its own DWD application, registry, Start Menu and
-uninstall identity and defaults to a writable per-user directory. **Installer
-compilation and install/upgrade/uninstall behavior still require validation.** It
+uninstall identity and defaults to a writable per-user directory. Installer compilation and automated host-isolated install/upgrade/uninstall checks
+are covered in [release validation](packaging/dwd/VALIDATION.md). Clean-OS and
+interactive wizard testing remain separately identified there. It
 retains upstream path setup and optional mod/audio installation code. These options
 can write to selected game/mod directories; review your paths and back up mods.
 
 Back up your configuration and saves before upgrading. Copy saves deliberately
 into a disposable profile first; do not assume that a save written by this fork
 can be safely taken back to every upstream version. Uninstall must preserve player
-saves and external game data; that requirement awaits an installer behavior test.
+saves and external game data; automated preservation checks are recorded in the validation report.
 
 ## 3. Features and enhancements
 
@@ -147,14 +148,22 @@ English BG/Forge of Virtue, SI/Silver Seed, Keyring 0.11.25 and SI Fixes 0.15.15
 the focused scenarios recorded in the linked feature documents. This is not a full
 campaign certification. Mods can override embedded quiz/light helpers; unknown Orb
 layouts are guarded. Other languages, mod versions and custom game rules require
-testing. No mod is merged into original game data by this release preparation.
+testing. Optional source-built Keyring, SI Fixes and SourceForge Island ZIPs are embedded
+in the installer and supplied with the portable ZIP under `mods`. Install them
+through the installer or ordinary `Exult.exe --installmod <ZIP>` workflow using
+your intended configuration. They are not automatically enabled by the portable
+ZIP. No mod is merged into original game data by this release preparation.
 
 ## 7. Known limitations
 
 Only Windows Release/x64 has local build evidence. Other platform projects are
 source compatibility work, not verified DWD platform support. This candidate is
-unsigned. Installer behavior and matching third-party source distribution remain
-publication gates. Native quiz encounters, some late-game Orb story states and
+unsigned, as permitted by this free project’s zero-budget policy. Windows may show
+SmartScreen or unknown-publisher warnings. Verify SHA-256 before running it.
+Free GitHub provenance attestations are prepared for approved public releases;
+they are not Windows Authenticode signatures and do not prevent SmartScreen warnings. The corresponding-source ZIP includes matching dependency archives, patches and
+vcpkg recipes. A clean Windows VM test and interactive installer/download checks
+remain publication review items. Native quiz encounters, some late-game Orb story states and
 natural SI Fixes Batlin vision have the unperformed-test limits recorded in the
 feature documents. Fresh listening and human gameplay review of the final package
 remain necessary; prior acceptance is not a new test of this exact binary.

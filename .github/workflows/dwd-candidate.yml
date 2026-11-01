@@ -35,11 +35,24 @@ jobs:
           if ($LASTEXITCODE) { throw 'vcpkg checkout failed' }
           & "$env:VCPKG_INSTALLATION_ROOT/bootstrap-vcpkg.bat"
           if ($LASTEXITCODE) { throw 'vcpkg bootstrap failed' }
+      - name: Install verified free Inno Setup compiler
+        shell: pwsh
+        run: ./packaging/dwd/install-inno.ps1 -Destination "$env:RUNNER_TEMP/dwd-inno"
       - name: Metadata and release invariants
         run: python packaging/dwd/check.py
       - name: Build ordinary Windows executable and upstream resources
         shell: pwsh
         run: ./packaging/dwd/build-windows.ps1 -OutputDirectory "$env:RUNNER_TEMP/dwd-bin"
+      - name: Build optional mods from the selected source commit
+        shell: pwsh
+        run: |
+          python packaging/dwd/build-mods.py --output "$env:RUNNER_TEMP/dwd-mods" --ucc msvcstuff/vs2019/Release/Exult/quiz/ucc.exe --expack "$env:RUNNER_TEMP/dwd-bin/expack.exe" --exconfig "$env:RUNNER_TEMP/dwd-bin/exconfig-x86_64.exe"
+          if ($LASTEXITCODE) { throw 'Mod build failed' }
+      - name: Collect matching dependency source and build recipes
+        shell: pwsh
+        run: |
+          python packaging/dwd/collect-dependencies.py --installed msvcstuff/vs2019/vcpkg_installed/x64-windows --vcpkg "$env:VCPKG_INSTALLATION_ROOT" --output "$env:RUNNER_TEMP/dwd-sources"
+          if ($LASTEXITCODE) { throw 'Dependency source audit failed' }
       - name: Stage and inspect candidate
         shell: pwsh
         env:
@@ -47,13 +60,49 @@ jobs:
         run: |
           $tagArgs = @()
           if ($env:DWD_TAG) { $tagArgs = @('--tag', $env:DWD_TAG) }
-          python packaging/dwd/release.py package --binary-dir "$env:RUNNER_TEMP/dwd-bin" --runtime-dir msvcstuff/vs2019/vcpkg_installed/x64-windows/bin --dependency-share msvcstuff/vs2019/vcpkg_installed/x64-windows/share --output "$env:RUNNER_TEMP/dwd-candidate" @tagArgs
+          python packaging/dwd/release.py package --binary-dir "$env:RUNNER_TEMP/dwd-bin" --runtime-dir msvcstuff/vs2019/vcpkg_installed/x64-windows/bin --dependency-share msvcstuff/vs2019/vcpkg_installed/x64-windows/share --output "$env:RUNNER_TEMP/dwd-candidate" --dependency-sources "$env:RUNNER_TEMP/dwd-sources" --installer-tools "$env:RUNNER_TEMP/dwd-mods" --iscc "$env:DWD_ISCC" @tagArgs
           if ($LASTEXITCODE) { throw 'Candidate inspection failed' }
+      - name: Verify installer presence and scan available artifacts
+        shell: pwsh
+        run: |
+          # Game-path/mod/runtime tests need legally supplied fixtures and remain
+          # local. The full installer checker refuses pre-existing DWD installs.
+          $setup = Get-ChildItem "$env:RUNNER_TEMP/dwd-candidate/*-Setup.exe" | Select-Object -First 1
+          if (!$setup) { throw 'Installer was not built' }
+          $scanner = "$env:ProgramFiles/Windows Defender/MpCmdRun.exe"
+          if (Test-Path $scanner) {
+            & $scanner -Scan -ScanType 3 -File "$env:RUNNER_TEMP/dwd-candidate"
+            if ($LASTEXITCODE -ne 0) { throw 'Defender scan requires investigation' }
+          } else { Write-Output 'Defender NOT TESTED: scanner unavailable' }
       - uses: actions/upload-artifact@v4
         with:
           name: dwd-candidate-${{ github.sha }}
           path: ${{ runner.temp }}/dwd-candidate/
           if-no-files-found: error
+          retention-days: 7
+  attest:
+    if: ${{ github.event.repository.private == false && inputs.tag != '' }}
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dwd-candidate-${{ github.sha }}
+          path: candidate
+      # Free for public repositories. This is build provenance, not Windows
+      # Authenticode signing, and does not suppress SmartScreen warnings.
+      - uses: actions/attest@v4
+        with:
+          subject-path: |
+            candidate/*-Setup.exe
+            candidate/*-Windows-x64.zip
+            candidate/*-Source.zip
+            candidate/installer-input/Exult/x86_64/Exult.exe
   attach:
     if: ${{ inputs.attach_to_draft && inputs.tag != '' }}
     needs: build

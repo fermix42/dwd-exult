@@ -23,9 +23,16 @@ def metadata():
     assert re.fullmatch(r'\d+\.\d+\.\d+(?:-(?:rc|alpha|beta)\.\d+)?', meta['version'])
     upstream = meta['upstream_revision']
     assert re.fullmatch(r'[0-9a-f]{40}', upstream)
-    subprocess.run(['git', '-C', str(ROOT), 'merge-base', '--is-ancestor', upstream, 'HEAD'], check=True)
-    meta['dwd_revision'] = git('rev-parse', 'HEAD')
-    meta['dirty'] = bool(git('status', '--porcelain', '--untracked-files=normal'))
+    if (ROOT / '.git').exists():
+        subprocess.run(['git', '-C', str(ROOT), 'merge-base', '--is-ancestor', upstream, 'HEAD'], check=True)
+        meta['dwd_revision'] = git('rev-parse', 'HEAD')
+        meta['dirty'] = bool(git('status', '--porcelain', '--untracked-files=normal'))
+    else:
+        provenance = json.loads((ROOT / 'source-provenance.json').read_text())
+        assert provenance['version'] == meta['version'] and provenance['upstream_revision'] == upstream
+        meta['dwd_revision'] = provenance['dwd_revision']
+        manifest = json.loads((ROOT / 'source-manifest.json').read_text())
+        meta['dirty'] = any(not (ROOT / name).is_file() or sha(ROOT / name) != digest for name, digest in manifest.items())
     values = {'DWD_VERSION': meta['version'], 'DWD_UPSTREAM_VERSION': meta['upstream_version'],
               'DWD_UPSTREAM_REVISION': upstream, 'DWD_REVISION': meta['dwd_revision'],
               'DWD_SOURCE_URL': meta['source_url']}
@@ -75,10 +82,15 @@ def installer(stage, meta):
         assert before in text, f'Upstream installer changed: {before}'
         text = text.replace(before, after)
     extra = '\n'.join('Source: Exult\\' + name + '; DestDir: {app}; Flags: ignoreversion; Components: GPL'
-                      for name in ['README-DWD.md', 'ChangeLog-DWD.txt', 'release-metadata.json', 'INSTALL.txt'])
+                      for name in ['README-DWD.md', 'ChangeLog-DWD.txt', 'release-metadata.json', 'dependency-sources.json', 'INSTALL.txt'])
     extra += '\nSource: Exult\\licenses\\*; DestDir: {app}\\licenses; Flags: ignoreversion recursesubdirs; Components: GPL\n'
     text = text.replace("HKEY_CURRENT_USER, 'Software\\Wine'", "HKEY_LOCAL_MACHINE, 'Software\\Wine'")
-    text = text.replace('[Icons]', extra + '\n[Icons]')
+    # Track only DWD registry values in Inno's uninstall log; upstream's raw
+    # RegWriteStringValue calls otherwise leave a stale installation path behind.
+    text = text.replace("    RegWriteStringValue(HKEY_CURRENT_USER, 'Software\\DWDExult', 'Path', ExpandConstant('{app}'));", '')
+    text = text.replace("    if WizardIsComponentSelected('Icons') then\n      RegWriteStringValue(HKEY_CURRENT_USER, 'Software\\DWDExult', 'ShellObjectFolder', ExpandConstant('{groupname}'));", '')
+    registry = '[Registry]\nRoot: HKCU; Subkey: Software\\DWDExult; ValueType: string; ValueName: Path; ValueData: {app}; Flags: uninsdeletevalue uninsdeletekeyifempty\nRoot: HKCU; Subkey: Software\\DWDExult; ValueType: string; ValueName: ShellObjectFolder; ValueData: {groupname}; Components: Icons; Flags: uninsdeletevalue uninsdeletekeyifempty\n\n'
+    text = text.replace('[Icons]', extra + '\n' + registry + '[Icons]')
     text = text.replace('[Run]', 'Name: {group}\\DWD Readme; Filename: {app}\\README-DWD.md; Components: Icons\n\n[Run]')
     write(stage / 'dwd_installer.iss', text)
     copy(ROOT / 'win32/archs_include.iss', stage / 'archs_include.iss')
@@ -127,11 +139,38 @@ def package(args):
         copy(share / name / 'copyright', payload / 'licenses' / (name + '-copyright.txt'))
     write(payload / 'release-metadata.json', json.dumps(meta, indent=2) + '\n')
     write(payload / 'Exult Source Code.url', '[InternetShortcut]\nURL=' + meta['source_url'] + '/tree/' + meta['dwd_revision'] + '\n')
+    if args.iscc:
+        copy(Path(args.iscc).resolve().parent / 'License.txt', payload / 'licenses/InnoSetup-LICENSE.txt')
     installer(stage, meta)
     write(output / 'release-notes.txt', release_notes(meta))
     # A source archive includes only committed files, never ignored runtime data.
     subprocess.run(['git', '-C', str(ROOT), 'archive', '--format=zip', '--prefix=dwd-exult/',
                     '-o', str(output / ('DWD-Exult-' + meta['version'] + '-Source.zip')), 'HEAD'], check=True)
+    sources = Path(args.dependency_sources).resolve() if args.dependency_sources else None
+    if sources:
+        dependency_info = json.loads((sources / 'dependency-sources.json').read_text())
+        for component in dependency_info['components'].values():
+            assert hashlib.sha512((sources / component['archive']).read_bytes()).hexdigest() == component['source_sha512']
+            for dll, expected in component['runtime_sha256'].items():
+                assert sha(runtime / dll) == expected, 'Runtime/source mismatch: ' + dll
+        sourcezip = output / ('DWD-Exult-' + meta['version'] + '-Source.zip')
+        with zipfile.ZipFile(sourcezip, 'a', zipfile.ZIP_DEFLATED) as archive:
+            manifest = {i.filename.removeprefix('dwd-exult/'): hashlib.sha256(archive.read(i)).hexdigest()
+                        for i in archive.infolist() if not i.is_dir()}
+            archive.writestr('dwd-exult/source-manifest.json', json.dumps(manifest, indent=2)+'\n')
+            archive.writestr('dwd-exult/source-provenance.json', json.dumps(meta, indent=2)+'\n')
+            archive.write(ROOT / 'dwd_version_generated.h', 'dwd-exult/dwd_version_generated.h')
+            for path in sorted(sources.rglob('*')):
+                if path.is_file(): archive.write(path, 'dwd-exult/dependency-sources/' + path.relative_to(sources).as_posix())
+        write(payload / 'dependency-sources.json', json.dumps(dependency_info, indent=2)+'\n')
+        write(output / 'dependency-sources.json', json.dumps(dependency_info, indent=2)+'\n')
+    if args.installer_tools:
+        tools = Path(args.installer_tools)
+        copy(tools / 'exconfig.exe', stage / 'exconfig.exe')
+        for name in ['bgkeyring.zip', 'islefaq.zip', 'sifixes.zip']:
+            copy(tools / name, payload / 'mods' / name)
+            copy(tools / name, output / name)
+        copy(tools / 'mod-build-manifest.json', output / 'mod-build-manifest.json')
     portable = output / ('DWD-Exult-' + meta['version'] + '-Windows-x64.zip')
     with zipfile.ZipFile(portable, 'w', zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(payload.rglob('*')):
@@ -141,11 +180,8 @@ def package(args):
                     rel = Path(*rel.parts[1:])
                 archive.write(path, 'DWD Exult/' + rel.as_posix())
     blockers = []
+    if not sources: blockers.append('Corresponding external dependency sources were not supplied.')
     if args.installer_tools:
-        tools = Path(args.installer_tools)
-        copy(tools / 'exconfig.exe', stage / 'exconfig.exe')
-        for name in ['bgkeyring.zip', 'islefaq.zip', 'sifixes.zip']:
-            copy(tools / name, payload / 'mods' / name)
         assert args.iscc, 'Specify the Inno Setup 6 compiler'
         subprocess.run([args.iscc, '/DNO_i686=1', '/DNO_ARM64=1', str(stage / 'dwd_installer.iss')], check=True)
         for path in stage.glob('*-Setup.exe'):
@@ -157,7 +193,7 @@ def package(args):
     write(output / 'validation.json', json.dumps({'metadata': meta, 'payload_files': len(files),
           'blockers': blockers, 'runtime': 'NOT TESTED by packaging script',
           'installer_behavior': 'NOT TESTED', 'dependency_source_compliance':
-          'Publication gate: archive matching third-party dependency source and build recipes before distribution.'}, indent=2) + '\n')
+          'PASS' if sources else 'FAIL: external dependency sources missing'}, indent=2) + '\n')
     write(output / 'SHA256SUMS.txt', ''.join(sha(p) + '  ' + p.name + '\n' for p in sorted(output.iterdir()) if p.is_file() and p.name != 'SHA256SUMS.txt'))
     print(output)
     for blocker in blockers:
@@ -170,7 +206,7 @@ def main():
     build = sub.add_parser('package')
     for flag in ['binary-dir', 'runtime-dir', 'dependency-share', 'output']:
         build.add_argument('--' + flag, required=True)
-    for flag in ['tag', 'installer-tools', 'iscc']:
+    for flag in ['tag', 'installer-tools', 'iscc', 'dependency-sources']:
         build.add_argument('--' + flag)
     args = parser.parse_args()
     if args.command == 'metadata':

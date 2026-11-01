@@ -143,3 +143,15 @@ BG opening; it is not an audio test or proof that initial NPC story scripts ran.
   public default branch or rewrite shared history without explicit user approval.
   Manual candidate workflows upload review artifacts only. Publication requires
   separate approval of the exact commit, tag, assets and curated changelog notes.
+
+### Zero-budget Windows release policy
+
+DWD Exult is a free, noncommercial fan project with no release budget. Never buy
+certificates, signing services, cloud subscriptions or other release services.
+Unsigned Windows executables/installers are acceptable; publicly trusted
+Authenticode signing is not a release requirement. Document unsigned downloads
+accurately and retain SHA-256 checksums, malware checks and exact build provenance.
+Prepare free GitHub artifact attestations for approved public-repository releases
+where supported. Attestations establish provenance; they are not Authenticode
+signatures and do not prevent Windows SmartScreen warnings. Do not publish or push
+to obtain an attestation without the owner's explicit publication approval.
