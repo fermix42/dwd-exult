@@ -1,5 +1,25 @@
 # Built-in quiz slider defaults
 
+## Final acceptance
+
+- **Status:** COMPLETED — ACCEPTED
+- **Acceptance date:** November 1, 2026
+- **Implementation commit:** `0e4980813b3713753781fd17ea7a8e71f1658ce3`
+- **Branch:** `codex/window-options`
+- **Accepted scope:** Built-in correct-answer defaults for all 29 BG/SI quiz questions.
+- **Verification:** All previously reported automated differential tests, native
+  loading checks, Windows build checks, and supported mod compatibility checks passed.
+- **Accepted limitation:** Actual native quiz encounters were NOT TESTED because
+  suitable gameplay states were unavailable. This limitation is acknowledged and
+  does not block acceptance.
+- **Non-Windows builds:** Not tested.
+- **Remaining blockers:** None.
+- **Further development or testing required:** None.
+
+The user formally accepted this implementation as complete. The verification
+details below remain the historical record; untested encounters and platforms do
+not represent outstanding work or reopen the accepted scope.
+
 The ordinary Exult executable supplies corrected Usecode for BG Finnigan
 (`0x0886`), BG Batlin (`0x0852`), and SI's shared Fedabiblio/Gwanni-child quiz
 (`0x098C`). The only gameplay change is the initial numeric selection. Questions,
