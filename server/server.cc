@@ -150,6 +150,8 @@ inline void Set_highest_fd() {
  *  Initialize server for map-editing.  Call this AFTER xfd has been set.
  */
 
+bool Server_is_listening() { return listen_socket >= 0; }
+
 void Server_init() {
 	// Get location of socket file.
 	const std::string servename = get_system_path(EXULT_SERVER);

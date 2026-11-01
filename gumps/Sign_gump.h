@@ -33,6 +33,7 @@ protected:
 	bool         serpentine;
 
 public:
+	std::string cli_text() const override {std::string out;for(int i=0;i<num_lines;++i){if(i)out+="\n";out+=lines[i];}return out;}
 	Sign_gump(int shapenum, int nlines);
 	~Sign_gump() override;
 	// Set a line of text.

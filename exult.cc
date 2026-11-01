@@ -1,3 +1,4 @@
+#include "cli_driver.h"
 /**
  ** Exult.cc - Multiplatform Ultima 7 game engine
  **
@@ -296,6 +297,8 @@ int main(int argc, char* argv[]) {
 	parameters.declare("--ss", &run_ss, true);
 	parameters.declare("--sib", &run_sib, true);
 	parameters.declare("--nomenu", &arg_nomenu, true);
+ parameters.declare("--test-cli", &cli_enabled, true);
+ parameters.declare("--test-run-dir", &cli_run_dir, "");
 	parameters.declare("-v", &showversion, true);
 	parameters.declare("--version", &showversion, true);
 	parameters.declare("--game", &arg_gamename, "default");
@@ -316,13 +319,17 @@ int main(int argc, char* argv[]) {
 #endif
 	// Process the args
 	parameters.process(argc, argv);
-	add_system_path("<alt_cfg>", arg_configfile);
+	if(cli_enabled) {
+  if(cli_run_dir.empty() || arg_configfile.empty() || !cli_config_isolated(arg_configfile)) { std::cerr<<"--test-cli requires --test-run-dir and an isolated -c config"<<std::endl;return 64; }
+  arg_nomenu=true;
+ }
+ add_system_path("<alt_cfg>", arg_configfile);
 #if defined _WIN32
 	if (portable) {
 		add_system_path("<HOME>", ".");
 	}
 	setup_program_paths();
-	redirect_output("std");
+	if(!cli_enabled) redirect_output("std");
 	std::atexit(do_cleanup_output);
 #endif
 
@@ -345,7 +352,8 @@ int main(int argc, char* argv[]) {
 				"expansion"
 			 << endl
 			 << "--sib\t\tSkip menu and run Serpent Isle Beta" << endl
-			 << "--nomenu\tSkip BG/SI game menu" << endl
+			 << "--test-cli\tHeadless local automation (requires isolated run/config)" << endl
+         << "--nomenu\tSkip BG/SI game menu" << endl
 			 << "--game <game>\tSkip menu and run the game with key '<game>' "
 				"in Exult.cfg"
 			 << endl
@@ -520,6 +528,7 @@ int exult_main(const char* runpath) {
 		config->read_config_file(USER_CONFIGURATION_FILE);
 	}
 
+if(cli_enabled){config->set("config/audio/enabled","no",false);config->set("config/video/fullscreen","no",false);}
 #if defined _WIN32
 	// Install the crash handler after we've loaded config
 	extern void WindowsInstallCrashHandler();
@@ -765,6 +774,9 @@ bool Handle_device_connection_event(void* userdata, SDL_Event* event) {
  *  Initialize and create main window.
  */
 static void Init() {
+    if(cli_enabled) { SDL_SetHintWithPriority(SDL_HINT_VIDEO_DRIVER, "dummy", SDL_HINT_OVERRIDE);
+    SDL_SetHintWithPriority(SDL_HINT_RENDER_DRIVER, "software", SDL_HINT_OVERRIDE);
+    SDL_SetHintWithPriority(SDL_HINT_AUDIO_DRIVER, "dummy", SDL_HINT_OVERRIDE); }
 	const Uint32 init_flags = SDL_INIT_VIDEO | SDL_INIT_GAMEPAD;
 	// Let SDL3 choose its own audio/video drivers until proved otherwise.
 	// Remove SDL_HINT_AUDIO_DRIVER set as "DirectSound"
@@ -797,6 +809,7 @@ static void Init() {
 		cerr << "Unable to initialize SDL: " << SDL_GetError() << endl;
 		exit(-1);
 	}
+    if(cli_enabled && std::string(SDL_GetCurrentVideoDriver()) != "dummy") std::exit(70);
 	std::atexit(SDL_Quit);
 
 	// KBD repeat should be nice.
@@ -1124,7 +1137,7 @@ static void Init() {
 				midi->set_timbre_lib(MyMidiPlayer::TIMBRE_LIB_MAINMENU);
 			}
 		}
-	} while (!game || !game->show_menu(arg_nomenu));
+	} while (!game || !(cli_validate_paths() && game->show_menu(arg_nomenu)));
 
 	// Should not be needed anymore:
 	delete gamemanager;
@@ -1141,7 +1154,7 @@ static void Init() {
 	gwin->setup_game(arg_edit_mode);    // This will start the scene.
 										// Get scale factor for mouse.
 #ifdef USE_EXULTSTUDIO
-	Server_init();    // Initialize server (for map-editor).
+	if(!cli_enabled) Server_init(); // Normal Studio behavior; never listen in CLI mode.
 	SDL_SetEventEnabled(SDL_EVENT_DROP_FILE, true);
 	SDL_SetEventEnabled(SDL_EVENT_DROP_TEXT, true);
 #endif
@@ -1151,9 +1164,11 @@ static void Init() {
  *  Play game.
  */
 
+#include "cli_driver.h"
 static int Play() {
 	do {
 		quitting_time = QUIT_TIME_NO;
+		cli_start();
 		Handle_events();
 		if (quitting_time == QUIT_TIME_RESTART) {
 			Mouse::mouse()->hide();    // Turn off mouse.
@@ -1172,6 +1187,7 @@ static int Play() {
 	Free_text();
 	fontManager.reset();
 	delete game;
+ cli_cleanup_complete(false);
 	return 0;
 }
 
@@ -1346,6 +1362,7 @@ static void Handle_events() {
 	// step so it only ever fires once per stop.
 	bool lerp_stop_anchored = false;
 	while (!quitting_time) {
+        cli_poll(false, nullptr);
 #ifdef USE_EXULTSTUDIO
 		Server_delay();    // Handle requests.
 #else
@@ -2343,6 +2360,9 @@ static bool Get_click(
 		SDL_Event event;
 		Delay();    // Wait a fraction of a second.
 
+        int cli_key = cli_poll(true, nullptr);
+        if(cli_key==-1){g_waiting_for_click=false;return false;}
+        if(cli_key) { if(chr)*chr=static_cast<char>(cli_key); x=y=0; g_waiting_for_click=false; return true; }
 		const uint32 ticks = SDL_GetTicks();
 		Game::set_ticks(ticks);
 		Mouse::mouse()->hide();    // Turn off mouse.
@@ -2509,6 +2529,7 @@ bool Get_click(
 	}
 	Mouse::mouse()->show();
 	gwin->show(true);    // Want to see new mouse.
+	Cli_input_scope cli_scope(paint);
 	gwin->get_tqueue()->pause(Game::get_ticks());
 	const bool ret = Get_click(x, y, chr, drag_ok, rotate_colors);
 	gwin->get_tqueue()->resume(Game::get_ticks());

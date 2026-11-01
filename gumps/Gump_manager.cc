@@ -1,3 +1,4 @@
+#include "cli_driver.h"
 /*
  *  Gump_manager.cc - Object that manages all available gumps
  *
@@ -1088,6 +1089,7 @@ bool Gump_manager::do_modal_gump(
 		touchui->hideGameControls();
 	}
 	do {
+        cli_poll(false,nullptr);
 		Delay();                   // Wait a fraction of a second.
 		Mouse::mouse()->hide();    // Turn off mouse.
 		Mouse::mouse_update = false;

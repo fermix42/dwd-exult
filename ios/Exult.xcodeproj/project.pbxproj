@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+        FEE100000000000000000001 /* cli_driver.cc in Sources */ = {isa = PBXBuildFile; fileRef = FEE100000000000000000011 /* cli_driver.cc */; };
+        FEE100000000000000000002 /* cli_world.cc in Sources */ = {isa = PBXBuildFile; fileRef = FEE100000000000000000012 /* cli_world.cc */; };
+
 		005043EA9A06E3F7BB57379A /* lightinf.cc in Sources */ = {isa = PBXBuildFile; fileRef = FE4F4F1A887E52F238D70180 /* lightinf.cc */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
@@ -347,6 +350,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+        FEE100000000000000000011 /* cli_driver.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = cli_driver.cc; path = ../cli_driver.cc; sourceTree = "<group>"; };
+        FEE100000000000000000012 /* cli_world.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = cli_world.cc; path = ../cli_world.cc; sourceTree = "<group>"; };
+
 		1D6058910D05DD3D006BFB54 /* Exult.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Exult.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		1E8448CF81742D9F535F9713 /* endianio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = endianio.h; path = ../files/endianio.h; sourceTree = "<group>"; };
@@ -1148,6 +1154,8 @@
 				E700DC4C1A6E30A7006C8BE4 /* effects.h */,
 				E700DC4D1A6E30A7006C8BE4 /* exult_constants.h */,
 				E700DC4F1A6E30A7006C8BE4 /* exult.cc */,
+                FEE100000000000000000011 /* cli_driver.cc */,
+                FEE100000000000000000012 /* cli_world.cc */,
 				E700DC501A6E30A7006C8BE4 /* exult.h */,
 				E700DC511A6E30A7006C8BE4 /* exulticon.h */,
 				E700DC521A6E30A7006C8BE4 /* exultmenu.cc */,
@@ -2179,6 +2187,8 @@
 				E700DD951A6E3161006C8BE4 /* U7fileman.cc in Sources */,
 				E700DE271A6E344D006C8BE4 /* imagewin.cc in Sources */,
 				E700DC991A6E30A7006C8BE4 /* exult.cc in Sources */,
+                FEE100000000000000000001 /* cli_driver.cc in Sources */,
+                FEE100000000000000000002 /* cli_world.cc in Sources */,
 				E700DE8C1A6E3497006C8BE4 /* Gump_widget.cc in Sources */,
 				E700DD931A6E3161006C8BE4 /* Table.cc in Sources */,
 				E700DD941A6E3161006C8BE4 /* U7file.cc in Sources */,

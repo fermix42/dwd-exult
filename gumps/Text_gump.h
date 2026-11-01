@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define TEXT_GUMP_H
 
 #include "Gump.h"
+#include <string>
 
 /*
  *  A text gump is the base class for books and scrolls.
@@ -39,6 +40,7 @@ public:
 
 	~Text_gump() override;
 
+	virtual std::string cli_text() const {return text?std::string(text+curtop,curend-curtop):std::string();}
 	void set_from_help(bool val) {
 		from_help = val;
 	}

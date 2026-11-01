@@ -179,6 +179,7 @@ public:
 	virtual void                  write() = 0;    // Write out 'gamedat/usecode.dat'.
 	virtual void                  read()  = 0;    // Read in 'gamedat/usecode.dat'.
 
+	Conversation* cli_conversation() { return conv; }
 	void init_conversation();
 	int  get_num_faces_on_screen() const;
 

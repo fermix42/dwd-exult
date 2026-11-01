@@ -56,6 +56,10 @@ EXULTSOURCES =	\
 	effects.h	\
 	headers/exceptions.h	\
 	exult.cc	\
+	cli_driver.cc	\
+	cli_driver.h	\
+	cli_world.cc	\
+	cli_world.h	\
 	exult.h		\
 	exulticon.h	\
 	exultmenu.cc	\
@@ -367,3 +371,9 @@ install-exec-local:
 clean-local:
 
 endif
+
+# Local gameplay automation client and scenarios; no game assets or generated evidence.
+EXTRA_DIST += docs/test_cli.md docs/test_cli_protocol.md \
+ tools/test_cli/driver.py tools/test_cli/acceptance.py \
+ tools/test_cli/demonstrate.py tools/test_cli/navigation_checks.py \
+ tools/test_cli/lifecycle_checks.py tools/test_cli/review_checks.py

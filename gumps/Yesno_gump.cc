@@ -63,7 +63,8 @@ public:
 			: Gump_button(par, yes ? game->get_shape("gumps/yesbtn") : game->get_shape("gumps/nobtn"), px, py), isyes(yes) {}
 
 	// What to do when 'clicked':
-	bool activate(MouseButton button) override;
+	const char* cli_action() const override {return isyes?"confirm":"cancel";}
+ bool activate(MouseButton button) override;
 };
 
 /*

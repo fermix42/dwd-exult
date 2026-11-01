@@ -50,6 +50,9 @@ private:
 	std::deque<std::vector<std::string>> answer_stack;
 
 public:
+	std::string cli_text() const;
+ int cli_speaker_face() const;
+ bool cli_choices_active() const { return choices_active; }
 	inline int get_num_answers() const {
 		return answers.size();
 	}

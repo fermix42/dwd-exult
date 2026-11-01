@@ -85,6 +85,7 @@ public:
 
 	void set_pushed(bool set);
 
+	virtual const char* cli_action() const { return is_checkmark()?"close":"unknown"; }
 	virtual bool is_checkmark() const {
 		return false;
 	}

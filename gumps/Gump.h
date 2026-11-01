@@ -49,7 +49,9 @@ class Gump_widget;
 
 // Base Class shared by Gumps and Widgetss
 class Gump_Base : public ShapeID, public Paintable {
+ unsigned long long cli_id=0;
 public:
+	unsigned long long cli_identity(){static unsigned long long next=1;if(!cli_id)cli_id=next++;return cli_id;}
 	Gump_Base(int shnum, int frnum, ShapeFile shfile) : ShapeID(shnum, frnum, shfile) {}
 
 	virtual int  get_x() const               = 0;

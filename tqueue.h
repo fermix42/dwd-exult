@@ -83,6 +83,7 @@ bool operator<(const Queue_entry& q1, const Queue_entry& q2) noexcept;
  *  by time.
  */
 class Time_queue {
+ friend struct CliDriver;
 	using Temporal_sequence = std::list<Queue_entry>;
 	Temporal_sequence data;
 	uint32            pause_time = 0;    // Time when paused.

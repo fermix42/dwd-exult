@@ -99,6 +99,15 @@ public:
 	Npc_face_info(ShapeID& sid, int num) : shape(sid), face_num(num), text_pending(false), no_show_face(false), large_face(false) {}
 };
 
+std::string Conversation::cli_text() const {
+ if(last_face_shown<0 || size_t(last_face_shown)>=face_info.size() || !face_info[last_face_shown])return {};
+ return face_info[last_face_shown]->cur_text;
+}
+int Conversation::cli_speaker_face() const {
+ if(last_face_shown<0 || size_t(last_face_shown)>=face_info.size() || !face_info[last_face_shown])return -1;
+ return face_info[last_face_shown]->face_num;
+}
+
 Conversation::~Conversation() {
 	if (conv_layer >= 0) {
 		gwin->destroy_layer(conv_layer);

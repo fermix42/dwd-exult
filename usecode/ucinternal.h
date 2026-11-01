@@ -66,6 +66,7 @@ Barge_object* Get_barge(Game_object* obj);
  *  Here's our virtual machine for running usecode.
  */
 class Usecode_internal : public Usecode_machine {
+ friend struct CliDriver;
 	// I'th entry contains funs for ID's
 	//    256*i + n.
 	using Funs256 = std::vector<Usecode_function*>;

@@ -23,6 +23,7 @@
 #endif
 
 #include "modmgr.h"
+#include "cli_driver.h"
 
 #include "Configuration.h"
 #include "Flex.h"
@@ -146,7 +147,9 @@ ModInfo::ModInfo(
 	ReplaceMacro(sourcedir, mod_path_macro, data_directory);
 	add_system_path("<" + system_path_tag + "_SOURCE>", get_system_path(sourcedir));
 
+	cli_require_write_path(get_system_path(mods_save_dir));
 	U7mkdir(mods_save_dir.c_str(), 0755);
+	cli_require_write_path(get_system_path(savedata_directory));
 	U7mkdir(savedata_directory.c_str(), 0755);
 
 	// The following paths default to user-writable locations.
@@ -158,6 +161,7 @@ ModInfo::ModInfo(
 	ReplaceMacro(gamedatdir, mods_macro, mods_save_dir);
 	ReplaceMacro(gamedatdir, mod_path_macro, savedata_directory);
 	add_system_path("<" + system_path_tag + "_GAMEDAT>", get_system_path(gamedatdir));
+	cli_require_write_path(get_system_path(gamedatdir));
 	U7mkdir(gamedatdir.c_str(), 0755);
 
 	config_path = "mod_info/savegame_path";
@@ -167,6 +171,7 @@ ModInfo::ModInfo(
 	ReplaceMacro(savedir, mods_macro, mods_save_dir);
 	ReplaceMacro(savedir, mod_path_macro, savedata_directory);
 	add_system_path("<" + system_path_tag + "_SAVEGAME>", get_system_path(savedir));
+	cli_require_write_path(get_system_path(savedir));
 	U7mkdir(savedir.c_str(), 0755);
 
 	config_path = "mod_info/skip_splash";
@@ -1120,6 +1125,7 @@ void ModManager::get_game_paths(const string& game_path) {
 	default_dir = saveprefix;
 	config->value(config_path.c_str(), savegame_dir, default_dir.c_str());
 	add_system_path("<" + path_prefix + "_SAVEGAME>", savegame_dir);
+	cli_require_write_path(get_system_path(savegame_dir));
 	U7mkdir(savegame_dir.c_str(), 0755);
 
 	// <gamedat_path> setting: default is "$dataprefix/gamedat".
@@ -1127,6 +1133,7 @@ void ModManager::get_game_paths(const string& game_path) {
 	default_dir = saveprefix + "/gamedat";
 	config->value(config_path.c_str(), gamedat_dir, default_dir.c_str());
 	add_system_path("<" + path_prefix + "_GAMEDAT>", gamedat_dir);
+	cli_require_write_path(get_system_path(gamedat_dir));
 	U7mkdir(gamedat_dir.c_str(), 0755);
 
 #ifdef DEBUG_PATHS

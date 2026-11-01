@@ -29,6 +29,8 @@
 #endif
 
 #include "gamewin.h"
+#include "cli_driver.h"
+#include "cli_world.h"
 
 #include "Astar.h"
 #include "Audio.h"
@@ -1469,6 +1471,7 @@ void Game_window::write(bool nopaint) {
  */
 
 void Game_window::read() {
+ if(cli_enabled)cli_world_reset();
 	Game_window::Scoped_ui_layer_mask load_layers(this, 0);
 	Audio::get_ptr()->cancel_streams();
 	// Display red plasma during load...
