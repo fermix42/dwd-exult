@@ -80,7 +80,7 @@ jobs:
       - name: Collect matching dependency source and build recipes
         shell: pwsh
         run: |
-          python packaging/dwd/collect-dependencies.py --installed msvcstuff/vs2019/vcpkg_installed/x64-windows --vcpkg "$env:VCPKG_INSTALLATION_ROOT" --output "$env:RUNNER_TEMP/dwd-sources"
+          python packaging/dwd/collect-dependencies.py --installed msvcstuff/vs2019/vcpkg_installed/x64-windows/x64-windows --vcpkg "$env:VCPKG_INSTALLATION_ROOT" --output "$env:RUNNER_TEMP/dwd-sources"
           if ($LASTEXITCODE) { throw 'Dependency source audit failed' }
       - name: Stage and inspect candidate
         shell: pwsh
@@ -89,7 +89,7 @@ jobs:
         run: |
           $tagArgs = @()
           if ($env:DWD_TAG) { $tagArgs = @('--tag', $env:DWD_TAG) }
-          python packaging/dwd/release.py package --binary-dir "$env:RUNNER_TEMP/dwd-bin" --runtime-dir msvcstuff/vs2019/vcpkg_installed/x64-windows/bin --dependency-share msvcstuff/vs2019/vcpkg_installed/x64-windows/share --output "$env:RUNNER_TEMP/dwd-candidate" --dependency-sources "$env:RUNNER_TEMP/dwd-sources" --installer-tools "$env:RUNNER_TEMP/dwd-mods" --iscc "$env:DWD_ISCC" @tagArgs
+          python packaging/dwd/release.py package --binary-dir "$env:RUNNER_TEMP/dwd-bin" --runtime-dir msvcstuff/vs2019/vcpkg_installed/x64-windows/x64-windows/bin --dependency-share msvcstuff/vs2019/vcpkg_installed/x64-windows/x64-windows/share --output "$env:RUNNER_TEMP/dwd-candidate" --dependency-sources "$env:RUNNER_TEMP/dwd-sources" --installer-tools "$env:RUNNER_TEMP/dwd-mods" --iscc "$env:DWD_ISCC" @tagArgs
           if ($LASTEXITCODE) { throw 'Candidate inspection failed' }
       - name: Audit final archives, hashes, source identity and packaged startup
         shell: pwsh

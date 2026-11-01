@@ -14,13 +14,13 @@ AGENTS.md, docs/quiz_sliders.md, docs/orb_chart_art.md and docs/game_time_events
 and the audio acceptance commit e3ff08e1e. No dormant combat/context branch is
 merged. No other checkout, save, configuration or game directory is a source input.
 
-`origin` remains fermix42/exult-custom. Its `main` (6fbda9a8d) has unrelated history;
-`origin/codex/window-options` (8000aec02) lacks recent local improvements. Use this
-ancestry-preserving release branch as the eventual new default branch after review:
-push it as a new branch and change GitHub's default branch explicitly. Retain the
-old main/archive reference; do not force-push or merge unrelated roots. Renaming to
-fermix42/dwd-exult is a separate approved operation. Remote refs were inspected
-locally, not refreshed; recheck remote state before any approved push.
+`origin` is https://github.com/fermix42/dwd-exult.git. With explicit owner
+authorization the audited `codex/dwd-release-preparation` branch was pushed without
+force and made the public default, preserving unrelated placeholder `main` at
+`6fbda9a8d887c5ddfced99412502a36ae48665e2` and `codex/window-options` unchanged.
+No unrelated roots were merged and no upstream history was rewritten. Candidate
+build identity and subsequent documentation-only revisions are recorded separately
+in READINESS.md and VALIDATION.md. Tags/Releases require separate approval.
 
 ## Build and stage
 
@@ -34,8 +34,8 @@ commit SHA in tracked documentation: exact DWD provenance is generated at build 
 Local ordinary build: use AGENTS.md's existing build command; do not create another
 engine build. The hosted script uses the upstream MSVC solution and pinned vcpkg
 baseline. Candidate workflow runs only manually, with read-only build permissions.
-It has not been run on GitHub. It uploads inspection artifacts, never a public
-release. The candidate workflow has no release attachment/publication job or contents-write
+Its first approved exact-SHA run is recorded in READINESS.md. It uploads
+inspection artifacts, never a GitHub Release. The candidate workflow has no release attachment/publication job or contents-write
 permission. Public release creation/attachment is a separate owner-approved action.
 
 Example (use fresh output directory):

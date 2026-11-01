@@ -15,7 +15,7 @@ New-Item -ItemType Directory -Force $OutputDirectory | Out-Null
 $outputPath = (Resolve-Path $OutputDirectory).Path.Replace('\','/') + '/'
 & "$env:VCPKG_INSTALLATION_ROOT/vcpkg.exe" integrate install
 if ($LASTEXITCODE) { throw 'vcpkg integration failed' }
-& "$vs/MSBuild/Current/Bin/MSBuild.exe" "$sourceRoot/msvcstuff/vs2019/Exult.sln" '/t:Exult;expack;exconfig' /m:4 /nologo /v:minimal /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 "/p:OutDir=$outputPath"
+& "$vs/MSBuild/Current/Bin/MSBuild.exe" "$sourceRoot/msvcstuff/vs2019/Exult.sln" '/t:Exult;expack;exconfig' /m:4 /nologo /v:minimal /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 "/p:OutDir=$outputPath" 2>&1 | Tee-Object -FilePath (Join-Path $logDirectory 'msbuild.log')
 if ($LASTEXITCODE) { throw 'MSBuild failed' }
 New-Item -ItemType Directory -Force "$outputPath/data" | Out-Null
 Copy-Item "$sourceRoot/data/exult*.flx" "$outputPath/data"

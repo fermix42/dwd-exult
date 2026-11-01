@@ -391,7 +391,7 @@ Hosted build/artifacts/checksums/attestations remain **NOT RUN**, not failed bui
 results. See READINESS.md for the blocked handoff and remaining classified gates.
 
 
-## November 1, 2026 — approved download-only packaging follow-up
+## November 1, 2026  --  approved download-only packaging follow-up
 
 The owner's subsequent explicit retention decision supersedes the prior audit hold
 for inherited usecode.dis, historical usedis.zip and SourceForge Island equip.dat.
@@ -429,3 +429,65 @@ applicable; the owner-retained upstream findings are recorded, not erased. No ne
 independent material publication risk was found in this review. Inherited scheduled/
 release workflows remain disabled; the only active workflow is manual, pinned,
 read-only for build, with public attestation-only write permissions and no Releases.
+
+### Clean local candidate 78d1537565b4c1a3ba1cb56769b53e37b6f29264
+
+Ordinary Release/x64 Exult/expack/exconfig rebuild and Inno 6.7.4 packaging: PASS.
+Exact clean metadata: DWD 1.0.0-rc.1, Exult 1.13.1git, incorporated upstream
+97984e9e0cbb4ccacaab0249da9c51b533818f74. No accepted engine/audio/mod source changed.
+
+| Targeted native checks on clean candidate | Result |
+| --- | --- |
+| Instrumented Inno idempotence, selections, repair, failure/rollback, offline | 53 PASS |
+| Ordinary portable startup/relocation, roots, mod saves, permissions, traversal | 39 PASS |
+| Production HTTPS installation of the three original mods | 7 PASS |
+| Source/metadata, all 8 checksum entries, 58 payload files, packaged --version | PASS |
+| Actual compiled installer inventory | No mod archives/payloads; all 30 upstream nonbinary app paths retained |
+| Windows Defender custom scan of candidate | PASS: no threats found |
+| Source invariants, Python syntax, actionlint, whitespace | PASS |
+
+The 53-assertion run replaces the prior accepted engine binary with the rebuilt
+candidate while preserving optional content. Its synthetic future package/engine
+metadata does not change production releases. Loopback request instrumentation
+observed no optional HTTP requests for no-op/offline upgrade cases. Hosted setup
+log checks, if reported separately, establish scheduled downloads only and do not
+constitute an independent external network trace. Source retains inherited mod
+material; binary packages do not contain the three optional mod payloads.
+
+Evidence: ../test-output/dwd-download-delivery/{final-idempotence,final-portable,
+final-live,final-smoke,candidate}, installer-files.txt, archive-safety.json,
+final-publication-audit.json and defender.log. Local candidate checksums are in
+candidate/SHA256SUMS.txt. The earlier sandbox registry denial is an environment
+restriction, not a successful test; unrestricted disposable native runs passed.
+
+Final pre-push Gitleaks scan includes the new commit: four findings (one Keyring,
+three Glimmerscape file hashes), all verified against parsed manifests AND actual
+pinned ZIP member hashes. Zero confirmed secrets. The previous inherited upstream
+history/asset/archive audit was retained with the explicit owner disposition;
+no independently substantiated material publication risk was found. No history
+rewrite, ROM publication, gameplay/audio modification or unrelated branch merge.
+
+With explicit owner authorization, source was pushed without force to
+https://github.com/fermix42/dwd-exult and codex/dwd-release-preparation became
+the default. GitHub verified build SHA 78d1537565b4c1a3ba1cb56769b53e37b6f29264;
+placeholder main remains 6fbda9a8d887c5ddfced99412502a36ae48665e2.
+Only dwd-candidate.yml is executable on the prepared default branch. Inherited
+CI workflow records still listed by GitHub have no enabled definitions there;
+their schedules/uploads/secrets/release hooks remain .disabled source files.
+
+### First hosted attempt: packaging path correction
+
+Run https://github.com/fermix42/dwd-exult/actions/runs/41361780387 at source
+78d1537565b4c1a3ba1cb56769b53e37b6f29264 compiled Exult/expack/exconfig and all
+resources successfully. Dependency-source collection then FAILED before packaging:
+the workflow expected vcpkg_installed/x64-windows/share, while the upstream MSBuild
+integration actually installs under vcpkg_installed/x64-windows/x64-windows/share.
+The build log records that exact install root and all copied DLL paths. No candidate
+artifact or attestation was produced. Correct only the three downstream installed-
+triplet paths (source collection, runtime bin, notices share); preserve upstream
+build configuration. Also retain native MSBuild stdout/stderr in diagnostics,
+because the initial PowerShell transcript did not capture native compiler output.
+The necessary retry will identify its own immutable SHA. No gameplay/audio/mod or
+installer-policy changes are involved. Existing 53/39/7 evidence remains scoped to
+78d1537; new exact-build artifact checks follow. Normalize two report heading
+encodings in this documentation correction; no player payload is affected.

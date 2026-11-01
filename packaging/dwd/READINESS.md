@@ -1,4 +1,4 @@
-# Current candidate readiness — November 1, 2026
+# Current candidate readiness  --  November 1, 2026
 
 The owner has resolved the prior inherited-content audit hold: retain upstream
 source/history without deletion or rewriting. The earlier report below is historical
