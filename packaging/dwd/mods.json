@@ -9,7 +9,10 @@
       "installed_id": "Keyring",
       "package": "bgkeyring.zip",
       "source": "content/bgkeyring",
-      "version_document": "content/bgkeyring/Readme.txt"
+      "version_document": "content/bgkeyring/Readme.txt",
+      "version": "0.11.25",
+      "release": 1,
+      "component": "downloads/mods/keyring"
     },
     {
       "id": "sifixes-upstream",
@@ -19,7 +22,10 @@
       "installed_id": "sifixes",
       "package": "sifixes.zip",
       "source": "content/sifixes",
-      "version_document": "content/sifixes/Readme.txt"
+      "version_document": "content/sifixes/Readme.txt",
+      "version": "0.15.15",
+      "release": 1,
+      "component": "downloads/mods/sifixes"
     },
     {
       "id": "sfisland-original",
@@ -28,7 +34,10 @@
       "game": "blackgate",
       "installed_id": "islefaq",
       "package": "islefaq.zip",
-      "source": "content/islefaq"
+      "source": "content/islefaq",
+      "version": "original-source",
+      "release": 1,
+      "component": "downloads/mods/sfisland"
     },
     {
       "id": "ultima6-original",
@@ -36,7 +45,10 @@
       "edition": "third-party-original",
       "game": "blackgate",
       "installed_id": "Ultima6v1.3",
-      "download": "Ultima6-1.3.zip"
+      "download": "Ultima6-1.3.zip",
+      "version": "1.3",
+      "release": 1,
+      "component": "downloads/3rdpartymods/ultima6"
     },
     {
       "id": "glimmerscape-original",
@@ -44,7 +56,20 @@
       "edition": "third-party-original",
       "game": "serpentisle",
       "installed_id": "glimmerscape",
-      "download": "Glimmerscape_SI_mod_by_Donfrow.zip"
+      "download": "Glimmerscape_SI_mod_by_Donfrow.zip",
+      "version": "original-download",
+      "release": 1,
+      "component": "downloads/3rdpartymods/glimmerscape"
     }
-  ]
+  ],
+  "audio": {
+    "id": "audio-original",
+    "name": "Digital music and sound effects",
+    "version": "original-all-in-one",
+    "release": 1,
+    "component": "downloads/audio",
+    "download": "exult_audio.zip",
+    "game": "",
+    "installed_id": ""
+  }
 }

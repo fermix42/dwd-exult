@@ -201,3 +201,23 @@ Preserve retained MT32Emu synthesis and compatible conventional/split ROM loadin
 independent synthesized SFX/music settings, upstream backends and external MIDI.
 This scoped policy supersedes the experimental Roland preset choices only; all
 other accepted audio implementations and Enhanced OPL3 freeze remain protected.
+
+### Idempotent optional-content upgrades
+
+Engine versions, DLL/resource refreshes and leftover component selections must
+never imply optional mod/audio reinstallation. Detect installed content with
+independent stable IDs, versions/releases and verified manifests/receipts.
+Preserve unchanged, customized, partial/damaged, newer or unverified existing
+content by default; do not guess that unknown third-party mods need replacement.
+Offer status and updates clearly. Install only selected absent content automatically.
+Repair/replacement/update of existing content requires an explicit request and
+custom-file overwrite warning/acknowledgement; back up affected content and never
+silently delete saves. Preserve existing config bytes when paths did not change.
+An engine-only upgrade with installed optional content must work without network
+requests. Future DWD Keyring/SI Fixes use independent versions and distinct original/
+DWD package/save identities once actually accepted; no new editions are implied.
+Test fresh selection, repeated/newer-engine upgrades, no-op HTTP and file/timestamp
+preservation, new selections, unknown/custom/damaged content, explicit repair and
+backups, offline operation, original assets and config/save preservation. Reuse
+release facilities and retain exact-source artifacts/checksums; no unrelated
+retesting or changes to protected engine/audio/mod functionality.

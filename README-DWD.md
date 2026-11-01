@@ -67,6 +67,36 @@ bytes, documentation and credits are preserved. Inno's transient bootstrap/downl
 staging uses Windows temporary storage; persistent data and engine runtime temp
 belong to DWD. Extracting the ZIP does not automatically enable its optional mods.
 
+Optional content has its own identity and version, independent of the engine.
+An upgrade does **not** download or reinstall content just because its checkbox
+remains selected. A new **Optional content status** page and Ready summary identify
+missing packages, verified installed packages, customized/damaged or unverified
+installations, newer installed packages and available updates. Selected missing
+packages install normally. All existing packages are preserved by default,
+including partial installations, customized mods/audio and third-party versions
+that cannot be established reliably. An engine-only upgrade works offline; newly
+selected missing downloads still need connectivity.
+
+To repair or update existing content, keep its component selected, explicitly
+check it on the status page, and confirm the replacement warning. The installer
+backs up the existing mod folder and affected files under
+`content-backups/<package-id>/<timestamp>/` before invoking native installation.
+Customizations may be overwritten or removed from the active package by this
+explicit operation; the backup retains them. Separate saves are not deleted.
+For unattended use, supply `/REINSTALLCONTENT=<comma-separated-package-ids>` plus
+`/ALLOWCONTENTREPLACEMENT=yes` to acknowledge that warning. IDs are
+`audio-original`, `keyring-upstream`, `sifixes-upstream`, `sfisland-original`,
+`ultima6-original`, and `glimmerscape-original`. Without acknowledgement an existing
+package replacement is refused. Linked content requires manual management.
+
+Verified per-file manifests and independent receipts under `content-state/` record
+the offered original packages. Legacy exact matches can be recognized without
+reinstallation; unknown or changed files are preserved, not guessed to be older.
+A damaged package is reported for repair rather than silently replaced. Uninstall
+retains saves, configuration, receipts and backups. Future accepted DWD mod editions
+must use distinct package/save identities and their own version/release records;
+none is created by this installer fix.
+
 Back up configuration and saves before upgrading. Reinstallation, mod updates and
 mod removal preserve separate saves. Uninstall retains configuration and saves.
 Legacy external writable overrides are rebased; old saves are not automatically

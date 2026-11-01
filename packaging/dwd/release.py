@@ -6,9 +6,16 @@ import re
 import shutil
 import subprocess
 import zipfile
+import importlib.util
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+
+def optional_policy_module():
+    spec = importlib.util.spec_from_file_location('dwd_optional_content', ROOT / 'packaging/dwd/optional_content.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 def git(*args):
     return subprocess.check_output(['git', '-C', str(ROOT), *args], text=True).strip()
@@ -148,6 +155,7 @@ end;
     registry = '[Registry]\nRoot: HKCU; Subkey: Software\\DWDExult; ValueType: string; ValueName: Path; ValueData: {app}; Flags: uninsdeletevalue uninsdeletekeyifempty\nRoot: HKCU; Subkey: Software\\DWDExult; ValueType: string; ValueName: ShellObjectFolder; ValueData: {groupname}; Components: Icons; Flags: uninsdeletevalue uninsdeletekeyifempty\n\n'
     text = text.replace('[Icons]', extra + '\n' + registry + '[Icons]')
     text = text.replace('[Run]', 'Name: {group}\\DWD Readme; Filename: {app}\\README-DWD.md; Components: Icons\n\n[Run]')
+    text = optional_policy_module().policy(text)
     write(stage / 'dwd_installer.iss', text)
     copy(ROOT / 'win32/archs_include.iss', stage / 'archs_include.iss')
 
@@ -198,6 +206,8 @@ def package(args):
     write(payload / 'Exult Source Code.url', '[InternetShortcut]\nURL=' + meta['source_url'] + '/tree/' + meta['dwd_revision'] + '\n')
     if args.iscc:
         copy(Path(args.iscc).resolve().parent / 'License.txt', payload / 'licenses/InnoSetup-LICENSE.txt')
+    if args.installer_tools:
+        optional_policy_module().catalog(stage, args.installer_tools)
     installer(stage, meta)
     write(output / 'release-notes.txt', release_notes(meta))
     # A source archive includes only committed files, never ignored runtime data.

@@ -254,3 +254,57 @@ incomplete runs are retained: test notes dispatched before normal queued setup,
 a factory used without its mixer pump, cross-game cached assets, and an absent
 standalone configuration. These fixture failures and the pre-fix split-ROM failure
 are not counted as PASS. No unrelated gameplay acceptance was rerun.
+
+## Idempotent optional-content installer upgrades
+
+The owner's human report demonstrated redundant downloads on rerunning the
+preceding installer. This is a corrected installer defect; it does not invalidate
+the accepted engine/audio/gameplay/mod behavior. Optional content now uses per-file
+SHA-256 manifests and independent stable package IDs, display versions and monotonic
+package release numbers, never the engine version. Source-built package identities
+come from payload file hashes rather than ZIP timestamps. Download manifests are
+committed from the existing pinned original archives; engine packaging does not
+fetch optional content merely to generate metadata. Future real package revisions
+must refresh their manifest/version/release independently; future DWD editions
+require distinct IDs and installed/save identities. No mod edition was changed.
+
+A new status/explicit-repair page and Ready summary distinguish absent/current,
+customized/damaged/unverified, newer and update-eligible content. Existing content
+is always preserved unless replacement is explicitly requested and acknowledged.
+Exact legacy payload matches can be adopted without extraction. A download/install
+plan is frozen before engine files are changed and drives both network and native
+installation; zero queued downloads does not invoke the download API. Existing
+configuration is not rewritten when selected game paths are unchanged. Explicit
+replacement backs up the full mod directory plus affected package files outside
+the separate save tree. Linked backup/content/receipt destinations are refused.
+No success receipt is recorded for unverified extraction. Uninstall preserves
+configuration, saves, backups and independently managed content.
+
+Executed prototype evidence: `../test-output/dwd-idempotence/check-first/` passed
+30 checks; the strengthened `check-second/` run passed **35 targeted assertions**,
+including optional-file timestamp preservation, independently versioned update
+receipts and explicit offline engine-only selection. These are prototype runs
+using accepted engine payloads, not final rebuilt-source claims. Final exact-source
+results are recorded in `upgrade-review.json` beside the rebuilt artifacts.
+
+The reusable `idempotence-check.py` compiles a disposable Inno fixture with the
+production scheduling/repair policy and verified original archive bytes served
+through an instrumented loopback HTTP fixture. It tests real native Inno download,
+extraction, upgrade and uninstall paths, not manual extraction substitutes. It
+covers fresh audio/Keyring, newly selected SI Fixes/SourceForge/U6/Glimmerscape,
+same-version no-request/no-overwrite preservation, unknown third-party content,
+damaged packages, refused unacknowledged repair, explicit repair/backups, a closed
+server offline upgrade and independent explicit update tracking. A synthetic newer
+installer/package version exercises future-version handling without changing the
+release version or mod payloads; the final run also replaces the actual preceding
+accepted engine binary. HTTP counts, native-install logs, hashes, file timestamps,
+config bytes, save sentinels, and files AND directories in protected game/official
+profile trees are checked. Actual production-URL fresh downloads are separately
+reported when executed; loopback evidence is not mislabeled live-upstream evidence.
+
+No unrelated gameplay, audio or save/load acceptance is rerun. The previous 287
+installer/runtime/portable/download checks, scoped human acceptance and audio
+regressions remain historical evidence. Protected engine/audio/mod functionality
+and upstream installer source are untouched. Manual visual inspection of the new
+status/confirmation page is NOT TESTED; clean-player Windows/hosted execution/
+attestations remain as previously classified. No push, tag or publication.

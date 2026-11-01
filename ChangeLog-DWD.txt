@@ -41,3 +41,10 @@ DWD revision: Recorded per build in release-metadata.json and Exult version outp
     - Preserved automatic audio and original optional mod downloads with verified
       hashes, owned destinations and original documentation and credits.
       Keyring and SI Fixes remain original editions, not modified DWD editions.
+
+      Optional-content upgrade fix (unpublished candidate):
+    - Stopped unchanged selected mods and audio being downloaded or installed
+      again during engine upgrades. Existing custom or unverified content is
+      preserved, and engine-only upgrades can proceed offline.
+    - Added optional-content status, independent package records and explicit
+      repair/update confirmation with backups, keeping saves and configuration.
