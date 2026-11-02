@@ -24,6 +24,7 @@
 #endif
 
 #include "contain.h"
+#include "native_virtue_case.h"
 
 #include "Gump_manager.h"
 #include "ShortcutBar_gump.h"
@@ -68,6 +69,9 @@ static inline bool Can_be_added(const Container_game_object* cont, int shapenum,
 
 // Max. we'll hold.  (Guessing).
 int Container_game_object::get_max_volume() const {
+	// Eight unique stones are the case's capacity; its small outside volume
+	// must not limit the fitted interior to fewer than eight.
+	if (Virtue_case::is_case(this)) return 0;
 	return get_info().has_extradimensional_storage() ? 0 : get_volume();
 }
 
@@ -107,6 +111,9 @@ bool Container_game_object::add(
 		bool noset    // True to prevent actors from setting sched. weapon.
 ) {
 	ignore_unused_variable_warning(noset);
+	// Fixed compartments apply to every insertion path, even with the gump closed.
+	if (!Virtue_case::accepts(this, obj)) return false;
+	if (Virtue_case::is_case(this)) combine = false;
 	// Prevent dragging the avatar into a container.
 	// Casting to void* to avoid including actors.h.
 	if (obj == static_cast<void*>(gwin->get_main_actor())) {
@@ -164,6 +171,7 @@ bool Container_game_object::add(
 	volume_used += objvol;
 	obj->set_owner(this);                       // Set us as the owner.
 	objects.append(obj->shared_from_this());    // Append to chain.
+	Virtue_case::seat(this, obj);
 	// Guessing:
 	if (get_flag(Obj_flags::okay_to_take)) {
 		obj->set_flag(Obj_flags::okay_to_take);
@@ -407,6 +415,10 @@ Game_object* Container_game_object::find_item(
 
 bool Container_game_object::show_gump(int event) {
 	ignore_unused_variable_warning(event);
+	if (Virtue_case::is_case(this) && !cheat.in_map_editor()) {
+		Virtue_case::open(this);
+		return true;
+	}
 	const Shape_info& inf = get_info();
 	int               gump;
 	if (cheat.in_map_editor()) {

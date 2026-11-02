@@ -64,6 +64,8 @@ EXULTSOURCES =	\
 	gumps/Wait_gump.h	\
 	native_orb_chart.cc	\
 	native_orb_chart.h	\
+	native_virtue_case.cc	\
+	native_virtue_case.h	\
 	native_wait.cc	\
 	native_wait.h	\
 	game_time.cc	\

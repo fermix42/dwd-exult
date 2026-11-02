@@ -17,6 +17,7 @@
  */
 
 #include "native_orb_chart.h"
+#include "native_virtue_case.h"
 #ifdef HAVE_CONFIG_H
 #	include <config.h>
 #endif
@@ -138,6 +139,7 @@ static void get_plural_name(const char* name, int quantity, string& output_name)
  *  Returns the string to be displayed when the item is clicked on
  */
 string Game_object::get_name() const {
+	if (Virtue_case::is_case(this)) return "Virtue Stone Case";
 	if (Orb_chart::is_chart(this)) return "Lord British's Orb chart";
 	const Shape_info&      info  = get_info();
 	const int              qual  = info.has_quality() && !info.is_npc() ? get_quality() : -1;
