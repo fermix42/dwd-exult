@@ -51,8 +51,8 @@ The fixed layout, in two columns read top to bottom:
 Original colors were checked directly against BG shape 330 and the original
 palette. Keyring's Codex source also identifies frame 7 as white/Spirituality.
 
-The gump renders a separate three-times enlarged image from each original stone
-frame. Hit testing uses that seated image and returns the actual contained object.
+The gump renders the owner-supplied separate 28x32 seated artwork for each
+original stone identity. Hit testing uses that seated image and returns the actual contained object.
 The grab anchor follows `Jawbone_gump::set_to_spot`; native `Dragging_info` renders
 the ordinary small object while dragging. No proxy, shape/frame substitution,
 destination copying, new teleportation implementation or Remove Stone menu exists.
@@ -64,12 +64,35 @@ destination x/y/z/map data. No save-format extension or text database was added.
 Runtime pointers correctly refresh after load; tests compare stable references
 only within a world, and restored physical contents/data across loads.
 
-Artwork is provisional: a 23x16 closed case, 200x172 open gump, BG palette wood,
-brass, burgundy recesses and blank parchment. Permanent virtue captions use the
-existing small BG font. The enlarged sprites are a functional scaling proof,
-not final detailed gemstone artwork. Pixel resources are constructed in the
-native source, as the accepted Orb chart's owned artwork is; no proprietary game
-assets were committed or copied into source.
+## Production-art presentation (unreleased)
+
+The approved production package replaces the generated placeholder: closed case
+28x20, open case 320x200, eight separate 28x32 stones, and two 56x20 physical lid
+buttons with normal/depressed frames. The palette-indexed 14-frame resource is
+`data/bg/virtue_case.shp`, appended at Exult BG FLEX index 18 without shifting any
+existing entry. Editable PNGs, palette, contract and converter are retained in
+`data/bg/virtue_case`; reproduction commands are in its README. The ordinary BG
+archive build uses `data/bg/flx.in`; it is not a Keyring resource or separate mod.
+
+The original column-major frame order stays `{2,0,1,4,3,5,7,6}`. Render anchors
+are x=30/186, y=67/103/139/175, with seated origins (14,16). Both drawing and real-object
+picking use the same loaded frame/mask. The ordinary small stone shape330 art,
+mark destinations, serialization and drag cursor remain unchanged.
+
+MARK/RECALL blank faces are painted at (42,13) and (222,13), with native
+`SMALL_BLACK_FONT` centered on top and shifted one pixel down while pressed.
+These are presentation-only controls: they consume a click without casting or
+changing stone destinations. CLI action names explicitly say `_unimplemented`.
+Parchment images remain blank: label editing, text storage and spell behavior
+are not implemented by importing this art. The catch hit rectangle [146,192,28,8]
+closes the real gump through its normal close path; no context menu or Remove
+button was introduced. No global scaler/UI settings are forced.
+
+The case is centered/movable through existing gump behavior.320x200 fills the
+original logical viewport, so moving it there can clip it. Dedicated review
+runs use Point UI scaling and disposable configuration only. Human visual
+acceptance is still pending; integration tests are evidence of engine behavior,
+not final artwork acceptance.
 
 ## Save/load lifecycle correction
 
@@ -187,3 +210,34 @@ breadcrumbs or final approved artwork. Static blank parchment is decorative.
 No human acceptance, release approval or migration of existing player saves is
 implied. Immediate next step: human review of physical handling and provisional
 artwork; later-stage implementation requires the separately scoped approval.
+
+## Production-art integration validation
+
+The focused `tools/virtue_case/checks.py` suite now uses the 320x200 geometry
+and a 640x400 logical viewport so real source/destination containers stay visible.
+It verifies 50 assertions each in ordinary BG and original Keyring with synthetic
+pre-marked fixtures: insertion/removal, masks returning actual objects, all eight
+slots, duplicate/nonstone rejection, empty/filled reload, nested containers,
+world drop/reload/open/pickup, and unchanged original destination data.
+
+`tools/virtue_case/presentation.py` copies the resulting disposable fixture save
+into a new isolated run and captures the actual renderer. It checks three native
+controls, no-op MARK/RECALL preserving identities/destinations, catch close/reopen,
+display dimensions and exact integer nearest-neighbor pixel blocks. Review
+profiles: BG 320x200 display 1x,640x400 display 2x,960x600 display 3x;960x400 ultrawide
+Fit; Keyring640x400 display 2x. All use logical game/UI 320x200 and Point/Fit.
+
+Correction to the earlier authoring-package scale advice: this branch's
+`eff_ui_scale()` returns 1; plain `Centre` is 1x, and a `ui/scale` XML field does
+not set that scale. Use `Fit` with exact integer display multiples for these
+verified profiles. No user/global configuration was modified. Initial review
+runs using Centre at larger windows tested controls but were not 2x/3x evidence;
+they are superseded by corrected Fit captures. A mistyped Keyring checkpoint
+path was also corrected before that presentation run started its engine.
+
+Resource checks independently reconvert all 14 PNGs byte-identically to the
+supplied SHP, and compare all 18 pre-existing BG FLEX entries byte-for-byte.
+A collision fixture verifies an occupied third-party shape 1601 is not claimed.
+Original game directories remain read-only inputs. Real spellcasting, label
+editing, quest acquisition, held-button screenshots and human art acceptance
+are not certified by this presentation integration.

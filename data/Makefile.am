@@ -110,7 +110,8 @@ EXULT_BG_FLX_OBJECTS = \
 	bg/autonotes.txt \
 	bg/intro_hand.shp \
 	bg/gump_info.txt \
-	bg/global_flags.txt
+	bg/global_flags.txt \
+	bg/virtue_case.shp
 
 EXULT_BG_INTROSFX_MT32_OBJECTS = \
 	bg/introsfx_mt.in \
@@ -338,3 +339,24 @@ bg/introsfx_sb_flx.h: bg/introsfx_sb.flx
 
 all-local: exult.flx exult_bg.flx exult_si.flx
 	-cp -fR $(srcdir)/*.flx $(builddir) 2>/dev/null
+
+# Editable source PNGs and deterministic converter for native case art.
+EXTRA_DIST += \
+	bg/virtue_case/asset_manifest.json \
+	bg/virtue_case/asset_tools.py \
+	bg/virtue_case/bg_palette_rgb8.bin \
+	bg/virtue_case/closed_case.png \
+	bg/virtue_case/mark_normal.png \
+	bg/virtue_case/mark_pressed.png \
+	bg/virtue_case/open_case.png \
+	bg/virtue_case/README.txt \
+	bg/virtue_case/recall_normal.png \
+	bg/virtue_case/recall_pressed.png \
+	bg/virtue_case/stone_compassion.png \
+	bg/virtue_case/stone_honesty.png \
+	bg/virtue_case/stone_honor.png \
+	bg/virtue_case/stone_humility.png \
+	bg/virtue_case/stone_justice.png \
+	bg/virtue_case/stone_sacrifice.png \
+	bg/virtue_case/stone_spirituality.png \
+	bg/virtue_case/stone_valor.png

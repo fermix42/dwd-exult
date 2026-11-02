@@ -5,6 +5,12 @@ $buildTarget = if ($args -contains '-Rebuild') { '/t:Rebuild' } else { '/t:Build
 $sourceRoot = (Resolve-Path "$PSScriptRoot/../..").Path
 $workspace = Split-Path $sourceRoot -Parent
 $vs = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+# Use the ordinary packer/manifest to regenerate the BG archive and its header.
+Push-Location $sourceRoot
+try {
+    & "$workspace/build-exult-fork/bin/expack.exe" -i data/bg/flx.in
+    if ($LASTEXITCODE) { throw "BG resource packing failed: $LASTEXITCODE" }
+} finally { Pop-Location }
 $oldCL = $env:_CL_
 try {
     $env:_CL_ = ("$oldCL /Z7 /DPORTABLE_EXULT_WIN32").Trim()

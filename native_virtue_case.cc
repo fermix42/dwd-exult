@@ -1,10 +1,15 @@
-// GPL-2.0-or-later. Exult-owned physical Virtue Stone Case, provisional artwork.
+// GPL-2.0-or-later. Exult-owned physical Virtue Stone Case, production artwork.
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 #include "native_virtue_case.h"
 #include "Gump.h"
 #include "Gump_manager.h"
+#include "Gump_button.h"
+#include "U7obj.h"
+#include "databuf.h"
+#include "fnames.h"
+#include "data/exult_bg_flx.h"
 #include "contain.h"
 #include "font.h"
 #include "font_map.h"
@@ -17,79 +22,87 @@
 #include "ready.h"
 #include <array>
 #include <memory>
-#include <vector>
+#include <stdexcept>
 
 namespace {
 bool installed = false;
-constexpr int width = 200, height = 172;
+constexpr int width = 320, height = 200;
 // Original BG shape 330 frames: yellow/red/blue/orange/green/purple/black/white.
 // Fixed columns read top to bottom: Honesty..Justice, Sacrifice..Humility.
 constexpr int stone_frames[] = {2, 0, 1, 4, 3, 5, 7, 6};
-constexpr const char* virtues[] = {"Honesty", "Compassion", "Valor", "Justice",
-    "Sacrifice", "Honor", "Spirituality", "Humility"};
 int slot_for(const Game_object* object) {
     if (!object || !object->as_virtstone() || object->get_shapenum() != 330) return -1;
     for (int i = 0; i < 8; ++i) if (object->get_framenum() == stone_frames[i]) return i;
     return -1;
 }
-int slot_x(int slot) { return 27 + (slot / 4) * 98; }
-int slot_y(int slot) { return 50 + (slot % 4) * 32; }
+int slot_x(int slot) { return 30 + (slot / 4) * 156; }
+int slot_y(int slot) { return 67 + (slot % 4) * 36; }
 
-// Pixel artwork belongs to this feature, following Orb_chart::install_shape.
-// Palette indices are original BG wood, brass, burgundy and parchment ramps.
-std::unique_ptr<Shape_frame> case_art(bool closed) {
-    const int w = closed ? 23 : width, h = closed ? 16 : height;
-    std::vector<unsigned char> pixels(w*h, 255);
-    auto rect = [&](int x, int y, int rw, int rh, unsigned char c) {
-        for (int py = y; py < y+rh; ++py) for (int px = x; px < x+rw; ++px) pixels[py*w+px] = c;
-    };
-    rect(1, 1, w-2, h-2, 147);
-    rect(2, 2, w-4, h-4, 140);
-    rect(3, 3, w-6, h-6, 144);
-    for (int y = 5; y < h-4; y += 3) rect(4, y, w-8, 1, 145);
-    if (closed) {
-        rect(3, 10, 17, 1, 147);
-        rect(10, 9, 3, 4, 8); rect(11, 10, 1, 1, 2);
-        rect(3, 2, 3, 2, 9); rect(17, 2, 3, 2, 9);
-    } else {
-        rect(7, 7, w-14, 19, 29);
-        rect(7, 30, w-14, h-38, 30);
-        rect(10, 32, w-20, h-42, 29);
-        rect(97, 32, 5, h-42, 145);
-        for (int i = 0; i < 8; ++i) {
-            const int x = slot_x(i), y = slot_y(i);
-            rect(x-13, y-13, 27, 27, 30);
-            rect(x-11, y-11, 23, 23, 147);
-            rect(x+16, y-1, 49, 12, 9);
-            rect(x+17, y, 47, 10, 135); // Blank handwritten destination note.
-            rect(x+18, y+1, 45, 8, 134);
-        }
-        rect(25, 27, 13, 4, 9); rect(26, 27, 11, 1, 3);
-        rect(162, 27, 13, 4, 9); rect(163, 27, 11, 1, 3);
-        rect(94, h-6, 12, 4, 8); rect(96, h-5, 8, 1, 3);
+std::unique_ptr<Shape_file> load_art() {
+    const U7object resource(BUNDLE_CHECK(BUNDLE_EXULT_BG_FLX, EXULT_BG_FLX), EXULT_BG_FLX_VIRTUE_CASE_SHP);
+    std::size_t length;
+    auto bytes = resource.retrieve(length);
+    IBufferDataView source(bytes, length);
+    auto art = std::make_unique<Shape_file>(&source);
+    if (art->get_num_frames() != 14) throw std::runtime_error("Invalid Virtue Case art frame count");
+    for (int i = 0; i < 14; ++i) {
+        const auto* f = art->get_frame(i);
+        const int w = i == 0 ? 28 : i == 1 ? width : i < 10 ? 28 : 56;
+        const int h = i == 0 ? 20 : i == 1 ? height : i < 10 ? 32 : 20;
+        const int ox = i == 0 || (i >= 2 && i < 10) ? 14 : 0;
+        const int oy = i == 0 ? 19 : i >= 2 && i < 10 ? 16 : 0;
+        if (!f || f->get_width() != w || f->get_height() != h || f->get_xleft() != ox || f->get_yabove() != oy)
+            throw std::runtime_error("Invalid Virtue Case art geometry");
     }
-    return std::make_unique<Shape_frame>(pixels.data(), w, h, closed ? w/2 : 0, closed ? h-1 : 0, true);
+    return art;
 }
 
-class Case_gump : public Gump {
-    std::unique_ptr<Shape_frame> background;
-    std::array<std::unique_ptr<Shape_frame>, 8> seated;
+// Presentation controls only. MARK/RECALL have no spell implementation yet.
+class Case_button : public Gump_button {
+    Shape_file* art;
+    int frame;
+    const char* label;
 public:
-    explicit Case_gump(Container_game_object* cont) : Gump(cont, 0, 0, -1), background(case_art(false)) {
-        set_object_area(TileRect(0, 0, width, height), 8, 162);
-        for (int i = 0; i < 8; ++i) {
-            ShapeID source(330, stone_frames[i]);
-            auto* original = source.get_shape();
-            if (!original) continue;
-            const int sw = original->get_width(), sh = original->get_height();
-            Image_buffer8 small(sw, sh); small.fill8(255);
-            original->paint(&small, original->get_xleft(), original->get_yabove());
-            const int scale = 3, w = sw*scale, h = sh*scale;
-            std::vector<unsigned char> pixels(w*h, 255);
-            for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x)
-                pixels[y*w+x] = small.get_pixel8(x/scale, y/scale);
-            seated[i] = std::make_unique<Shape_frame>(pixels.data(), w, h, w/2, h/2, true);
-        }
+    Case_button(Gump* parent, Shape_file* art, int frame, int x, int y, const char* label)
+        : Gump_button(parent, -1, x, y, SF_OTHER), art(art), frame(frame), label(label) {}
+    TileRect get_rect() const override {
+        int sx = 0, sy = 0; local_to_screen(sx, sy);
+        return TileRect(sx, sy, frame < 0 ? 28 : 56, frame < 0 ? 8 : 20);
+    }
+    bool on_widget(int mx, int my) const override {
+        screen_to_local(mx, my);
+        return mx >= 0 && my >= 0 && mx < (frame < 0 ? 28 : 56) && my < (frame < 0 ? 8 : 20);
+    }
+    const char* cli_action() const override {
+        return frame < 0 ? "close" : frame == 10 ? "mark_unimplemented" : "recall_unimplemented";
+    }
+    bool is_checkmark() const override { return frame < 0; }
+    bool activate(MouseButton button) override {
+        if (button != MouseButton::Left) return false;
+        if (frame < 0) parent->close();
+        return true; // Consume the presentation button without casting anything.
+    }
+    void paint() override {
+        if (frame < 0) return; // The catch is already part of the background.
+        int sx = 0, sy = 0; local_to_screen(sx, sy);
+        art->get_frame(frame + (is_pushed() ? 1 : 0))->paint(gwin->get_win()->get_ib8(), sx, sy);
+        auto font = fontManager.get_font("SMALL_BLACK_FONT");
+        font->paint_text(gwin->get_win()->get_ib8(), label, sx + (56 - font->get_text_width(label))/2, sy + 6 + (is_pushed() ? 1 : 0));
+    }
+};
+
+class Case_gump : public Gump {
+    // Own all frames for as long as child controls borrow them.
+    std::unique_ptr<Shape_file> art;
+    Shape_frame* background;
+    std::array<Shape_frame*, 8> seated{};
+public:
+    explicit Case_gump(Container_game_object* cont) : Gump(cont, 0, 0, -1), art(load_art()), background(art->get_frame(1)) {
+        set_object_area(TileRect(0, 0, width, height));
+        for (int i = 0; i < 8; ++i) seated[i] = art->get_frame(i+2);
+        add_elem(new Case_button(this, art.get(), 10, 42, 13, "MARK"));
+        add_elem(new Case_button(this, art.get(), 12, 222, 13, "RECALL"));
+        add_elem(new Case_button(this, art.get(), -1, 146, 192, ""));
         set_pos();
     }
     Gump* clone(Container_game_object* cont, int initx, int inity) override {
@@ -104,12 +117,6 @@ public:
     void paint() override {
         background->paint(gwin->get_win()->get_ib8(), x, y);
         paint_elems();
-        auto font = fontManager.get_font("SMALL_BLACK_FONT");
-        std::array<unsigned char, 256> ink;
-        for (int i = 0; i < 256; ++i) ink[i] = i;
-        ink[0] = 135;
-        for (int i = 0; i < 8; ++i)
-            font->paint_text(gwin->get_win()->get_ib8(), virtues[i], x+10+(i/4)*98, y+slot_y(i)-16, ink.data());
         Object_iterator next(container->get_objects());
         while (auto* object = next.get_next()) {
             const int slot = slot_for(object);
@@ -143,7 +150,8 @@ void Virtue_case::install_shape(Shapes_vga_file& shapes) {
     if (!GAME_BG || (shape < shapes.get_num_shapes() && shapes.get_num_frames(shape))) return;
     auto* item = shapes.new_shape(shape);
     if (!item) return;
-    item->add_frame(case_art(true), 0);
+    auto art = load_art();
+    item->add_frame(std::move(*art->begin()), 0);
     Shape_info info;
     info.set_shape_class(Shape_info::container);
     info.set_weight_volume(10, 3);

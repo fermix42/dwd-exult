@@ -93,7 +93,7 @@ def open_pair(case, bag, case_open=True):
     show_party_item(bag, avatar)
     if case_open:
         show_party_item(case, avatar)
-        do('move_gump', ref=case, x=400, y=30)
+        do('move_gump', ref=case, x=310, y=5)
     else:
         owner = inspect(case)['owner']
         if owner != avatar:
@@ -146,12 +146,12 @@ try:
               and observed['shape'] == 330 and observed['stone_target'] == original['stone_target']
               and observed['stone_target_map'] == original['stone_target_map'])
     capture('eight-stones')
-    slots = {2: (27,50), 0: (27,82), 1: (27,114), 4: (27,146),
-             3: (125,50), 5: (125,82), 7: (125,114), 6: (125,146)}
+    slots = {2: (30,67), 0: (30,103), 1: (30,139), 4: (30,175),
+             3: (186,67), 5: (186,103), 7: (186,139), 6: (186,175)}
     contents = inventory(case)
     check('all eight fixed compartments occupied correctly', len(contents) == 8
           and all((o['gump_tx'], o['gump_ty']) == slots[o['frame']] for o in contents))
-    for px, py in [(2,2), (100,15), (190,168), (4,100), (196,80), (125,146)]:
+    for px, py in [(10,10), (160,45), (310,195), (8,100), (312,80), (186,175)]:
         do('transfer_item', ref=first['ref'], destination=bag)
         do('transfer_item', ref=first['ref'], destination=case, x=px, y=py)
         check(f'drop at case local {px},{py} selects Honesty', inspect(first['ref'])['owner'] == case

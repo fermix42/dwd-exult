@@ -1,0 +1,869 @@
+{
+  "version": 1,
+  "status": "AUTHORING CONTRACT; not installed; blank templates only",
+  "coordinate_convention": "x,y,width,height; half-open rectangles; local native pixels. Position means render anchor; top-left=anchor-origin.",
+  "canvas": [
+    320,
+    200
+  ],
+  "lid": [
+    6,
+    6,
+    308,
+    34
+  ],
+  "wood_border": 6,
+  "velvet": [
+    6,
+    48,
+    308,
+    144
+  ],
+  "compass_safe": [
+    136,
+    8,
+    48,
+    28
+  ],
+  "hinges": [
+    [
+      32,
+      40,
+      24,
+      8
+    ],
+    [
+      264,
+      40,
+      24,
+      8
+    ]
+  ],
+  "button_hits": {
+    "mark": [
+      42,
+      13,
+      56,
+      20
+    ],
+    "recall": [
+      222,
+      13,
+      56,
+      20
+    ]
+  },
+  "button_text": {
+    "mark_normal": [
+      55,
+      19
+    ],
+    "mark_pressed": [
+      55,
+      20
+    ],
+    "recall_normal": [
+      229,
+      19
+    ],
+    "recall_pressed": [
+      229,
+      20
+    ]
+  },
+  "closing_catch_and_hit": [
+    146,
+    192,
+    28,
+    8
+  ],
+  "slots": [
+    {
+      "slot": 0,
+      "virtue": "Honesty",
+      "color": "blue",
+      "original_shape": 330,
+      "original_frame": 2,
+      "compartment": [
+        8,
+        48,
+        148,
+        36
+      ],
+      "recess": [
+        12,
+        50,
+        36,
+        34
+      ],
+      "stone_canvas": [
+        16,
+        51,
+        28,
+        32
+      ],
+      "stone_hotspot": [
+        14,
+        16
+      ],
+      "stone_render_anchor": [
+        30,
+        67
+      ],
+      "label_rect": [
+        56,
+        58,
+        92,
+        18
+      ],
+      "label_text_origin": [
+        60,
+        62
+      ],
+      "label_text_safe_rect": [
+        60,
+        62,
+        84,
+        10
+      ],
+      "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
+      "label_hit": [
+        56,
+        58,
+        92,
+        18
+      ]
+    },
+    {
+      "slot": 1,
+      "virtue": "Compassion",
+      "color": "yellow",
+      "original_shape": 330,
+      "original_frame": 0,
+      "compartment": [
+        8,
+        84,
+        148,
+        36
+      ],
+      "recess": [
+        12,
+        86,
+        36,
+        34
+      ],
+      "stone_canvas": [
+        16,
+        87,
+        28,
+        32
+      ],
+      "stone_hotspot": [
+        14,
+        16
+      ],
+      "stone_render_anchor": [
+        30,
+        103
+      ],
+      "label_rect": [
+        56,
+        94,
+        92,
+        18
+      ],
+      "label_text_origin": [
+        60,
+        98
+      ],
+      "label_text_safe_rect": [
+        60,
+        98,
+        84,
+        10
+      ],
+      "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
+      "label_hit": [
+        56,
+        94,
+        92,
+        18
+      ]
+    },
+    {
+      "slot": 2,
+      "virtue": "Valor",
+      "color": "red",
+      "original_shape": 330,
+      "original_frame": 1,
+      "compartment": [
+        8,
+        120,
+        148,
+        36
+      ],
+      "recess": [
+        12,
+        122,
+        36,
+        34
+      ],
+      "stone_canvas": [
+        16,
+        123,
+        28,
+        32
+      ],
+      "stone_hotspot": [
+        14,
+        16
+      ],
+      "stone_render_anchor": [
+        30,
+        139
+      ],
+      "label_rect": [
+        56,
+        130,
+        92,
+        18
+      ],
+      "label_text_origin": [
+        60,
+        134
+      ],
+      "label_text_safe_rect": [
+        60,
+        134,
+        84,
+        10
+      ],
+      "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
+      "label_hit": [
+        56,
+        130,
+        92,
+        18
+      ]
+    },
+    {
+      "slot": 3,
+      "virtue": "Justice",
+      "color": "green",
+      "original_shape": 330,
+      "original_frame": 4,
+      "compartment": [
+        8,
+        156,
+        148,
+        36
+      ],
+      "recess": [
+        12,
+        158,
+        36,
+        34
+      ],
+      "stone_canvas": [
+        16,
+        159,
+        28,
+        32
+      ],
+      "stone_hotspot": [
+        14,
+        16
+      ],
+      "stone_render_anchor": [
+        30,
+        175
+      ],
+      "label_rect": [
+        56,
+        166,
+        92,
+        18
+      ],
+      "label_text_origin": [
+        60,
+        170
+      ],
+      "label_text_safe_rect": [
+        60,
+        170,
+        84,
+        10
+      ],
+      "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
+      "label_hit": [
+        56,
+        166,
+        92,
+        18
+      ]
+    },
+    {
+      "slot": 4,
+      "virtue": "Sacrifice",
+      "color": "orange",
+      "original_shape": 330,
+      "original_frame": 3,
+      "compartment": [
+        164,
+        48,
+        148,
+        36
+      ],
+      "recess": [
+        168,
+        50,
+        36,
+        34
+      ],
+      "stone_canvas": [
+        172,
+        51,
+        28,
+        32
+      ],
+      "stone_hotspot": [
+        14,
+        16
+      ],
+      "stone_render_anchor": [
+        186,
+        67
+      ],
+      "label_rect": [
+        212,
+        58,
+        92,
+        18
+      ],
+      "label_text_origin": [
+        216,
+        62
+      ],
+      "label_text_safe_rect": [
+        216,
+        62,
+        84,
+        10
+      ],
+      "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
+      "label_hit": [
+        212,
+        58,
+        92,
+        18
+      ]
+    },
+    {
+      "slot": 5,
+      "virtue": "Honor",
+      "color": "purple",
+      "original_shape": 330,
+      "original_frame": 5,
+      "compartment": [
+        164,
+        84,
+        148,
+        36
+      ],
+      "recess": [
+        168,
+        86,
+        36,
+        34
+      ],
+      "stone_canvas": [
+        172,
+        87,
+        28,
+        32
+      ],
+      "stone_hotspot": [
+        14,
+        16
+      ],
+      "stone_render_anchor": [
+        186,
+        103
+      ],
+      "label_rect": [
+        212,
+        94,
+        92,
+        18
+      ],
+      "label_text_origin": [
+        216,
+        98
+      ],
+      "label_text_safe_rect": [
+        216,
+        98,
+        84,
+        10
+      ],
+      "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
+      "label_hit": [
+        212,
+        94,
+        92,
+        18
+      ]
+    },
+    {
+      "slot": 6,
+      "virtue": "Spirituality",
+      "color": "white",
+      "original_shape": 330,
+      "original_frame": 7,
+      "compartment": [
+        164,
+        120,
+        148,
+        36
+      ],
+      "recess": [
+        168,
+        122,
+        36,
+        34
+      ],
+      "stone_canvas": [
+        172,
+        123,
+        28,
+        32
+      ],
+      "stone_hotspot": [
+        14,
+        16
+      ],
+      "stone_render_anchor": [
+        186,
+        139
+      ],
+      "label_rect": [
+        212,
+        130,
+        92,
+        18
+      ],
+      "label_text_origin": [
+        216,
+        134
+      ],
+      "label_text_safe_rect": [
+        216,
+        134,
+        84,
+        10
+      ],
+      "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
+      "label_hit": [
+        212,
+        130,
+        92,
+        18
+      ]
+    },
+    {
+      "slot": 7,
+      "virtue": "Humility",
+      "color": "black",
+      "original_shape": 330,
+      "original_frame": 6,
+      "compartment": [
+        164,
+        156,
+        148,
+        36
+      ],
+      "recess": [
+        168,
+        158,
+        36,
+        34
+      ],
+      "stone_canvas": [
+        172,
+        159,
+        28,
+        32
+      ],
+      "stone_hotspot": [
+        14,
+        16
+      ],
+      "stone_render_anchor": [
+        186,
+        175
+      ],
+      "label_rect": [
+        212,
+        166,
+        92,
+        18
+      ],
+      "label_text_origin": [
+        216,
+        170
+      ],
+      "label_text_safe_rect": [
+        216,
+        170,
+        84,
+        10
+      ],
+      "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
+      "label_hit": [
+        212,
+        166,
+        92,
+        18
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "name": "closed_case",
+      "filename": "closed_case.png",
+      "purpose": "Closed inventory/world case, never a stone",
+      "width": 28,
+      "height": 20,
+      "frame_count": 1,
+      "packed_frame": 0,
+      "pixel_format": "8-bit indexed PNG preferred; RGB/RGBA 8-bit accepted by converter",
+      "transparency": "binary alpha 0/255 on PNG; runtime index 255",
+      "palette": "bg_palette_rgb8.bin, opaque indices 0..223 only",
+      "rendering_origin": [
+        14,
+        19
+      ],
+      "position_relative_to_gump": null,
+      "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
+      "target_shape": "native world shape 1601 frame 0",
+      "conversion": "python asset_tools.py --input incoming --output converted"
+    },
+    {
+      "name": "open_case",
+      "filename": "open_case.png",
+      "purpose": "Wood, lid, brass, compass, empty recesses and blank label plates; includes closing catch",
+      "width": 320,
+      "height": 200,
+      "frame_count": 1,
+      "packed_frame": 1,
+      "pixel_format": "8-bit indexed PNG preferred; RGB/RGBA 8-bit accepted by converter",
+      "transparency": "binary alpha 0/255 on PNG; runtime index 255",
+      "palette": "bg_palette_rgb8.bin, opaque indices 0..223 only",
+      "rendering_origin": [
+        0,
+        0
+      ],
+      "position_relative_to_gump": [
+        0,
+        0
+      ],
+      "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
+      "target_shape": "custom Case_gump resource frame 1",
+      "conversion": "python asset_tools.py --input incoming --output converted"
+    },
+    {
+      "name": "stone_honesty",
+      "filename": "stone_honesty.png",
+      "purpose": "Separate seated Honesty art; identity remains original shape 330 frame 2",
+      "width": 28,
+      "height": 32,
+      "frame_count": 1,
+      "packed_frame": 2,
+      "pixel_format": "8-bit indexed PNG preferred; RGB/RGBA 8-bit accepted by converter",
+      "transparency": "binary alpha 0/255 on PNG; runtime index 255",
+      "palette": "bg_palette_rgb8.bin, opaque indices 0..223 only",
+      "rendering_origin": [
+        14,
+        16
+      ],
+      "position_relative_to_gump": [
+        30,
+        67
+      ],
+      "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
+      "target_shape": "custom Case_gump resource frame 2",
+      "conversion": "python asset_tools.py --input incoming --output converted"
+    },
+    {
+      "name": "stone_compassion",
+      "filename": "stone_compassion.png",
+      "purpose": "Separate seated Compassion art; identity remains original shape 330 frame 0",
+      "width": 28,
+      "height": 32,
+      "frame_count": 1,
+      "packed_frame": 3,
+      "pixel_format": "8-bit indexed PNG preferred; RGB/RGBA 8-bit accepted by converter",
+      "transparency": "binary alpha 0/255 on PNG; runtime index 255",
+      "palette": "bg_palette_rgb8.bin, opaque indices 0..223 only",
+      "rendering_origin": [
+        14,
+        16
+      ],
+      "position_relative_to_gump": [
+        30,
+        103
+      ],
+      "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
+      "target_shape": "custom Case_gump resource frame 3",
+      "conversion": "python asset_tools.py --input incoming --output converted"
+    },
+    {
+      "name": "stone_valor",
+      "filename": "stone_valor.png",
+      "purpose": "Separate seated Valor art; identity remains original shape 330 frame 1",
+      "width": 28,
+      "height": 32,
+      "frame_count": 1,
+      "packed_frame": 4,
+      "pixel_format": "8-bit indexed PNG preferred; RGB/RGBA 8-bit accepted by converter",
+      "transparency": "binary alpha 0/255 on PNG; runtime index 255",
+      "palette": "bg_palette_rgb8.bin, opaque indices 0..223 only",
+      "rendering_origin": [
+        14,
+        16
+      ],
+      "position_relative_to_gump": [
+        30,
+        139
+      ],
+      "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
+      "target_shape": "custom Case_gump resource frame 4",
+      "conversion": "python asset_tools.py --input incoming --output converted"
+    },
+    {
+      "name": "stone_justice",
+      "filename": "stone_justice.png",
+      "purpose": "Separate seated Justice art; identity remains original shape 330 frame 4",
+      "width": 28,
+      "height": 32,
+      "frame_count": 1,
+      "packed_frame": 5,
+      "pixel_format": "8-bit indexed PNG preferred; RGB/RGBA 8-bit accepted by converter",
+      "transparency": "binary alpha 0/255 on PNG; runtime index 255",
+      "palette": "bg_palette_rgb8.bin, opaque indices 0..223 only",
+      "rendering_origin": [
+        14,
+        16
+      ],
+      "position_relative_to_gump": [
+        30,
+        175
+      ],
+      "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
+      "target_shape": "custom Case_gump resource frame 5",
+      "conversion": "python asset_tools.py --input incoming --output converted"
+    },
+    {
+      "name": "stone_sacrifice",
+      "filename": "stone_sacrifice.png",
+      "purpose": "Separate seated Sacrifice art; identity remains original shape 330 frame 3",
+      "width": 28,
+      "height": 32,
+      "frame_count": 1,
+      "packed_frame": 6,
+      "pixel_format": "8-bit indexed PNG preferred; RGB/RGBA 8-bit accepted by converter",
+      "transparency": "binary alpha 0/255 on PNG; runtime index 255",
+      "palette": "bg_palette_rgb8.bin, opaque indices 0..223 only",
+      "rendering_origin": [
+        14,
+        16
+      ],
+      "position_relative_to_gump": [
+        186,
+        67
+      ],
+      "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
+      "target_shape": "custom Case_gump resource frame 6",
+      "conversion": "python asset_tools.py --input incoming --output converted"
+    },
+    {
+      "name": "stone_honor",
+      "filename": "stone_honor.png",
+      "purpose": "Separate seated Honor art; identity remains original shape 330 frame 5",
+      "width": 28,
+      "height": 32,
+      "frame_count": 1,
+      "packed_frame": 7,
+      "pixel_format": "8-bit indexed PNG preferred; RGB/RGBA 8-bit accepted by converter",
+      "transparency": "binary alpha 0/255 on PNG; runtime index 255",
+      "palette": "bg_palette_rgb8.bin, opaque indices 0..223 only",
+      "rendering_origin": [
+        14,
+        16
+      ],
+      "position_relative_to_gump": [
+        186,
+        103
+      ],
+      "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
+      "target_shape": "custom Case_gump resource frame 7",
+      "conversion": "python asset_tools.py --input incoming --output converted"
+    },
+    {
+      "name": "stone_spirituality",
+      "filename": "stone_spirituality.png",
+      "purpose": "Separate seated Spirituality art; identity remains original shape 330 frame 7",
+      "width": 28,
+      "height": 32,
+      "frame_count": 1,
+      "packed_frame": 8,
+      "pixel_format": "8-bit indexed PNG preferred; RGB/RGBA 8-bit accepted by converter",
+      "transparency": "binary alpha 0/255 on PNG; runtime index 255",
+      "palette": "bg_palette_rgb8.bin, opaque indices 0..223 only",
+      "rendering_origin": [
+        14,
+        16
+      ],
+      "position_relative_to_gump": [
+        186,
+        139
+      ],
+      "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
+      "target_shape": "custom Case_gump resource frame 8",
+      "conversion": "python asset_tools.py --input incoming --output converted"
+    },
+    {
+      "name": "stone_humility",
+      "filename": "stone_humility.png",
+      "purpose": "Separate seated Humility art; identity remains original shape 330 frame 6",
+      "width": 28,
+      "height": 32,
+      "frame_count": 1,
+      "packed_frame": 9,
+      "pixel_format": "8-bit indexed PNG preferred; RGB/RGBA 8-bit accepted by converter",
+      "transparency": "binary alpha 0/255 on PNG; runtime index 255",
+      "palette": "bg_palette_rgb8.bin, opaque indices 0..223 only",
+      "rendering_origin": [
+        14,
+        16
+      ],
+      "position_relative_to_gump": [
+        186,
+        175
+      ],
+      "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
+      "target_shape": "custom Case_gump resource frame 9",
+      "conversion": "python asset_tools.py --input incoming --output converted"
+    },
+    {
+      "name": "mark_normal",
+      "filename": "mark_normal.png",
+      "purpose": "Physical lid button, blank center; runtime lettering",
+      "width": 56,
+      "height": 20,
+      "frame_count": 1,
+      "packed_frame": 10,
+      "pixel_format": "8-bit indexed PNG preferred; RGB/RGBA 8-bit accepted by converter",
+      "transparency": "binary alpha 0/255 on PNG; runtime index 255",
+      "palette": "bg_palette_rgb8.bin, opaque indices 0..223 only",
+      "rendering_origin": [
+        0,
+        0
+      ],
+      "position_relative_to_gump": [
+        42,
+        13
+      ],
+      "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
+      "target_shape": "custom Case_gump resource frame 10",
+      "conversion": "python asset_tools.py --input incoming --output converted"
+    },
+    {
+      "name": "mark_pressed",
+      "filename": "mark_pressed.png",
+      "purpose": "Physical lid button, blank center; runtime lettering",
+      "width": 56,
+      "height": 20,
+      "frame_count": 1,
+      "packed_frame": 11,
+      "pixel_format": "8-bit indexed PNG preferred; RGB/RGBA 8-bit accepted by converter",
+      "transparency": "binary alpha 0/255 on PNG; runtime index 255",
+      "palette": "bg_palette_rgb8.bin, opaque indices 0..223 only",
+      "rendering_origin": [
+        0,
+        0
+      ],
+      "position_relative_to_gump": [
+        42,
+        13
+      ],
+      "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
+      "target_shape": "custom Case_gump resource frame 11",
+      "conversion": "python asset_tools.py --input incoming --output converted"
+    },
+    {
+      "name": "recall_normal",
+      "filename": "recall_normal.png",
+      "purpose": "Physical lid button, blank center; runtime lettering",
+      "width": 56,
+      "height": 20,
+      "frame_count": 1,
+      "packed_frame": 12,
+      "pixel_format": "8-bit indexed PNG preferred; RGB/RGBA 8-bit accepted by converter",
+      "transparency": "binary alpha 0/255 on PNG; runtime index 255",
+      "palette": "bg_palette_rgb8.bin, opaque indices 0..223 only",
+      "rendering_origin": [
+        0,
+        0
+      ],
+      "position_relative_to_gump": [
+        222,
+        13
+      ],
+      "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
+      "target_shape": "custom Case_gump resource frame 12",
+      "conversion": "python asset_tools.py --input incoming --output converted"
+    },
+    {
+      "name": "recall_pressed",
+      "filename": "recall_pressed.png",
+      "purpose": "Physical lid button, blank center; runtime lettering",
+      "width": 56,
+      "height": 20,
+      "frame_count": 1,
+      "packed_frame": 13,
+      "pixel_format": "8-bit indexed PNG preferred; RGB/RGBA 8-bit accepted by converter",
+      "transparency": "binary alpha 0/255 on PNG; runtime index 255",
+      "palette": "bg_palette_rgb8.bin, opaque indices 0..223 only",
+      "rendering_origin": [
+        0,
+        0
+      ],
+      "position_relative_to_gump": [
+        222,
+        13
+      ],
+      "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
+      "target_shape": "custom Case_gump resource frame 13",
+      "conversion": "python asset_tools.py --input incoming --output converted"
+    }
+  ],
+  "z_order": [
+    "background with blank label plates and closing catch",
+    "seated gemstone frames",
+    "button normal/pressed artwork",
+    "runtime label and button lettering",
+    "invisible catch close control; no extra foreground bitmap"
+  ],
+  "label_rules": {
+    "font": "SMALL_BLACK_FONT, resource shape 2, lead 0",
+    "text_height": 8,
+    "baseline": 6,
+    "max_width": 84,
+    "recommended_character_cap": 12,
+    "require_width_check": true,
+    "foreground_index": 0,
+    "shadow": "none"
+  },
+  "source_commit": "20cc3475a7e2dcebbf260a80e3c0320d69d5c22d"
+}
