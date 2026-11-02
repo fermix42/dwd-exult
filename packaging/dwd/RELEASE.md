@@ -205,11 +205,11 @@ Owner review identity:
 
 - Title: **Dark Wraith Dragon's Exult 1.0.0-rc.1**.
 - Version: `1.0.0-rc.1`; type: GitHub **prerelease**, not stable or latest.
-- Proposed tag: `v1.0.0-rc.1`, pointing exactly to
+- Proposed tag: `dwd-v1.0.0-rc.1`, pointing exactly to
   `41a83ac4f2f4f73c080655f29d7946f7944deacb`.
-- This specific owner-requested `v` tag takes precedence for this candidate over
-  AGENTS.md's general `dwd-v` convention. Do not change the packager or rerun its
-  tag-gated build path: accepted files already identify the exact build commit.
+- The final owner decision follows AGENTS.md's `dwd-vMAJOR.MINOR.PATCH`
+  convention. The earlier unprefixed proposal was superseded before any tag was
+  created. Do not change version.json, regenerate metadata or rebuild the files.
 - Later acceptance/policy documentation commits are not the binary build revision.
   Release notes link current branch documentation separately from exact source.
 
@@ -232,7 +232,7 @@ entry individually rather than bulk-check nonexistent metadata downloads.
 | `DWD-Exult-1.0.0-rc.1-Source.zip` | 57157239 | `860e747db1ed343a4ed1cb282b673aa9641bfb4ad3de16c5866d3c696646f584` |
 | `SHA256SUMS.txt` (original workflow manifest) | 740 | `fc1241bb336e2ff1562052f66d990ffabcfc14399bd4e69281de4c699a0edbc0` |
 
-GitHub releases and the local/remote `v1.0.0-rc.1` tag were checked: no conflicting
+GitHub releases and the local/remote `dwd-v1.0.0-rc.1` tag were checked: no conflicting
 release or tag exists. Recheck immediately before any future approved mutation.
 [GitHub's asset requirements](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)
 allow up to 1,000 assets, each under 2 GiB; all four existing files fit. The
@@ -243,23 +243,24 @@ GitHub's automatic source zip/tar links are separate from the uploaded matching
 Source.zip, which includes corresponding dependency source/recipes and must remain
 an explicit release asset.
 
-After separate owner approval of the exact tag, target, notes and four files:
+The owner has explicitly authorized this exact prerelease. Publication sequence:
 
 1. Recheck tag/release availability and the preserved file hashes. If anything is
    missing or mismatched, stop and report it; do not rebuild/substitute silently.
-2. Create and push only the annotated `v1.0.0-rc.1` tag at the full verified build
+2. Create and push only the annotated `dwd-v1.0.0-rc.1` tag at the full verified build
    SHA. Verify the remote tag peels to that SHA; never use the newer default tip.
 3. Create a prerelease draft for the existing tag with `--verify-tag`,
    `--prerelease`, `--latest=false`, and a notes file containing exactly the reviewed
    player-facing section below. Attach only the four listed existing files, with
-   no clobber/replacement. This plan creates no draft, tag or upload now.
+   no clobber/replacement. Verify actual downloaded draft assets before publishing.
 4. Verify draft target, prerelease flag, notes, asset names/sizes/hashes and existing
    provenance. Publish that approved prerelease, then download/check the uploaded
    files and verify that their hashes still match. No rebuild or signing step.
 
-Only preparation and documentation push are currently authorized. Tag creation/
-push, draft/Release creation, uploads and public publication await separate owner
-approval. Do not dispatch another Actions run or change branch settings.
+The owner explicitly authorized tag creation/push, draft creation, exactly four
+asset uploads and public prerelease publication once draft verification passes.
+No further confirmation is required. Do not dispatch Actions, change branch
+settings, rebuild binaries or make external announcements.
 
 ## Proposed player-facing prerelease notes
 

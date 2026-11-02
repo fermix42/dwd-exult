@@ -151,10 +151,10 @@ README/release notes explain the separate SmartScreen reputation warning and
 built-in PowerShell checksum verification without disabling Windows protections.
 
 Prepared title: **Dark Wraith Dragon's Exult 1.0.0-rc.1**; proposed tag
-`v1.0.0-rc.1`; type **prerelease**, not stable/latest. Anchor the tag to exact binary
+`dwd-v1.0.0-rc.1`; type **prerelease**, not stable/latest. Anchor the tag to exact binary
 build `41a83ac4f2f4f73c080655f29d7946f7944deacb`, never the newer documentation tip.
-This explicit owner tag choice supersedes the general dwd-v convention for this
-candidate without changing packaging code. No tag or release identity conflict was
+The final owner tag decision follows the established dwd-v convention. The earlier
+unprefixed proposal is superseded; no packaging code or metadata is changed. No tag or release identity conflict was
 found in local/remote checks; GitHub has no Releases. Recheck at publication time.
 
 Hosted artifact 13106221647 remains available (expires November 8, 2026 at
@@ -187,3 +187,19 @@ these four files and publish the reviewed notes. Nothing has been tagged, upload
 published or announced by this task; repository/workflow settings are unchanged.
 Only documentation is committed/pushed. New documentation SHAs do not replace the
 immutable binary build SHA or existing provenance.
+
+
+## Final publication authorization -- November 1, 2026
+
+The owner explicitly authorized the first public prerelease, titled
+Dark Wraith Dragon's Exult 1.0.0-rc.1, tagged `dwd-v1.0.0-rc.1` at
+`41a83ac4f2f4f73c080655f29d7946f7944deacb`, prerelease=true and latest=false.
+This supersedes the earlier pending-approval statements and unprefixed tag proposal.
+Local/remote conflict checks found no tag/Release; the public repository and default
+branch, remote source commit and sufficient permissions were verified. Only manual
+workflow_dispatch is enabled in the tag's source; inherited automation is disabled.
+All four approved local files and manifest package entries match the owner's hashes.
+Publication will use those files unchanged, verify a draft by downloading its exact
+four assets, then publish without another confirmation if all checks pass.
+No rebuild, signing, gameplay/audio retest, settings change or external announcement.
+The immutable binary source remains distinct from these documentation-only commits.
