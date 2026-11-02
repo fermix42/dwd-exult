@@ -25,6 +25,7 @@
 #include "tqueue.h"
 #include "native_virtue_case.h"
 #include "virstone.h"
+#include "spellbook.h"
 #include "ready.h"
 
 #include <SDL3/SDL.h>
@@ -263,6 +264,37 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
         return "\"category\":\"test_setup\",\"synthetic_jawbone_items\":true,\"jawbone\":"
             + describe(jawbone.get()) + ",\"tooth\":" + describe(tooth.get()) + ",\"backpack\":" + describe(container);
     }
+    if (op == "test_case_spell_setup") {
+        player_ready(input);
+        if (!GAME_BG || x<0 || x>4) throw std::runtime_error("invalid_case_spell_fixture");
+        Game_object_vector objects; a->get_objects(objects, c_any_shapenum, c_any_qual, c_any_framenum);
+        Spellbook_object* book = nullptr;
+        for (auto* object : objects) if (auto* b=object->as_spellbook()) { book=b; break; }
+        if (!book) {
+            auto object=w->get_map()->create_ireg_object(761,0); book=object->as_spellbook();
+            if (!book || !a->add(book,true,false)) throw std::runtime_error("fixture_book_unavailable");
+        }
+        book->add_spell(34); book->add_spell(36);
+        if (x==3) { book->remove_spell(34); book->remove_spell(36); }
+        a->set_property(Actor::exp,6400); a->set_property(Actor::magic,30); a->set_property(Actor::mana,x==1?0:30);
+        a->remove_quantity(10000,842,c_any_qual,c_any_framenum);
+        for (int frame=0; frame<8; ++frame) {
+            if (x==2 && frame==3) continue;
+            auto reagent=w->get_map()->create_ireg_object(842,frame); reagent->modify_quantity(19);
+            if (!a->add(reagent.get(),true,false)) throw std::runtime_error("fixture_reagent_does_not_fit");
+        }
+        if (x==4) book->remove_this();
+        return "\"category\":\"test_setup\",\"synthetic_spell_inventory_and_stats\":true";
+    }
+    if (op == "case_spell_state") {
+        std::ostringstream out;
+        out << "\"category\":\"inspection\",\"mana\":" << a->get_property(Actor::mana)
+            << ",\"magic\":" << a->get_property(Actor::magic) << ",\"level\":" << a->get_level()
+            << ",\"casting\":" << Virtue_case::casting_active() << ",\"targeting\":" << Virtue_case::targeting_active()
+            << ",\"reagents\":[";
+        for (int i=0;i<8;++i) { if(i)out<<',';out<<a->count_objects(842,c_any_qual,i); }
+        out<<']'; return out.str();
+    }
     if (op == "test_virtue_case_labels") {
         if (!GAME_BG || input) throw std::runtime_error("case_label_preview_requires_BG");
         Virtue_case::preview_labels_for_test();
@@ -338,19 +370,30 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
         return "\"category\":\"test_setup\",\"synthetic_receiver_removal\":true,\"receiver_expired\":"
             + std::to_string(weak.expired()) + ",\"remaining_events\":" + Game_time::describe();
     }
-    if (op == "target_object" || op == "target_tile") {
+    if (op == "target_object" || op == "target_tile" || op == "target_at") {
         if (!input || cli_input_paint || Mouse::mouse()->get_shape() != Mouse::greenselect)
             throw std::runtime_error("target_input_not_active");
         int gx,gy;
         if(op=="target_object") {
             auto object=resolve(x);
-            if(object->get_owner() || object->get_map_num()!=a->get_map_num())
-                throw std::runtime_error("target_requires_world_object");
-            const auto rect=w->get_shape_rect(object.get());
-            gx=rect.x+rect.w/2;gy=rect.y+rect.h/2;
-            if(gx<0 || gy<0 || gx>=w->get_width() || gy>=w->get_height())
-                throw std::runtime_error("target_not_visible");
-            if(w->find_object(gx,gy)!=object.get()) throw std::runtime_error("target_occluded");
+            if (object->get_owner()) {
+                gx=gy=-1;
+                auto* win=w->get_win();
+                for(int py=win->get_start_y();py<win->get_start_y()+win->get_full_height() && gx<0;++py)
+                    for(int px=win->get_start_x();px<win->get_start_x()+win->get_full_width();++px) {
+                        auto* g=w->get_gump_man()->find_gump(px,py);int lx,ly;
+                        if(g && w->get_gump_man()->map_game_to_gump(g,px,py,lx,ly) && g->find_object(lx,ly)==object.get()) {
+                            gx=px;gy=py;break;
+                        }
+                    }
+                if(gx<0)throw std::runtime_error("target_not_visible");
+            } else {
+                if(object->get_map_num()!=a->get_map_num())throw std::runtime_error("target_wrong_map");
+                const auto rect=w->get_shape_rect(object.get());gx=rect.x+rect.w/2;gy=rect.y+rect.h/2;
+                if(w->find_object(gx,gy)!=object.get())throw std::runtime_error("target_occluded");
+            }
+        } else if (op=="target_at") {
+            gx=x;gy=y;
         } else {
             const auto dest=destination(x,y,in);
             w->get_shape_location(dest,gx,gy);
@@ -358,7 +401,7 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
                 throw std::runtime_error("target_not_visible");
             if(w->find_object(gx,gy)) throw std::runtime_error("target_tile_contains_object");
         }
-        if(gx<0 || gy<0 || gx>=w->get_width() || gy>=w->get_height() || w->get_gump_man()->find_gump(gx,gy))
+        if(gx<0 || gy<0 || gx>=w->get_width() || gy>=w->get_height() || (op=="target_tile" && w->get_gump_man()->find_gump(gx,gy)))
             throw std::runtime_error("target_not_visible");
         int sx,sy;
         w->get_win()->game_to_screen(gx,gy,w->get_fastmouse(),sx,sy);

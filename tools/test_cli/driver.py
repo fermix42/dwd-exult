@@ -143,6 +143,9 @@ class Driver:
   if op=='move_gump':return self.raw(op,int(c['ref']),int(c['x']),int(c['y']))
   if op=='transfer_item':
    return self.raw(op,int(c['ref']),int(c['destination']),int(c['x']),int(c['y'])) if 'x' in c else self.raw(op,int(c['ref']),int(c['destination']))
+  if op=='test_case_spell_setup':return self.raw(op,int(c.get('scenario',0)))
+  if op=='case_spell_state':return self.raw(op)
+  if op=='target_at':return self.raw(op,int(c['x']),int(c['y']))
   if op=='test_stall':return self.raw(op,int(c['milliseconds']))
   if op in ('test_exposure','test_orb_chart_item','test_virtue_case','test_virtue_case_labels','test_jawbone_items'):return self.raw(op)
   if op=='test_equipment':return self.raw(op,int(c['kind']))

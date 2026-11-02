@@ -304,3 +304,33 @@ Placement clarification: the close checkmark belongs on the four-grommet leather
 side tab to the left of the Honesty/Compassion (blue/yellow) recesses, NOT the lid.
 Corrected hotspot(23,68), local rectangle(3,48,21,21). Prior lid placement is
 superseded. The bottom catch remains decorative.
+
+## Stage B: effective spellcasting (verified candidate)
+
+Buttons now call the ordinary Spellbook_object::do_spell method using nearby
+party-owned real spellbooks. Mark slot34/function0x662 and Recall slot36/function
+0x664 were checked against actual installed BG Usecode. Native spell availability,
+level, mana, reagents, infinite-reagent gear and explicit wizard cheating retain
+ordinary spellbook semantics. Costs occur once before target selection, including
+normal canceled/failed spellbook casts; the case adds no magic or custom refunds.
+Effective loaded Usecode supplies all effects and Keyring's Codex-area Mark
+restriction. Only the owning case's real seated stones resolve for case targeting.
+The original target cursor is used, with no dragging during this selection.
+
+The cast session holds weak object references, observes the actual Mark intrinsic
+rather than guessing from destination changes, and waits for original scripts
+and casting animation to finish. Gumps close after initial target selection as
+with the ordinary spellbook, allowing effects to progress. Recall closes gumps
+through original code; no independent teleport implementation was added.
+
+BG stage-b-bg-04 and Keyring stage-b-keyring-02:34 assertions each passed with
+normal cleanup. Fixtures provide explicit real spellbooks/reagents/caster stats;
+all actual casts, marks, costs, walking and teleport effects use original logic.
+Earlier failures retained: initial Recall slot39 selected Unlock Magic; corrected
+to36; reagent expectations corrected from the actual BG table; an initial CLI
+fixture dispatch mistake and a compile namespace error were fixed. Failure cleanup
+also exposed Time_queue::clear's null raw-handler assumption for shared entries.
+The case instead queues its externally-owned raw handler, removes it on reset,
+and keeps itself alive during callbacks; no global time-queue modification.
+
+Stage C will attach persistent notes/editor after observed Mark success.

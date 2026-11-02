@@ -290,3 +290,14 @@ example labels for native BG cases in the current CLI process. It returns
 and does not implement editing or persistence. Normal gameplay never enables
 this preview. Use `tools/virtue_case/presentation.py --labels` with a disposable
 case fixture checkpoint for an actual renderer capture.
+
+### Case spell integration checks
+
+`test_case_spell_setup scenario` (BG, idle) provides explicit synthetic spellbook,
+level/mana and reagent conditions without altering quest flags or spell effects.
+Scenarios0 normal,1 zero mana,2 missing mandrake,3 spells absent,4 no spellbook.
+`case_spell_state` reads actual mana, reagent counts and case request state.
+`target_object ref` also supports visible inventory objects using native gump
+opaque masks; `target_at x y` releases the existing targeting cursor at game
+coordinates for invalid/empty target tests. These dispatch normal native target
+input, never a forced intrinsic. `state` includes case_casting/case_targeting.

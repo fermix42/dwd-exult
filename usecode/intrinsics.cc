@@ -1,3 +1,4 @@
+#include "native_virtue_case.h"
 /*
  *  Copyright (C) 2000-2025  The Exult Team
  *
@@ -1093,7 +1094,7 @@ USECODE_INTRINSIC(click_on_item) {
 	} else {
 		int x;
 		int y;    // Allow dragging while here:
-		if (!Get_click(x, y, Mouse::greenselect, nullptr, true)) {
+		if (!Get_click(x, y, Mouse::greenselect, nullptr, !Virtue_case::casting_active())) {
 			return Usecode_value(0);
 		}
 		// Get abs. tile coords. clicked on.
@@ -1115,6 +1116,7 @@ USECODE_INTRINSIC(click_on_item) {
 			}
 		}
 	}
+	if (!Virtue_case::accept_spell_target(obj)) return Usecode_value(0);
 	Usecode_value oval(obj);    // Ret. array with obj as 1st elem.
 	Usecode_value ret(4, &oval);
 	Usecode_value xval(t.tx);
@@ -2163,6 +2165,7 @@ USECODE_INTRINSIC(mark_virtue_stone) {
 	if (vs) {
 		vs->set_target_pos(obj->get_outermost()->get_tile());
 		vs->set_target_map(obj->get_outermost()->get_map_num());
+        Virtue_case::mark_succeeded(obj);
 	}
 	return no_ret;
 }

@@ -7,6 +7,7 @@
 #include "Gump.h"
 #include "Gump_button.h"
 #include "Gump_manager.h"
+#include "native_virtue_case.h"
 #include "SDL3/SDL.h"
 #include "Text_gump.h"
 #include "Yesno_gump.h"
@@ -151,6 +152,7 @@ struct CliDriver {
           << ",\"scripted_schedule_pending\":" << w->get_clock()->scripted_schedule_pending()
           << ",\"game_time_tick\":" << Game_time::now()
           << ",\"game_time_events\":" << Game_time::describe()
+          << ",\"case_casting\":" << Virtue_case::casting_active() << ",\"case_targeting\":" << Virtue_case::targeting_active()
           << ",\"food\":" << a->get_property(Actor::food_level)
           << ",\"temperature\":" << a->get_temperature()
           << ",\"protection_remaining_ms\":" << a->temporary_effect_remaining(Obj_flags::protection)
@@ -308,9 +310,9 @@ namespace {
             min = 2; max = 4; // Optional destination-gump-local drop coordinates.
         } else if (op == "ready_inventory") {
             min = max = 2;
-        } else if (op == "test_light_item" || op == "test_remove_fuel_receiver" || op == "test_stall" || op == "test_equipment" || op == "test_stale_event_metadata" || op == "test_legacy_clock" || op == "test_time_rate" || op == "test_temporary_effect" || op == "native_wait" || op == "inspect_inventory" || op == "interact_inventory" || op == "inspect_usecode") {
+        } else if (op == "test_light_item" || op == "test_remove_fuel_receiver" || op == "test_stall" || op == "test_equipment" || op == "test_stale_event_metadata" || op == "test_legacy_clock" || op == "test_time_rate" || op == "test_temporary_effect" || op == "native_wait" || op == "inspect_inventory" || op == "interact_inventory" || op == "inspect_usecode" || op == "test_case_spell_setup") {
             min = max = 1;
-        } else if (op == "key" || op == "move" || op == "interact" || op == "click" || op == "control_at") {
+        } else if (op == "key" || op == "move" || op == "interact" || op == "click" || op == "control_at" || op == "target_at") {
 			min = max = 2;
 		} else if (op == "find_objects" || op == "find_actors" || op == "inspect_world") {
 			min = 2;
@@ -325,7 +327,7 @@ namespace {
 			max = 2;
 		} else if (
 				op != "state" && op != "ui_state" && op != "exit" && op != "continue" && op != "dismiss" && op != "combat"
-				&& op != "test_exposure" && op != "test_orb_chart_item" && op != "test_virtue_case" && op != "test_virtue_case_labels" && op != "test_jawbone_items" && op != "wait_eligibility" && op != "controls" && op != "screenshot" && op != "quit_prompt" && op != "movement_status") {
+				&& op != "test_exposure" && op != "test_orb_chart_item" && op != "test_virtue_case" && op != "test_virtue_case_labels" && op != "case_spell_state" && op != "test_jawbone_items" && op != "wait_eligibility" && op != "controls" && op != "screenshot" && op != "quit_prompt" && op != "movement_status") {
 			throw std::runtime_error("unknown_command");
 		}
 		std::vector<int> args;

@@ -4,6 +4,13 @@
 #endif
 #include "native_virtue_case.h"
 #include "cli_driver.h"
+#include "actors.h"
+#include "spellbook.h"
+#include "mouse.h"
+#include "Audio.h"
+#include "tqueue.h"
+#include "ucmachine.h"
+#include "ucsched.h"
 #include "Gump.h"
 #include "Gump_manager.h"
 #include "Gump_button.h"
@@ -61,7 +68,66 @@ std::unique_ptr<Shape_file> load_art() {
     return art;
 }
 
-// Presentation controls only. MARK/RECALL have no spell implementation yet.
+// A single scoped request; all references survive only through weak ownership.
+// Original Usecode may defer the actual Mark operation to a stone script.
+struct Cast_session : Time_sensitive {
+    Game_object_weak owner, target;
+    bool recall = false, marked = false, targeting = true;
+    int slot = -1;
+    void handle_event(unsigned long now, uintptr) override;
+};
+std::shared_ptr<Cast_session> cast_session;
+void reset_cast_session() {
+    if (!cast_session) return;
+    Game_window::get_instance()->get_tqueue()->remove(cast_session.get());
+    cast_session.reset();
+}
+void cast_from_case(Container_game_object* container, bool recall) {
+    auto* gwin = Game_window::get_instance();
+    if (Virtue_case::casting_active() || gwin->get_usecode()->in_usecode()
+        || !gwin->main_actor_can_act() || gwin->main_actor_dont_move()) return;
+    const int spell = recall ? 36 : 34; // Verified BG spellbook slots; effective Usecode0x664/0x662.
+    auto* avatar = gwin->get_main_actor();
+    Game_object_vector possessions;
+    Actor* party[9];
+    const int count = gwin->get_party(party, 1);
+    for (int i=0; i<count; ++i) if (party[i]->can_act_charmed() && avatar->distance(party[i])<=8)
+        party[i]->get_objects(possessions, c_any_shapenum, c_any_qual, c_any_framenum);
+    Spellbook_object* book = nullptr;
+    for (auto* item : possessions) if (auto* candidate = item->as_spellbook()) {
+        if (candidate->can_do_spell(avatar, spell)) { book = candidate; break; }
+    }
+    if (!book) { Mouse::mouse()->flash_shape(Mouse::redx); return; }
+    auto keep_book = book->shared_from_this();
+    auto session = std::make_shared<Cast_session>();
+    session->owner = weak_from_obj(container); session->recall = recall;
+    cast_session = session;
+    // The ordinary spellbook method applies costs once, begins casting and calls
+    // the currently loaded Usecode (including Keyring's Mark override).
+    const bool started = book->do_spell(avatar, spell);
+    session->targeting = false;
+    if (!started) { reset_cast_session(); return; }
+    // Match Spellbook_gump: release inventory pausing after the spell has asked
+    // for its target, so its original animation/effect scripts can run.
+    gwin->get_gump_man()->close_all_gumps();
+    gwin->get_tqueue()->add(Game::get_ticks()+100, session.get());
+}
+void Cast_session::handle_event(unsigned long now, uintptr) {
+    auto* gwin = Game_window::get_instance();
+    if (cast_session.get() != this) return;
+    const auto keep_alive = cast_session;
+    auto container = owner.lock(); auto stone = target.lock();
+    auto* avatar = gwin->get_main_actor();
+    if (!container || !Virtue_case::is_case(container.get())) { reset_cast_session(); return; }
+    if (gwin->get_usecode()->in_usecode() || avatar->get_casting_mode()!=Actor::not_casting
+        || Usecode_script::find(avatar) || (stone && Usecode_script::find(stone.get()))) {
+        gwin->get_tqueue()->add(now+100, this); return;
+    }
+    // Stage C attaches the label editor here, after observed intrinsic success.
+    reset_cast_session();
+}
+
+// Physical native controls retain the accepted normal/depressed artwork.
 class Case_button : public Gump_button {
     Shape_file* art;
     int frame;
@@ -78,11 +144,15 @@ public:
         return mx >= 0 && my >= 0 && mx < (32) && my < 12;
     }
     const char* cli_action() const override {
-        return frame == 10 ? "mark_unimplemented" : "recall_unimplemented";
+        return frame == 10 ? "mark" : "recall";
     }
     bool activate(MouseButton button) override {
         if (button != MouseButton::Left) return false;
-        return true; // Consume the presentation button without casting anything.
+        auto* container = parent->get_container();
+        Audio::get_ptr()->play_sound_effect(Audio::game_sfx(74), AUDIO_MAX_VOLUME, 0, 0, 0, true);
+        cast_from_case(container, frame==12);
+        return true; // Usecode/Recall may have closed and deleted this control.
+
     }
     void paint() override {
         int sx = 0, sy = 0; local_to_screen(sx, sy);
@@ -207,3 +277,26 @@ void Virtue_case::preview_labels_for_test() {
     label_preview = true;
     Game_window::get_instance()->set_all_dirty();
 }
+
+bool Virtue_case::casting_active() {
+    if (cast_session && cast_session->owner.expired()) reset_cast_session();
+    return static_cast<bool>(cast_session);
+}
+bool Virtue_case::accept_spell_target(Game_object* object) {
+    if (!cast_session || !cast_session->targeting) return true;
+    auto container = cast_session->owner.lock();
+    const int slot = slot_for(object);
+    if (!container || !object || object->get_owner()!=container.get() || slot<0) return false;
+    auto previous = cast_session->target.lock();
+    if (previous && previous.get()!=object) return false;
+    cast_session->target = weak_from_obj(object); cast_session->slot = slot;
+    return true;
+}
+void Virtue_case::mark_succeeded(Game_object* object) {
+    if (!cast_session || cast_session->recall) return;
+    auto stone = cast_session->target.lock(); auto container = cast_session->owner.lock();
+    if (stone && container && stone.get()==object && object->get_owner()==container.get())
+        cast_session->marked = true;
+}
+
+bool Virtue_case::targeting_active() { return casting_active() && cast_session->targeting; }

@@ -13,3 +13,11 @@ void open(Container_game_object* container);
 // Explicit unified-CLI visual trial only; never stored in saves.
 void preview_labels_for_test();
 }
+
+namespace Virtue_case {
+bool casting_active();
+bool targeting_active();
+// Invoked only at the existing click-on-item and successful Mark intrinsic boundaries.
+bool accept_spell_target(Game_object* object);
+void mark_succeeded(Game_object* object);
+}
