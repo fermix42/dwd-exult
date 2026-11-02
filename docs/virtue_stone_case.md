@@ -334,3 +334,48 @@ The case instead queues its externally-owned raw handler, removes it on reset,
 and keeps itself alive during callbacks; no global time-queue modification.
 
 Stage C will attach persistent notes/editor after observed Mark success.
+
+
+## Stage C: persistent handwritten notes (candidate awaiting human acceptance)
+
+This section supersedes the historical visual-trial and pending-Stage-C statements
+above. The accepted 196x135 art, fixed slots, 13x15 seated stones, button geometry
+and left leather-tab checkmark are frozen. No Stage B/C PNG or SHP changes.
+
+Left-click any parchment, including an empty compartment. Native BG tiny black
+text is entered directly on it. Enter commits, Escape cancels, Backspace deletes;
+closing or transferring keyboard focus cancels the draft. Only printable ASCII
+is accepted. Each note allows at most12 characters including spaces, with at most
+two lines measured by the actual TINY_BLACK_FONT width (32 native pixels per line,
+6 pixels per line). Words wrap where possible, otherwise characters wrap. Wider
+strings stop earlier: the runtime tests fit12 narrow i characters and10 wide W
+characters. No scrolling, external font, new dialog or artwork changes.
+
+Each physical Container_game_object lazily owns its own array of eight strings.
+Moving/removing/replacing stones never changes these notes. Existing and new
+cases without note records are blank. A nonblank case writes one optional IREG
+special record (type6, standard uint16 payload length): VSC1 followed by eight
+byte lengths and their printable-ASCII strings. Loading validates the entire
+record before assigning anything; unknown/malformed data is ignored. Blank cases
+write no record. Ordinary stone destination persistence remains untouched.
+
+Only an observed successful original Mark intrinsic attributed to the selected
+case stone prompts this editor after original scripts finish, even when marking
+the same location again. Canceling the editor preserves the old note but does not
+undo the successful spell. External spellbook Mark never updates case notes.
+Casting and editing cannot overlap. Actual costs remain the ordinary spellbook's
+costs, including its original canceled/failed-cast behavior.
+
+Real-engine suites live in tools/virtue_case/{checks,spell_checks,label_checks,
+edge_checks}.py. They cover BG and the original installed Keyring, physical
+identity, effective Usecode, normal mana/reagent costs, walk/Recall, invalid and
+empty targets, cancellation, low level, magic-storm failure, ordinary loose-stone
+spellcasting, direct input/bounds/focus, independent cases, old saves, nested
+inventory and world save/reload. Runtime artifact and human-review details are
+recorded outside source under test-output/virtue-stage-bc/REPORT.md. Explicit
+inventory/stat fixtures are not quest-acquisition evidence. Audio listening and
+Keyring's particular Codex-zone traversal remain human/manual checks; the loaded
+Keyring override is preserved and real Keyring casting is exercised.
+
+No commissioning quest, protected feature changes, merge, release or human final
+acceptance is included.

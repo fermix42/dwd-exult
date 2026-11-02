@@ -42,6 +42,7 @@
 #include "fnames.h"
 #include "game.h"
 #include "gamewin.h" /* With some work, could get rid of this. */
+#include "native_virtue_case.h"
 #include "ios_state.hpp"
 #include "items.h"
 #include "jawbone.h"
@@ -854,6 +855,8 @@ void Read_special_ireg(
 		if (scr) {
 			scr->start(scr->get_delay());
 		}
+    } else if (type == 6) { // Optional native case compartment notes.
+        Virtue_case::read_notes(obj, buf, len);
     } else if (type == 5) { // Optional explicit game-time event.
         IBufferDataView record(buf, len);
         Game_time::read(&record, obj, len);

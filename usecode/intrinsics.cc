@@ -1094,7 +1094,7 @@ USECODE_INTRINSIC(click_on_item) {
 	} else {
 		int x;
 		int y;    // Allow dragging while here:
-		if (!Get_click(x, y, Mouse::greenselect, nullptr, !Virtue_case::casting_active())) {
+		if (!Get_click(x, y, Mouse::greenselect, nullptr, !Virtue_case::targeting_active())) {
 			return Usecode_value(0);
 		}
 		// Get abs. tile coords. clicked on.

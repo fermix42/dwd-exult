@@ -26,6 +26,9 @@
 #include "native_virtue_case.h"
 #include "virstone.h"
 #include "spellbook.h"
+#include "Spellbook_gump.h"
+#include "egg.h"
+#include "effects.h"
 #include "ready.h"
 
 #include <SDL3/SDL.h>
@@ -194,6 +197,10 @@ namespace {
 			}
 			out << ']';
 		}
+        if(Virtue_case::is_case(o)) {
+            out << ",\"case_labels\":[";
+            for(int i=0;i<8;++i){if(i)out<<',';out<<cli_quote(o->as_container()->get_case_note(i));}out<<']';
+        }
         out << ",\"game_time_events\":" << Game_time::describe(o) << ",\"scripts\":[";
         bool comma = false;
         Usecode_script* script = nullptr;
@@ -264,9 +271,25 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
         return "\"category\":\"test_setup\",\"synthetic_jawbone_items\":true,\"jawbone\":"
             + describe(jawbone.get()) + ",\"tooth\":" + describe(tooth.get()) + ",\"backpack\":" + describe(container);
     }
+    if (op == "test_case_extra") {
+        player_ready(input);
+        if(!GAME_BG)throw std::runtime_error("BG_only_case_fixture");
+        auto object=w->get_map()->create_ireg_object(Virtue_case::shape,0);
+        if(!Virtue_case::is_case(object.get()) || !a->add(object.get(),true,false))throw std::runtime_error("case_fixture_unavailable");
+        object->set_flag(Obj_flags::okay_to_take);
+        return "\"category\":\"test_setup\",\"synthetic_case\":"+describe(object.get());
+    }
+    if (op == "spellbook_cast") {
+        if(input || w->get_usecode()->in_usecode() || y<0 || y>=72 || Virtue_case::editing_slot()>=0)throw std::runtime_error("spellbook_cast_unavailable");
+        auto object=resolve(x); Spellbook_gump* book_gump=nullptr;
+        for(auto* g:*w->get_gump_man()) if(g->get_owner()==object.get())book_gump=dynamic_cast<Spellbook_gump*>(g);
+        if(!book_gump)throw std::runtime_error("spellbook_not_open");
+        cli_reply(sequence,true,"\"category\":\"gameplay\",\"status\":\"dispatched\"");
+        book_gump->do_spell(y);return {};
+    }
     if (op == "test_case_spell_setup") {
         player_ready(input);
-        if (!GAME_BG || x<0 || x>4) throw std::runtime_error("invalid_case_spell_fixture");
+        if (!GAME_BG || x<0 || x>6) throw std::runtime_error("invalid_case_spell_fixture");
         Game_object_vector objects; a->get_objects(objects, c_any_shapenum, c_any_qual, c_any_framenum);
         Spellbook_object* book = nullptr;
         for (auto* object : objects) if (auto* b=object->as_spellbook()) { book=b; break; }
@@ -276,7 +299,8 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
         }
         book->add_spell(34); book->add_spell(36);
         if (x==3) { book->remove_spell(34); book->remove_spell(36); }
-        a->set_property(Actor::exp,6400); a->set_property(Actor::magic,30); a->set_property(Actor::mana,x==1?0:30);
+        Egg_object::set_weather(x==6?3:0);
+        a->set_property(Actor::exp,x==5?0:6400); a->set_property(Actor::magic,30); a->set_property(Actor::mana,x==1?0:30);
         a->remove_quantity(10000,842,c_any_qual,c_any_framenum);
         for (int frame=0; frame<8; ++frame) {
             if (x==2 && frame==3) continue;
@@ -288,7 +312,8 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
     }
     if (op == "case_spell_state") {
         std::ostringstream out;
-        out << "\"category\":\"inspection\",\"mana\":" << a->get_property(Actor::mana)
+        out << "\"category\":\"inspection\",\"weather\":" << w->get_effects()->get_weather() << ",\"actor_casting\":" << a->get_casting_mode()
+            << ",\"mana\":" << a->get_property(Actor::mana)
             << ",\"magic\":" << a->get_property(Actor::magic) << ",\"level\":" << a->get_level()
             << ",\"casting\":" << Virtue_case::casting_active() << ",\"targeting\":" << Virtue_case::targeting_active()
             << ",\"reagents\":[";
@@ -370,11 +395,11 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
         return "\"category\":\"test_setup\",\"synthetic_receiver_removal\":true,\"receiver_expired\":"
             + std::to_string(weak.expired()) + ",\"remaining_events\":" + Game_time::describe();
     }
-    if (op == "target_object" || op == "target_tile" || op == "target_at") {
+    if (op == "target_object" || op == "target_tile" || op == "target_at" || op == "aim_object") {
         if (!input || cli_input_paint || Mouse::mouse()->get_shape() != Mouse::greenselect)
             throw std::runtime_error("target_input_not_active");
         int gx,gy;
-        if(op=="target_object") {
+        if(op=="target_object" || op=="aim_object") {
             auto object=resolve(x);
             if (object->get_owner()) {
                 gx=gy=-1;
@@ -403,6 +428,10 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
         }
         if(gx<0 || gy<0 || gx>=w->get_width() || gy>=w->get_height() || (op=="target_tile" && w->get_gump_man()->find_gump(gx,gy)))
             throw std::runtime_error("target_not_visible");
+        if(op=="aim_object") {
+            Mouse::mouse()->move(gx,gy);Mouse::mouse()->show();w->set_all_dirty();
+            return "\"category\":\"inspection\",\"native_cursor_positioned\":true";
+        }
         int sx,sy;
         w->get_win()->game_to_screen(gx,gy,w->get_fastmouse(),sx,sy);
         SDL_Event event{};

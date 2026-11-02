@@ -62,7 +62,7 @@ def begin(action):
     now=do('case_spell_state');check(action+' mana cost applied exactly once before targeting',now['mana']==before['mana']-4)
     required={0,1,3} # Both original fourth-circle Mark and Recall use BP/BM/MR.
     check(action+' correct original reagents consumed exactly once',now['reagents']==[q-(i in required)for i,q in enumerate(before['reagents'])])
-    capture(action+'-targeting');return now
+    do('aim_object',ref=stone);capture(action+'-targeting');return now
 try:
     keys=BASE/(a.run+'.keys');keys.parent.mkdir(parents=True,exist_ok=True);keys.write_text('1 INVENTORY 0\n')
     subprocess.Popen=launch;do('init',game='bg',mod=a.mod,run=a.run,keys_path=str(keys),checkpoint=str(a.checkpoint.resolve()));subprocess.Popen=old_popen
@@ -71,14 +71,14 @@ try:
     for scenario,label in [(1,'insufficient mana'),(2,'missing reagents'),(3,'unavailable spell'),(4,'missing spellbook')]:
         close();do('test_case_spell_setup',scenario=scenario);open_case();before=do('case_spell_state')
         for action in ['mark','recall']:
-            do('activate_control',id=control(action)['id']);after=do('case_spell_state')
+            attempts=d.state()['case_cast_attempts'];do('activate_control',id=control(action)['id']);wait('native '+action+' button callback processed',lambda:d.state()['case_cast_attempts']>attempts);after=do('case_spell_state')
             check(label+' blocks '+action+' without costs/targeting',not after['casting'] and not after['targeting'] and after['mana']==before['mana'] and after['reagents']==before['reagents'])
     close();do('test_case_spell_setup',scenario=0)
     begin('mark');before=obj(stone)['stone_target'];do('target_object',ref=stone)
     wait('real Mark intrinsic changes physical stone destination',lambda:obj(stone)['stone_target']!=before)
     wait('Mark animation completes and native request cleans up',lambda:not d.state()['case_casting'])
     marked=obj(stone);at=d.state();check('Mark destination equals current party tile/map',marked['stone_target']==dict(x=at['x'],y=at['y'],z=at['z']) and marked['stone_target_map']==at['map'])
-    capture('after-mark')
+    capture('after-mark');close()
     # Walk normally before Recall; never teleport or alter a target to make it pass.
     moved=False
     for dx,dy in [(2,0),(0,2),(-2,0),(0,-2)]:

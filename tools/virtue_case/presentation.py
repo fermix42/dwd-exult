@@ -142,15 +142,12 @@ try:
             check('native text visibly painted in '+slot['virtue']+' label', ink_changes>=10*factor*factor)
 
     controls = [c for c in do('controls')['controls'] if c['gump_id']==gump['id']]
-    check('three physical controls exposed', {c['action'] for c in controls}=={'close','mark_unimplemented','recall_unimplemented'})
+    check('three physical controls exposed', {c['action'] for c in controls}=={'close','mark','recall'} | {'edit_label_'+str(i) for i in range(8)})
     close_control = next(c for c in controls if c['action']=='close')
     check('close control is on four-grommet leather side tab', gump['x']+3 <= close_control['x'] <= gump['x']+23 and gump['y']+47 <= close_control['y'] <= gump['y']+69)
     check('bottom catch is decorative', do('control_at', x=gump['x']+100, y=gump['y']+124)['action']!='close')
 
     before = {o['ref']:(o['frame'],o['stone_target']) for o in inventory(case)}
-    for action in ('mark_unimplemented','recall_unimplemented'):
-        do('activate_control', id=next(c['id'] for c in controls if c['action']==action))
-        check(action+' preserves all stone identities/targets', {o['ref']:(o['frame'],o['stone_target']) for o in inventory(case)}==before)
     do('activate_control', id=next(c['id'] for c in controls if c['action']=='close'))
     check('side-tab checkmark closes specialized gump', not any('Case_gump' in g['type'] for g in d.state()['gumps']))
     show(case, avatar)

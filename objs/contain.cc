@@ -665,6 +665,7 @@ void Container_game_object::write_ireg(ODataSource* out) {
 	Write1(ptr, (get_flag(Obj_flags::invisible) ? 1 : 0) + (get_flag(Obj_flags::okay_to_take) ? (1 << 3) : 0));
 	out->write(reinterpret_cast<char*>(buf), ptr - buf);
 	write_contents(out);    // Write what's contained within.
+    Virtue_case::write_notes(out, this);
 	// Write scheduled usecode.
 	Game_map::write_scheduled(out, this);
 }
@@ -676,7 +677,7 @@ int Container_game_object::get_ireg_size() {
 		return -1;
 	}
 
-	int total_size = 8 + get_common_ireg_size();
+	int total_size = 8 + get_common_ireg_size() + Virtue_case::notes_ireg_size(this);
 
 	// Now what's inside.
 	if (!objects.is_empty()) {

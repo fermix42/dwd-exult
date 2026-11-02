@@ -284,20 +284,38 @@ normal gameplay.
 
 ### Native case label visual trial
 
-`test_virtue_case_labels` (zero arguments) explicitly enables synthetic two-line
-example labels for native BG cases in the current CLI process. It returns
-`synthetic_label_preview:true`, changes no object/quest data or save format,
-and does not implement editing or persistence. Normal gameplay never enables
-this preview. Use `tools/virtue_case/presentation.py --labels` with a disposable
-case fixture checkpoint for an actual renderer capture.
+`test_virtue_case_labels` (zero arguments) explicitly fills the first owned native
+case's eight notes with synthetic sample strings. It returns
+`synthetic_label_preview:true`; these are real object-owned notes and now persist
+if the disposable run is saved. This fixture never runs in normal gameplay.
+Use `tools/virtue_case/presentation.py --labels` only with a disposable checkpoint.
 
 ### Case spell integration checks
 
 `test_case_spell_setup scenario` (BG, idle) provides explicit synthetic spellbook,
 level/mana and reagent conditions without altering quest flags or spell effects.
-Scenarios0 normal,1 zero mana,2 missing mandrake,3 spells absent,4 no spellbook.
+Scenarios: 0 normal, 1 zero mana, 2 missing mandrake, 3 spells absent,
+4 no spellbook, 5 insufficient level, 6 original magic-storm weather.
 `case_spell_state` reads actual mana, reagent counts and case request state.
 `target_object ref` also supports visible inventory objects using native gump
 opaque masks; `target_at x y` releases the existing targeting cursor at game
 coordinates for invalid/empty target tests. These dispatch normal native target
 input, never a forced intrinsic. `state` includes case_casting/case_targeting.
+
+
+### Native case notes and focused input
+
+`inspect_object` exposes `case_labels` for a native case. `state` includes
+`case_editing` (-1 or compartment 0..7), `case_cast_attempts` (physical button
+callback completion counter), `case_casting` and `case_targeting`. Controls expose
+`edit_label_0` through `edit_label_7` as well as `mark`, `recall`, and `close`.
+`test_case_extra` supplies a second empty case in an explicitly synthetic fixture.
+
+`text_character codepoint` routes UTF-8 through the active native text-input
+handler; client `type_text` sends its characters. `key` supports `backspace`,
+`enter` and `escape`. When the case editor owns focus it routes the same native
+keyboard handler synchronously; ordinary gameplay retains queued key delivery.
+`aim_object ref` positions only the engine cursor on a visible object's opaque
+mask without clicking (renderer evidence). `spellbook_cast ref spell` requires
+an actual open spellbook gump and invokes its normal casting method. No command
+bypasses spell rules, sets a stone destination, or teleports the Avatar.

@@ -24,11 +24,16 @@
 
 #include "ignore_unused_variable_warning.h"
 #include "iregobjs.h"
+#include <array>
+#include <memory>
+#include <string>
 
 /*
  *  A container object:
  */
 class Container_game_object : public Ireg_game_object {
+    // Lazily allocated, exclusively owned notes for native case compartments.
+    std::unique_ptr<std::array<std::string,8>> virtue_notes;
 	int  volume_used = 0;    // Amount of volume occupied.
 	char resistance  = 0;    // Resistance to attack.
 protected:
@@ -39,6 +44,16 @@ protected:
 	bool        gumpInit = false;
 
 public:
+    const std::string& get_case_note(int slot) const {
+        static const std::string empty;
+        return slot>=0 && slot<8 && virtue_notes ? (*virtue_notes)[slot] : empty;
+    }
+    void set_case_note(int slot, std::string note) {
+        if (slot<0 || slot>=8 || note.size()>12) return;
+        for (unsigned char c:note) if(c<32 || c>126) return;
+        if (!virtue_notes) virtue_notes=std::make_unique<std::array<std::string,8>>();
+        (*virtue_notes)[slot]=std::move(note);
+    }
 	void setGumpXY(int x, int y) {
 		gumpX    = x;
 		gumpY    = y;

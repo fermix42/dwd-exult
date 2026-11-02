@@ -32,10 +32,16 @@
 #include <array>
 #include <memory>
 #include <stdexcept>
+#include <vector>
+#include <string>
+#include <algorithm>
 
 namespace {
 bool installed = false;
-bool label_preview = false;
+unsigned long long cast_attempts = 0;
+class Case_gump;
+Case_gump* active_editor = nullptr;
+void prompt_label(Container_game_object*, int);
 constexpr const char* label_examples[8][2] = {{"Britain","Home"},{"LB","Castle"},{"Destard","Ent"},{"Cove","Healer"},{"Trinsic","Gate"},{"Skara","Brae"},{"Shrine","Home"},{"Camp","Home"}};
 constexpr int width = 196, height = 135;
 // Original BG shape 330 frames: yellow/red/blue/orange/green/purple/black/white.
@@ -73,6 +79,7 @@ std::unique_ptr<Shape_file> load_art() {
 struct Cast_session : Time_sensitive {
     Game_object_weak owner, target;
     bool recall = false, marked = false, targeting = true;
+    Usecode_script* mark_effect = nullptr;
     int slot = -1;
     void handle_event(unsigned long now, uintptr) override;
 };
@@ -84,7 +91,7 @@ void reset_cast_session() {
 }
 void cast_from_case(Container_game_object* container, bool recall) {
     auto* gwin = Game_window::get_instance();
-    if (Virtue_case::casting_active() || gwin->get_usecode()->in_usecode()
+    if (active_editor || Virtue_case::casting_active() || gwin->get_usecode()->in_usecode()
         || !gwin->main_actor_can_act() || gwin->main_actor_dont_move()) return;
     const int spell = recall ? 36 : 34; // Verified BG spellbook slots; effective Usecode0x664/0x662.
     auto* avatar = gwin->get_main_actor();
@@ -105,6 +112,7 @@ void cast_from_case(Container_game_object* container, bool recall) {
     // The ordinary spellbook method applies costs once, begins casting and calls
     // the currently loaded Usecode (including Keyring's Mark override).
     const bool started = book->do_spell(avatar, spell);
+    if (auto target=session->target.lock()) session->mark_effect=Usecode_script::find(target.get());
     session->targeting = false;
     if (!started) { reset_cast_session(); return; }
     // Match Spellbook_gump: release inventory pausing after the spell has asked
@@ -123,8 +131,10 @@ void Cast_session::handle_event(unsigned long now, uintptr) {
         || Usecode_script::find(avatar) || (stone && Usecode_script::find(stone.get()))) {
         gwin->get_tqueue()->add(now+100, this); return;
     }
-    // Stage C attaches the label editor here, after observed intrinsic success.
+    const bool prompt = marked && !recall && slot>=0 && stone && stone->get_owner()==container.get();
+    const int compartment = slot;
     reset_cast_session();
+    if (prompt) prompt_label(container->as_container(), compartment);
 }
 
 // Physical native controls retain the accepted normal/depressed artwork.
@@ -148,6 +158,7 @@ public:
     }
     bool activate(MouseButton button) override {
         if (button != MouseButton::Left) return false;
+        ++cast_attempts;
         auto* container = parent->get_container();
         Audio::get_ptr()->play_sound_effect(Audio::game_sfx(74), AUDIO_MAX_VOLUME, 0, 0, 0, true);
         cast_from_case(container, frame==12);
@@ -162,11 +173,40 @@ public:
     }
 };
 
+// Only characters with clean native six-pixel glyphs are accepted by this UI.
+std::vector<std::string> note_lines(const std::string& note) {
+    if (note.size()>12) return {};
+    for (unsigned char c:note) if(c<32 || c>126) return {};
+    auto font=fontManager.get_font("TINY_BLACK_FONT");
+    if (font->get_text_width(note.c_str())<=32) return {note};
+    size_t cut=note.size();
+    while(cut && font->get_text_width(note.substr(0,cut).c_str())>32) --cut;
+    if(!cut) return {};
+    const size_t space=note.rfind(' ',cut);
+    const bool at_space=space!=std::string::npos && space>0;
+    const auto first=note.substr(0,at_space?space:cut);
+    const auto second=note.substr(at_space?space+1:cut);
+    if (font->get_text_width(second.c_str())>32) return {};
+    return {first,second};
+}
+class Case_label_button : public Gump_button {
+    int slot;
+    std::string action;
+public:
+    Case_label_button(Gump* par,int slot):Gump_button(par,-1,59+71*(slot/4),43+18*(slot%4),SF_OTHER),slot(slot),action("edit_label_"+std::to_string(slot)) {}
+    const char* cli_action() const override { return action.c_str(); }
+    TileRect get_rect() const override { int sx=0,sy=0;local_to_screen(sx,sy);return TileRect(sx,sy,36,16); }
+    bool on_widget(int mx,int my) const override { screen_to_local(mx,my);return mx>=0 && my>=0 && mx<36 && my<16; }
+    void paint() override {} // Original parchment artwork is already present.
+    bool activate(MouseButton button) override;
+};
 class Case_gump : public Gump {
     // Own all frames for as long as child controls borrow them.
     std::unique_ptr<Shape_file> art;
     Shape_frame* background;
     std::array<Shape_frame*, 8> seated{};
+    int editing = -1;
+    std::string draft;
 public:
     explicit Case_gump(Container_game_object* cont) : Gump(cont, 0, 0, -1), art(load_art()), background(art->get_frame(1)) {
         set_object_area(TileRect(0, 0, width, height));
@@ -175,7 +215,52 @@ public:
         add_elem(new Case_button(this, art.get(), 12, 130, 14, "RECALL"));
         // Original BG checkmark frame has bottom-right hotspot (20,20).
         add_elem(new Checkmark_button(this, 23, 68));
+        for(int i=0;i<8;++i) add_elem(new Case_label_button(this,i));
         set_pos();
+    }
+    ~Case_gump() override { if(active_editor==this) cancel_edit(); }
+    int edit_slot() const { return editing; }
+    void cancel_edit() {
+        editing=-1;draft.clear();handles_kbd=false;
+        if(active_editor==this) {
+            active_editor=nullptr;
+            auto* focus=gumpman->get_kbd_focus();
+            if(focus==this)gumpman->set_kbd_focus(nullptr);
+            if(!focus || focus==this)SDL_StopTextInput(gwin->get_win()->get_screen_window());
+        }
+        gwin->set_all_dirty();
+    }
+    void begin_edit(int slot) {
+        if(slot<0 || slot>=8 || Virtue_case::casting_active() || gwin->get_usecode()->in_usecode()) return;
+        if(active_editor) active_editor->cancel_edit();
+        editing=slot;draft=container->get_case_note(slot);active_editor=this;handles_kbd=true;
+        gumpman->set_kbd_focus(this);SDL_StartTextInput(gwin->get_win()->get_screen_window());gwin->set_all_dirty();
+    }
+    void update_gump() override {
+        if(editing>=0 && gumpman->get_kbd_focus()!=this) cancel_edit();
+    }
+    bool key_down(SDL_Keycode key, SDL_Keycode) override {
+        if(editing<0) return false;
+        if(key==SDLK_ESCAPE) cancel_edit();
+        else if(key==SDLK_RETURN || key==SDLK_KP_ENTER) { container->set_case_note(editing,draft);cancel_edit(); }
+        else if(key==SDLK_BACKSPACE) { if(!draft.empty())draft.pop_back();gwin->set_all_dirty(); }
+        return true;
+    }
+    bool text_input(const char* text) override {
+        if(editing<0) return false;
+        for(const unsigned char* p=reinterpret_cast<const unsigned char*>(text); *p; ++p) {
+            if(*p<32 || *p>126) continue;
+            const std::string candidate=draft+static_cast<char>(*p);
+            if(!note_lines(candidate).empty()) draft=candidate;
+        }
+        gwin->set_all_dirty();return true;
+    }
+    bool handle_kbd_event(void* ev) override {
+        if(editing<0) return false;
+        auto& event=*static_cast<SDL_Event*>(ev);
+        if(event.type==SDL_EVENT_TEXT_INPUT)return text_input(event.text.text);
+        if(event.type==SDL_EVENT_KEY_DOWN)return key_down(event.key.key,0);
+        return false;
     }
     Gump* clone(Container_game_object* cont, int initx, int inity) override {
         auto* result = new Case_gump(cont); result->set_pos(initx, inity); return result;
@@ -194,14 +279,17 @@ public:
     void paint() override {
         background->paint(gwin->get_win()->get_ib8(), x, y);
         paint_elems();
-        if (cli_enabled && label_preview) {
-            auto font = fontManager.get_font("TINY_BLACK_FONT");
-            for (int i=0; i<8; ++i) for (int line=0; line<2; ++line) {
-                const char* text = label_examples[i][line];
-                const int text_width = font->get_text_width(text);
-                if (text_width <= 32)
-                    font->paint_text(gwin->get_win()->get_ib8(), text,
-                        x+61+71*(i/4)+(32-text_width)/2, y+45+18*(i%4)+6*line+4-font->get_text_baseline());
+        auto font=fontManager.get_font("TINY_BLACK_FONT");
+        for(int slot=0;slot<8;++slot) {
+            const auto& note=editing==slot ? draft : container->get_case_note(slot);
+            const auto lines=note_lines(note);
+            for(size_t line=0;line<lines.size();++line) {
+                const int w=font->get_text_width(lines[line].c_str());
+                const int tx=x+61+71*(slot/4)+(32-w)/2;
+                const int ty=y+45+18*(slot%4)+(lines.size()==1?3:6*line);
+                font->paint_text(gwin->get_win()->get_ib8(),lines[line].c_str(),tx,ty+4-font->get_text_baseline());
+                if(editing==slot && line+1==lines.size())
+                    gwin->get_win()->get_ib8()->fill8(0,1,6,x+61+71*(slot/4)+std::min(31,(32-w)/2+w),ty);
             }
         }
         Object_iterator next(container->get_objects());
@@ -229,6 +317,15 @@ public:
         return nullptr;
     }
 };
+bool Case_label_button::activate(MouseButton button) {
+    if(button!=MouseButton::Left) return false;
+    static_cast<Case_gump*>(parent)->begin_edit(slot);return true;
+}
+void prompt_label(Container_game_object* container,int slot) {
+    Virtue_case::open(container);
+    auto* manager=Game_window::get_instance()->get_gump_man();
+    if(auto* g=dynamic_cast<Case_gump*>(manager->find_gump(container,-1))) g->begin_edit(slot);
+}
 }
 
 void Virtue_case::install_shape(Shapes_vga_file& shapes) {
@@ -274,8 +371,13 @@ void Virtue_case::open(Container_game_object* cont) {
 
 void Virtue_case::preview_labels_for_test() {
     if (!cli_enabled) return;
-    label_preview = true;
-    Game_window::get_instance()->set_all_dirty();
+    Game_object_vector cases;
+    Game_window::get_instance()->get_main_actor()->get_objects(cases,shape,c_any_qual,0);
+    for(auto* object:cases) if(is_case(object)) {
+        auto* container=object->as_container();
+        for(int i=0;i<8;++i)container->set_case_note(i,std::string(label_examples[i][0])+" "+label_examples[i][1]);
+        Game_window::get_instance()->set_all_dirty();break;
+    }
 }
 
 bool Virtue_case::casting_active() {
@@ -295,8 +397,36 @@ bool Virtue_case::accept_spell_target(Game_object* object) {
 void Virtue_case::mark_succeeded(Game_object* object) {
     if (!cast_session || cast_session->recall) return;
     auto stone = cast_session->target.lock(); auto container = cast_session->owner.lock();
-    if (stone && container && stone.get()==object && object->get_owner()==container.get())
+    if (stone && container && stone.get()==object && object->get_owner()==container.get()
+        && (cast_session->targeting || (cast_session->mark_effect && Usecode_script::find(object)==cast_session->mark_effect)))
         cast_session->marked = true;
 }
 
 bool Virtue_case::targeting_active() { return casting_active() && cast_session->targeting; }
+
+int Virtue_case::editing_slot() { return active_editor ? active_editor->edit_slot() : -1; }
+Container_game_object* Virtue_case::editing_case() { return active_editor ? active_editor->get_container() : nullptr; }
+int Virtue_case::notes_ireg_size(const Container_game_object* container) {
+    if(!is_case(container)) return 0;
+    bool any=false;int size=16; // Four-byte special header, VSC1, eight byte lengths.
+    for(int i=0;i<8;++i) { const auto& note=container->get_case_note(i);any|=!note.empty();size+=note.size(); }
+    return any?size:0;
+}
+void Virtue_case::write_notes(ODataSource* out,const Container_game_object* container) {
+    const int size=notes_ireg_size(container);if(!size)return;
+    out->write1(255);out->write1(6);out->write2(size-4);out->write("VSC1",4);
+    for(int i=0;i<8;++i) { const auto& note=container->get_case_note(i);out->write1(note.size());out->write(note.data(),note.size()); }
+}
+void Virtue_case::read_notes(Game_object* object,const unsigned char* data,int length) {
+    if(!is_case(object) || length<12 || std::string(reinterpret_cast<const char*>(data),4)!="VSC1") return;
+    std::array<std::string,8> notes;int pos=4;
+    for(auto& note:notes) {
+        if(pos>=length)return;const int count=data[pos++];if(count>12 || pos+count>length)return;
+        note.assign(reinterpret_cast<const char*>(data+pos),count);pos+=count;
+        for(unsigned char c:note)if(c<32 || c>126)return;
+    }
+    if(pos!=length)return;
+    for(int i=0;i<8;++i)object->as_container()->set_case_note(i,notes[i]);
+}
+
+unsigned long long Virtue_case::cast_attempt_count() { return cast_attempts; }

@@ -152,6 +152,8 @@ struct CliDriver {
           << ",\"scripted_schedule_pending\":" << w->get_clock()->scripted_schedule_pending()
           << ",\"game_time_tick\":" << Game_time::now()
           << ",\"game_time_events\":" << Game_time::describe()
+          << ",\"case_cast_attempts\":" << Virtue_case::cast_attempt_count()
+          << ",\"case_editing\":" << Virtue_case::editing_slot()
           << ",\"case_casting\":" << Virtue_case::casting_active() << ",\"case_targeting\":" << Virtue_case::targeting_active()
           << ",\"food\":" << a->get_property(Actor::food_level)
           << ",\"temperature\":" << a->get_temperature()
@@ -310,9 +312,9 @@ namespace {
             min = 2; max = 4; // Optional destination-gump-local drop coordinates.
         } else if (op == "ready_inventory") {
             min = max = 2;
-        } else if (op == "test_light_item" || op == "test_remove_fuel_receiver" || op == "test_stall" || op == "test_equipment" || op == "test_stale_event_metadata" || op == "test_legacy_clock" || op == "test_time_rate" || op == "test_temporary_effect" || op == "native_wait" || op == "inspect_inventory" || op == "interact_inventory" || op == "inspect_usecode" || op == "test_case_spell_setup") {
+        } else if (op == "test_light_item" || op == "test_remove_fuel_receiver" || op == "test_stall" || op == "test_equipment" || op == "test_stale_event_metadata" || op == "test_legacy_clock" || op == "test_time_rate" || op == "test_temporary_effect" || op == "native_wait" || op == "inspect_inventory" || op == "interact_inventory" || op == "inspect_usecode" || op == "test_case_spell_setup" || op == "text_character" || op == "aim_object") {
             min = max = 1;
-        } else if (op == "key" || op == "move" || op == "interact" || op == "click" || op == "control_at" || op == "target_at") {
+        } else if (op == "key" || op == "move" || op == "interact" || op == "click" || op == "control_at" || op == "target_at" || op == "spellbook_cast") {
 			min = max = 2;
 		} else if (op == "find_objects" || op == "find_actors" || op == "inspect_world") {
 			min = 2;
@@ -327,7 +329,7 @@ namespace {
 			max = 2;
 		} else if (
 				op != "state" && op != "ui_state" && op != "exit" && op != "continue" && op != "dismiss" && op != "combat"
-				&& op != "test_exposure" && op != "test_orb_chart_item" && op != "test_virtue_case" && op != "test_virtue_case_labels" && op != "case_spell_state" && op != "test_jawbone_items" && op != "wait_eligibility" && op != "controls" && op != "screenshot" && op != "quit_prompt" && op != "movement_status") {
+				&& op != "test_exposure" && op != "test_orb_chart_item" && op != "test_virtue_case" && op != "test_virtue_case_labels" && op != "case_spell_state" && op != "test_case_extra" && op != "test_jawbone_items" && op != "wait_eligibility" && op != "controls" && op != "screenshot" && op != "quit_prompt" && op != "movement_status") {
 			throw std::runtime_error("unknown_command");
 		}
 		std::vector<int> args;
@@ -437,11 +439,27 @@ int cli_poll(bool input, void*) {
 		}
 		in.str(rest.str());
 		in.clear();
-        if (op == "key") {
+        if (op == "text_character") {
+            if(input || x<0 || x>0x10ffff)throw std::runtime_error("text_input_not_available");
+            char text[5]{};
+            if(x<0x80)text[0]=static_cast<char>(x);
+            else if(x<0x800){text[0]=0xc0|(x>>6);text[1]=0x80|(x&63);}
+            else if(x<0x10000){text[0]=0xe0|(x>>12);text[1]=0x80|((x>>6)&63);text[2]=0x80|(x&63);}
+            else {text[0]=0xf0|(x>>18);text[1]=0x80|((x>>12)&63);text[2]=0x80|((x>>6)&63);text[3]=0x80|(x&63);}
+            SDL_Event event{};event.type=SDL_EVENT_TEXT_INPUT;event.text.text=text;
+            if(!w->get_gump_man()->handle_kbd_event(&event))throw std::runtime_error("no_text_entry_focus");
+            cli_reply(id,true,"\"category\":\"gameplay\",\"text_dispatched\":true");
+        } else if (op == "key") {
             SDL_Event event{}; event.type = SDL_EVENT_KEY_DOWN;
             event.key.key = static_cast<SDL_Keycode>(x); event.key.mod = static_cast<SDL_Keymod>(y); event.key.down = true;
-            SDL_PushEvent(&event);
-            event.type = SDL_EVENT_KEY_UP; event.key.down = false; SDL_PushEvent(&event);
+            // A focused in-place label editor has a synchronous native keyboard
+            // handler, just like semantic close controls. Do not leave its Enter/
+            // Backspace event outstanding before the next text-input command.
+            const bool handled = Virtue_case::editing_slot()>=0 && w->get_gump_man()->handle_kbd_event(&event);
+            if(!handled) {
+                SDL_PushEvent(&event);
+                event.type = SDL_EVENT_KEY_UP; event.key.down = false; SDL_PushEvent(&event);
+            }
             cli_reply(id, true, "\"category\":\"gameplay\",\"status\":\"dispatched\"");
         } else if (op == "test_orb_chart_item") {
             if (input || w->get_usecode()->in_usecode() || w->get_gump_man()->gump_mode())

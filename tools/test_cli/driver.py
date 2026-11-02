@@ -132,7 +132,7 @@ class Driver:
   if op=='inspect_usecode':return self.raw(op,int(c['function']))
   if op in ('inspect_inventory','interact_inventory'):return self.raw(op,int(c.get('ref',0)))
   if op=='key':
-   names={'w':119,'escape':27,'enter':13,'left':0x40000050,'right':0x4000004f,'up':0x40000052,'down':0x40000051,'home':0x4000004a,'end':0x4000004d}
+   names={'w':119,'escape':27,'enter':13,'backspace':8,'left':0x40000050,'right':0x4000004f,'up':0x40000052,'down':0x40000051,'home':0x4000004a,'end':0x4000004d}
    names.update({str(i):ord(str(i))for i in range(1,9)})
    if c['key'].lower()not in names:raise ValueError('unsupported semantic key')
    return self.raw(op,names[c['key'].lower()],3 if c.get('shift',False)else 0)
@@ -143,6 +143,12 @@ class Driver:
   if op=='move_gump':return self.raw(op,int(c['ref']),int(c['x']),int(c['y']))
   if op=='transfer_item':
    return self.raw(op,int(c['ref']),int(c['destination']),int(c['x']),int(c['y'])) if 'x' in c else self.raw(op,int(c['ref']),int(c['destination']))
+  if op=='type_text':
+   for ch in c['text']:self.raw('text_character',ord(ch))
+   return {'ok':True,'category':'gameplay','characters_dispatched':len(c['text'])}
+  if op=='aim_object':return self.raw(op,int(c['ref']))
+  if op=='test_case_extra':return self.raw(op)
+  if op=='spellbook_cast':return self.raw(op,int(c['ref']),int(c['spell']))
   if op=='test_case_spell_setup':return self.raw(op,int(c.get('scenario',0)))
   if op=='case_spell_state':return self.raw(op)
   if op=='target_at':return self.raw(op,int(c['x']),int(c['y']))
