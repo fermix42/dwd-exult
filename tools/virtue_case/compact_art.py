@@ -47,6 +47,14 @@ for i,rgb in enumerate(sample):
     if i in outside: bg.append(255); continue
     if rgb not in cache: cache[rgb]=min(range(224),key=lambda k:sum((colors[k][c]-rgb[c])**2 for c in range(3)))
     bg.append(cache[rgb])
+# Two-line font trial: stretch each original framed plate from12 to16 pixels.
+original_bg=bytes(bg)
+for col in range(2):
+    for row in range(4):
+        px=59+71*col; sy=46+18*row; dy=43+18*row
+        for yy in range(16):
+            source_y=sy+min(11,int((yy+.5)*12/16))
+            bg[(dy+yy)*width+px:(dy+yy)*width+px+36]=original_bg[source_y*width+px:source_y*width+px+36]
 write_png(art/'open_case.png',width,height,bg,palette)
 source_path=art/'source_case_reference.png'
 if a.source.resolve()!=source_path.resolve(): shutil.copyfile(a.source,source_path)
@@ -76,11 +84,11 @@ for asset in manifest['assets']:
             pressed[32:]=normal[:-32]; pressed[:32]=bytes([147])*32
         write_png(art/asset['filename'],32,12,pressed,palette)
         asset.update(width=32,height=12,position_relative_to_gump=[x,y])
-manifest.update(canvas=[196,135],status='Compact196x135 owner image integration; supersedes320x200 layout',lid=[14,8,168,22],wood_border=3,velvet=[26,41,148,75],compass_safe=[74,10,48,18],hinges=[[40,30,18,10],[141,30,18,10]],button_hits={'mark':[38,14,32,12],'recall':[130,14,32,12]},button_text={'mark_normal':[43,17],'mark_pressed':[43,18],'recall_normal':[133,17],'recall_pressed':[133,18]},closing_catch_and_hit=[86,118,28,12],source_commit='da74f56074b6ae4c1c509ec3ab76a924c3e261dc')
+manifest.update(canvas=[196,135],status='Compact196x135 owner image integration; supersedes320x200 layout',lid=[14,8,168,22],wood_border=3,velvet=[26,41,148,75],compass_safe=[74,10,48,18],hinges=[[40,30,18,10],[141,30,18,10]],button_hits={'mark':[38,14,32,12],'recall':[130,14,32,12]},button_text={'mark_normal':[43,17],'mark_pressed':[43,18],'recall_normal':[133,17],'recall_pressed':[133,18]},closing_catch_and_hit=None,decorative_catch=[86,118,28,12],close_button={'resource':'BG gumps/check (shape2)','normal_frame':0,'pressed_frame':1,'anchor':[23,68],'rect':[3,48,21,21]},source_commit='da74f56074b6ae4c1c509ec3ab76a924c3e261dc')
 for i,s in enumerate(manifest['slots']):
     c=i//4; r=i%4
-    s.update(compartment=[30+71*c,42+18*r,67,18],recess=[33+71*c,44+18*r,23,16],stone_canvas=[38+71*c,45+18*r,13,15],stone_hotspot=[6,7],stone_render_anchor=[44+71*c,52+18*r],label_rect=[59+71*c,46+18*r,36,12],label_text_origin=[61+71*c,49+18*r],label_text_safe_rect=[61+71*c,49+18*r,32,6],label_hit=[59+71*c,46+18*r,36,12])
-manifest['label_rules'].update(font='TINY_BLACK_FONT, resource shape4, lead0',text_height=6,baseline=4,max_width=32,recommended_character_cap=6)
+    s.update(compartment=[30+71*c,42+18*r,67,18],recess=[33+71*c,44+18*r,23,16],stone_canvas=[38+71*c,45+18*r,13,15],stone_hotspot=[6,7],stone_render_anchor=[44+71*c,52+18*r],label_rect=[59+71*c,43+18*r,36,16],label_text_origin=[61+71*c,45+18*r],label_text_safe_rect=[61+71*c,45+18*r,32,12],label_hit=[59+71*c,43+18*r,36,16])
+manifest['label_rules'].update(font='TINY_BLACK_FONT, resource shape4, lead0',text_height=6,baseline=4,max_width=32,recommended_character_cap=12,lines=2)
 (art/'asset_manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 frames=[]
 for asset in manifest['assets']:

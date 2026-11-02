@@ -18,6 +18,7 @@ p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--run', required=True)
 p.add_argument('--checkpoint', type=Path, required=True)
 p.add_argument('--scale', type=int, choices=(1, 2, 3), default=1)
+p.add_argument('--labels', action='store_true', help='Explicit synthetic two-line label visual trial')
 p.add_argument('--ultrawide', action='store_true')
 p.add_argument('--mod', choices=('', 'Keyring'), default='')
 a = p.parse_args()
@@ -93,6 +94,10 @@ try:
     show(case, avatar)
     gump = next(g for g in d.state()['gumps'] if 'Case_gump' in g['type'])
     events.append(dict(case_gump=gump))
+    if a.labels:
+        do('screenshot', full=True)
+        shutil.copyfile(d.run/'screenshot.png', d.run/'case-engine-blank.png')
+        do('test_virtue_case_labels')
     do('screenshot', full=True)
     shutil.copyfile(d.run/'screenshot.png', d.run/'case-engine.png')
     # Inspect actual rendered pixels; configuration alone does not prove scale.
@@ -124,14 +129,30 @@ try:
                     pos = ((oy+y*factor+dy)*width+ox+x*factor+dx)*channels
                     if pixels[pos:pos+channels] != pixel: exact = False
     check('rendered case pixels are exact integer nearest-neighbor blocks', exact)
+    if a.labels:
+        bw,bh,bmode,blank,_,_ = read_png(d.run/'case-engine-blank.png')
+        check('blank comparison frame matches renderer format', (bw,bh,bmode)==(width,height,mode))
+        for slot in json.loads(manifest_path.read_text())['slots']:
+            tx,ty,tw,th = slot['label_text_safe_rect']
+            ink_changes = 0
+            for py in range(oy+ty*factor,oy+(ty+th)*factor):
+                for px in range(ox+tx*factor,ox+(tx+tw)*factor):
+                    pos=(py*width+px)*channels
+                    if pixels[pos:pos+3] == bytes([0,0,0]) and blank[pos:pos+3] != pixels[pos:pos+3]: ink_changes += 1
+            check('native text visibly painted in '+slot['virtue']+' label', ink_changes>=10*factor*factor)
+
     controls = [c for c in do('controls')['controls'] if c['gump_id']==gump['id']]
     check('three physical controls exposed', {c['action'] for c in controls}=={'close','mark_unimplemented','recall_unimplemented'})
+    close_control = next(c for c in controls if c['action']=='close')
+    check('close control is on four-grommet leather side tab', gump['x']+3 <= close_control['x'] <= gump['x']+23 and gump['y']+47 <= close_control['y'] <= gump['y']+69)
+    check('bottom catch is decorative', do('control_at', x=gump['x']+100, y=gump['y']+124)['action']!='close')
+
     before = {o['ref']:(o['frame'],o['stone_target']) for o in inventory(case)}
     for action in ('mark_unimplemented','recall_unimplemented'):
         do('activate_control', id=next(c['id'] for c in controls if c['action']==action))
         check(action+' preserves all stone identities/targets', {o['ref']:(o['frame'],o['stone_target']) for o in inventory(case)}==before)
     do('activate_control', id=next(c['id'] for c in controls if c['action']=='close'))
-    check('brass catch closes specialized gump', not any('Case_gump' in g['type'] for g in d.state()['gumps']))
+    check('side-tab checkmark closes specialized gump', not any('Case_gump' in g['type'] for g in d.state()['gumps']))
     show(case, avatar)
     check('case reopens with identical contents', {o['ref']:(o['frame'],o['stone_target']) for o in inventory(case)}==before)
     while d.state()['input_owner']=='gump': do('dismiss')

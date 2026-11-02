@@ -10,4 +10,6 @@ bool is_case(const Game_object* object);
 bool accepts(const Container_game_object* container, const Game_object* object);
 void seat(Container_game_object* container, Game_object* object);
 void open(Container_game_object* container);
+// Explicit unified-CLI visual trial only; never stored in saves.
+void preview_labels_for_test();
 }

@@ -281,3 +281,12 @@ Object observations include `gump_tx/gump_ty`; real Virtue Stones also expose
 read-only `stone_target: {x,y,z}` and `stone_target_map`. References become stale
 after world replacement as before. None of these test commands is active in
 normal gameplay.
+
+### Native case label visual trial
+
+`test_virtue_case_labels` (zero arguments) explicitly enables synthetic two-line
+example labels for native BG cases in the current CLI process. It returns
+`synthetic_label_preview:true`, changes no object/quest data or save format,
+and does not implement editing or persistence. Normal gameplay never enables
+this preview. Use `tools/virtue_case/presentation.py --labels` with a disposable
+case fixture checkpoint for an actual renderer capture.

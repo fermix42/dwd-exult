@@ -273,3 +273,34 @@ A collision fixture verifies an occupied third-party shape 1601 is not claimed.
 Original game directories remain read-only inputs. Real spellcasting, label
 editing, quest acquisition, held-button screenshots and human art acceptance
 are not certified by this presentation integration.
+
+## Two-line font visual trial (uncommitted)
+
+Owner requested an in-game label readability test. Plate canvases are36x16
+at59/130,43+18r, with a32x12 inner text area. The original6px TINY_BLACK_FONT
+is centered on two lines (y45+18r and y51+18r). Example labels of9–12 characters
+including their separating space measure no more than29 pixels per line.
+`test_virtue_case_labels` is an explicit unified-CLI-only synthetic preview;
+`presentation.py --labels` enables it. Runtime native text, never baked PNG text.
+Normal gameplay stays blank; no label editing or persistent names implemented.
+Actual BG1x/2x captures and40 passing control/identity/scaling assertions are
+under test-output/virtue-label-trial. No commit/merge/release or acceptance yet.
+
+Bundled tiny-font extended glyphs reserve8px height/baseline6; this ASCII trial
+adjusts the baseline to4 for six-pixel lines. Blank-versus-labeled renderer
+comparisons verify actual black text ink in all eight labels at both scales.
+
+## Close-button placement correction
+
+The owner requested the original BG close checkmark on the left of the raised
+back panel. Its native21x21 frame is painted with hotspot anchor(34,30), covering
+local rectangle(14,10,21,21), left of MARK. Both native normal/pressed frames,
+close behavior and sound use the ordinary Checkmark_button. Background picking
+also includes child widget masks over transparent edges. The bottom brass catch
+is decorative, with no close hit region. The case remains196x135; two-line label
+trial and real stone behavior are preserved.
+
+Placement clarification: the close checkmark belongs on the four-grommet leather
+side tab to the left of the Honesty/Compassion (blue/yellow) recesses, NOT the lid.
+Corrected hotspot(23,68), local rectangle(3,48,21,21). Prior lid placement is
+superseded. The bottom catch remains decorative.

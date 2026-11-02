@@ -71,12 +71,7 @@
       18
     ]
   },
-  "closing_catch_and_hit": [
-    86,
-    118,
-    28,
-    12
-  ],
+  "closing_catch_and_hit": null,
   "slots": [
     {
       "slot": 0,
@@ -112,26 +107,26 @@
       ],
       "label_rect": [
         59,
-        46,
+        43,
         36,
-        12
+        16
       ],
       "label_text_origin": [
         61,
-        49
+        45
       ],
       "label_text_safe_rect": [
         61,
-        49,
+        45,
         32,
-        6
+        12
       ],
       "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
       "label_hit": [
         59,
-        46,
+        43,
         36,
-        12
+        16
       ]
     },
     {
@@ -168,26 +163,26 @@
       ],
       "label_rect": [
         59,
-        64,
+        61,
         36,
-        12
+        16
       ],
       "label_text_origin": [
         61,
-        67
+        63
       ],
       "label_text_safe_rect": [
         61,
-        67,
+        63,
         32,
-        6
+        12
       ],
       "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
       "label_hit": [
         59,
-        64,
+        61,
         36,
-        12
+        16
       ]
     },
     {
@@ -224,26 +219,26 @@
       ],
       "label_rect": [
         59,
-        82,
+        79,
         36,
-        12
+        16
       ],
       "label_text_origin": [
         61,
-        85
+        81
       ],
       "label_text_safe_rect": [
         61,
-        85,
+        81,
         32,
-        6
+        12
       ],
       "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
       "label_hit": [
         59,
-        82,
+        79,
         36,
-        12
+        16
       ]
     },
     {
@@ -280,26 +275,26 @@
       ],
       "label_rect": [
         59,
-        100,
+        97,
         36,
-        12
+        16
       ],
       "label_text_origin": [
         61,
-        103
+        99
       ],
       "label_text_safe_rect": [
         61,
-        103,
+        99,
         32,
-        6
+        12
       ],
       "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
       "label_hit": [
         59,
-        100,
+        97,
         36,
-        12
+        16
       ]
     },
     {
@@ -336,26 +331,26 @@
       ],
       "label_rect": [
         130,
-        46,
+        43,
         36,
-        12
+        16
       ],
       "label_text_origin": [
         132,
-        49
+        45
       ],
       "label_text_safe_rect": [
         132,
-        49,
+        45,
         32,
-        6
+        12
       ],
       "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
       "label_hit": [
         130,
-        46,
+        43,
         36,
-        12
+        16
       ]
     },
     {
@@ -392,26 +387,26 @@
       ],
       "label_rect": [
         130,
-        64,
+        61,
         36,
-        12
+        16
       ],
       "label_text_origin": [
         132,
-        67
+        63
       ],
       "label_text_safe_rect": [
         132,
-        67,
+        63,
         32,
-        6
+        12
       ],
       "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
       "label_hit": [
         130,
-        64,
+        61,
         36,
-        12
+        16
       ]
     },
     {
@@ -448,26 +443,26 @@
       ],
       "label_rect": [
         130,
-        82,
+        79,
         36,
-        12
+        16
       ],
       "label_text_origin": [
         132,
-        85
+        81
       ],
       "label_text_safe_rect": [
         132,
-        85,
+        81,
         32,
-        6
+        12
       ],
       "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
       "label_hit": [
         130,
-        82,
+        79,
         36,
-        12
+        16
       ]
     },
     {
@@ -504,26 +499,26 @@
       ],
       "label_rect": [
         130,
-        100,
+        97,
         36,
-        12
+        16
       ],
       "label_text_origin": [
         132,
-        103
+        99
       ],
       "label_text_safe_rect": [
         132,
-        103,
+        99,
         32,
-        6
+        12
       ],
       "stone_hit": "opaque pixels of the exact seated frame at stone_render_anchor; return actual contained object",
       "label_hit": [
         130,
-        100,
+        97,
         36,
-        12
+        16
       ]
     }
   ],
@@ -860,10 +855,32 @@
     "text_height": 6,
     "baseline": 4,
     "max_width": 32,
-    "recommended_character_cap": 6,
+    "recommended_character_cap": 12,
     "require_width_check": true,
     "foreground_index": 0,
-    "shadow": "none"
+    "shadow": "none",
+    "lines": 2
   },
-  "source_commit": "da74f56074b6ae4c1c509ec3ab76a924c3e261dc"
+  "source_commit": "da74f56074b6ae4c1c509ec3ab76a924c3e261dc",
+  "decorative_catch": [
+    86,
+    118,
+    28,
+    12
+  ],
+  "close_button": {
+    "resource": "BG gumps/check (shape2)",
+    "normal_frame": 0,
+    "pressed_frame": 1,
+    "anchor": [
+      23,
+      68
+    ],
+    "rect": [
+      3,
+      48,
+      21,
+      21
+    ]
+  }
 }

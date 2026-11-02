@@ -263,6 +263,11 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
         return "\"category\":\"test_setup\",\"synthetic_jawbone_items\":true,\"jawbone\":"
             + describe(jawbone.get()) + ",\"tooth\":" + describe(tooth.get()) + ",\"backpack\":" + describe(container);
     }
+    if (op == "test_virtue_case_labels") {
+        if (!GAME_BG || input) throw std::runtime_error("case_label_preview_requires_BG");
+        Virtue_case::preview_labels_for_test();
+        return "\"category\":\"test_setup\",\"synthetic_label_preview\":true";
+    }
     if (op == "test_virtue_case") {
         player_ready(input);
         if (!GAME_BG || a->find_item(Virtue_case::shape, c_any_qual, c_any_framenum))

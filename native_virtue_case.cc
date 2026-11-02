@@ -3,9 +3,11 @@
 #include <config.h>
 #endif
 #include "native_virtue_case.h"
+#include "cli_driver.h"
 #include "Gump.h"
 #include "Gump_manager.h"
 #include "Gump_button.h"
+#include "misc_buttons.h"
 #include "U7obj.h"
 #include "databuf.h"
 #include "fnames.h"
@@ -26,6 +28,8 @@
 
 namespace {
 bool installed = false;
+bool label_preview = false;
+constexpr const char* label_examples[8][2] = {{"Britain","Home"},{"LB","Castle"},{"Destard","Ent"},{"Cove","Healer"},{"Trinsic","Gate"},{"Skara","Brae"},{"Shrine","Home"},{"Camp","Home"}};
 constexpr int width = 196, height = 135;
 // Original BG shape 330 frames: yellow/red/blue/orange/green/purple/black/white.
 // Fixed columns read top to bottom: Honesty..Justice, Sacrifice..Humility.
@@ -67,23 +71,20 @@ public:
         : Gump_button(parent, -1, x, y, SF_OTHER), art(art), frame(frame), label(label) {}
     TileRect get_rect() const override {
         int sx = 0, sy = 0; local_to_screen(sx, sy);
-        return TileRect(sx, sy, frame < 0 ? 28 : 32, 12);
+        return TileRect(sx, sy, 32, 12);
     }
     bool on_widget(int mx, int my) const override {
         screen_to_local(mx, my);
-        return mx >= 0 && my >= 0 && mx < (frame < 0 ? 28 : 32) && my < (12);
+        return mx >= 0 && my >= 0 && mx < (32) && my < 12;
     }
     const char* cli_action() const override {
-        return frame < 0 ? "close" : frame == 10 ? "mark_unimplemented" : "recall_unimplemented";
+        return frame == 10 ? "mark_unimplemented" : "recall_unimplemented";
     }
-    bool is_checkmark() const override { return frame < 0; }
     bool activate(MouseButton button) override {
         if (button != MouseButton::Left) return false;
-        if (frame < 0) parent->close();
         return true; // Consume the presentation button without casting anything.
     }
     void paint() override {
-        if (frame < 0) return; // The catch is already part of the background.
         int sx = 0, sy = 0; local_to_screen(sx, sy);
         art->get_frame(frame + (is_pushed() ? 1 : 0))->paint(gwin->get_win()->get_ib8(), sx, sy);
         auto font = fontManager.get_font("TINY_BLACK_FONT");
@@ -102,14 +103,20 @@ public:
         for (int i = 0; i < 8; ++i) seated[i] = art->get_frame(i+2);
         add_elem(new Case_button(this, art.get(), 10, 38, 14, "MARK"));
         add_elem(new Case_button(this, art.get(), 12, 130, 14, "RECALL"));
-        add_elem(new Case_button(this, art.get(), -1, 86, 118, ""));
+        // Original BG checkmark frame has bottom-right hotspot (20,20).
+        add_elem(new Checkmark_button(this, 23, 68));
         set_pos();
     }
     Gump* clone(Container_game_object* cont, int initx, int inity) override {
         auto* result = new Case_gump(cont); result->set_pos(initx, inity); return result;
     }
     TileRect get_rect() const override { return TileRect(x, y, width, height); }
-    bool has_point(int sx, int sy) const override { return background->has_point(sx-x, sy-y); }
+    bool has_point(int sx, int sy) const override {
+        if (background->has_point(sx-x, sy-y)) return true;
+        // The checkmark can extend over the transparent edge of the left leather side tab.
+        for (auto* elem : elems) if (elem->on_widget(sx, sy)) return true;
+        return false;
+    }
     const char* get_click_name() const override { return "Virtue Stone Case"; }
     bool add(Game_object* obj, int, int, int, int, bool dont_check, bool) override {
         return obj && container->add(obj, dont_check, false);
@@ -117,6 +124,16 @@ public:
     void paint() override {
         background->paint(gwin->get_win()->get_ib8(), x, y);
         paint_elems();
+        if (cli_enabled && label_preview) {
+            auto font = fontManager.get_font("TINY_BLACK_FONT");
+            for (int i=0; i<8; ++i) for (int line=0; line<2; ++line) {
+                const char* text = label_examples[i][line];
+                const int text_width = font->get_text_width(text);
+                if (text_width <= 32)
+                    font->paint_text(gwin->get_win()->get_ib8(), text,
+                        x+61+71*(i/4)+(32-text_width)/2, y+45+18*(i%4)+6*line+4-font->get_text_baseline());
+            }
+        }
         Object_iterator next(container->get_objects());
         while (auto* object = next.get_next()) {
             const int slot = slot_for(object);
@@ -182,5 +199,11 @@ void Virtue_case::open(Container_game_object* cont) {
     auto* manager = Game_window::get_instance()->get_gump_man();
     if (!is_case(cont) || manager->find_gump(cont, -1)) return;
     manager->add_gump(new Case_gump(cont));
+    Game_window::get_instance()->set_all_dirty();
+}
+
+void Virtue_case::preview_labels_for_test() {
+    if (!cli_enabled) return;
+    label_preview = true;
     Game_window::get_instance()->set_all_dirty();
 }

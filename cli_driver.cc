@@ -325,7 +325,7 @@ namespace {
 			max = 2;
 		} else if (
 				op != "state" && op != "ui_state" && op != "exit" && op != "continue" && op != "dismiss" && op != "combat"
-				&& op != "test_exposure" && op != "test_orb_chart_item" && op != "test_virtue_case" && op != "test_jawbone_items" && op != "wait_eligibility" && op != "controls" && op != "screenshot" && op != "quit_prompt" && op != "movement_status") {
+				&& op != "test_exposure" && op != "test_orb_chart_item" && op != "test_virtue_case" && op != "test_virtue_case_labels" && op != "test_jawbone_items" && op != "wait_eligibility" && op != "controls" && op != "screenshot" && op != "quit_prompt" && op != "movement_status") {
 			throw std::runtime_error("unknown_command");
 		}
 		std::vector<int> args;
