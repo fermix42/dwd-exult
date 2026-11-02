@@ -140,9 +140,11 @@ class Driver:
   if op=='test_remove_fuel_receiver':return self.raw(op,int(c['ref']))
   if op=='drop_item':return self.raw(op,int(c['ref']),int(c['x']),int(c['y']),int(c.get('z',0)))
   if op=='ready_inventory':return self.raw(op,int(c['ref']),int(c['slot']))
-  if op=='transfer_item':return self.raw(op,int(c['ref']),int(c['destination']))
+  if op=='move_gump':return self.raw(op,int(c['ref']),int(c['x']),int(c['y']))
+  if op=='transfer_item':
+   return self.raw(op,int(c['ref']),int(c['destination']),int(c['x']),int(c['y'])) if 'x' in c else self.raw(op,int(c['ref']),int(c['destination']))
   if op=='test_stall':return self.raw(op,int(c['milliseconds']))
-  if op in ('test_exposure','test_orb_chart_item'):return self.raw(op)
+  if op in ('test_exposure','test_orb_chart_item','test_virtue_case','test_jawbone_items'):return self.raw(op)
   if op=='test_equipment':return self.raw(op,int(c['kind']))
   if op=='test_stale_event_metadata':return self.raw(op,int(c['ref']))
   if op=='test_calendar':return self.raw(op,int(c['day']),int(c['hour']),int(c['minute']),int(c.get('phase',0)))

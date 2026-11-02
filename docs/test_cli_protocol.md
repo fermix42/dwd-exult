@@ -253,3 +253,31 @@ ordinary cancellation path.
 visible local world object or party inventory to a visible nearby party container
 or actor. It respects normal fit, weight and native interaction checks. Dispatch
 is not success: verify the resulting owner with inventory/object observations.
+
+An optional `x,y` pair selects a destination-gump-local drop point (requires that
+container's gump to be open). Otherwise an open destination gump is preferred to
+its inventory icon. `move_gump` (`ref,x,y`) requests a real native background drag
+of an open owner's gump toward a position; observe its returned coordinates.
+Zero/sub-threshold motion uses the native click/raise path, not a completed move.
+`interact_object` may use an exposed pixel inside the observed sprite bounds when
+the centre is covered; it still requires native visibility and reachability.
+
+## Physical case Stage A fixtures
+
+`test_virtue_case` requires idle BG gameplay and no existing party case. It supplies
+one empty native case and a normally held backpack with nine real, pre-marked
+Virtue Stones (one duplicate) and a coin. Target x/y/z and map 0/1 values are
+explicit synthetic unit fixtures: this is neither acquisition nor spell evidence.
+Insertion, removal, relocation and persistence checks must use actual engine
+drag/drop and save/load after setup. The result is `category: test_setup` with
+`synthetic_physical_case_fixture`, `case` and `source_bag` object observations.
+
+`test_jawbone_items` requires idle SI gameplay, a backpack and no existing party
+jawbone. It supplies an original Jawbone and one real tooth through ordinary
+container insertion. Its `synthetic_jawbone_items` marker distinguishes this
+native-gump regression fixture from late-game acquisition evidence.
+
+Object observations include `gump_tx/gump_ty`; real Virtue Stones also expose
+read-only `stone_target: {x,y,z}` and `stone_target_map`. References become stale
+after world replacement as before. None of these test commands is active in
+normal gameplay.

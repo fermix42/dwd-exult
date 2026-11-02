@@ -13,6 +13,7 @@
 #include "combat.h"
 #include "gamemap.h"
 #include "gamewin.h"
+#include "game.h"
 #include "game_time.h"
 #include "gameclk.h"
 #include "databuf.h"
@@ -22,6 +23,9 @@
 #include "ucmachine.h"
 #include "ucsched.h"
 #include "tqueue.h"
+#include "native_virtue_case.h"
+#include "virstone.h"
+#include "ready.h"
 
 #include <SDL3/SDL.h>
 
@@ -142,6 +146,9 @@ namespace {
 			<< ",\"w\":" << foot.w << ",\"h\":" << foot.h << "},\"closed_door\":" << (info.is_door() ? o->is_closed_door() : false)
 			<< ",\"reachable\":" << reachable << ",\"hit_test_target\":" << (hit == o)
 			<< ",\"interactable\":" << (!owner && hit == o && reachable) << ",\"distance\":" << a->distance(o);
+		out << ",\"gump_tx\":" << o->get_tx() << ",\"gump_ty\":" << o->get_ty();
+		if (auto* stone = o->as_virtstone())
+			out << ",\"stone_target\":" << tile(stone->get_target_pos()) << ",\"stone_target_map\":" << stone->get_target_map();
 		if (auto* n = o->as_actor()) {
             const auto* planned = n->find_schedule_at_time(w->get_clock()->get_hour() / 3);
             const auto* schedule = n->get_schedule();
@@ -238,6 +245,59 @@ void cli_world_boundary() {
 std::string cli_world(int sequence, const std::string& op, int x, int y, std::istringstream& in, bool input) {
 	auto* w = Game_window::get_instance();
 	auto* a = w->get_main_actor();
+    if (op == "test_jawbone_items") {
+        player_ready(input);
+        if (!GAME_SI || a->find_item(555, c_any_qual, c_any_framenum))
+            throw std::runtime_error("fixture_requires_SI_without_jawbone");
+        auto* pack = a->get_readied(backpack);
+        auto* container = pack ? pack->as_container() : nullptr;
+        if (!container) throw std::runtime_error("fixture_requires_backpack");
+        auto jawbone = w->get_map()->create_ireg_object(555, 0);
+        auto tooth = w->get_map()->create_ireg_object(559, 0);
+        jawbone->set_flag(Obj_flags::okay_to_take);
+        tooth->set_flag(Obj_flags::okay_to_take);
+        if (!jawbone->as_container() || !container->has_room(jawbone.get())
+            || !container->add(jawbone.get(), false, false) || !container->add(tooth.get(), false, false))
+            throw std::runtime_error("jawbone_fixture_does_not_fit");
+        w->set_all_dirty();
+        return "\"category\":\"test_setup\",\"synthetic_jawbone_items\":true,\"jawbone\":"
+            + describe(jawbone.get()) + ",\"tooth\":" + describe(tooth.get()) + ",\"backpack\":" + describe(container);
+    }
+    if (op == "test_virtue_case") {
+        player_ready(input);
+        if (!GAME_BG || a->find_item(Virtue_case::shape, c_any_qual, c_any_framenum))
+            throw std::runtime_error("fixture_requires_BG_without_existing_case");
+        auto case_item = w->get_map()->create_ireg_object(Virtue_case::shape, 0);
+        if (!Virtue_case::is_case(case_item.get()) || !case_item->as_container())
+            throw std::runtime_error("native_case_shape_unavailable");
+        // A normal backpack can hold nine stones (90 volume) plus the coin.
+        // A small bag holds only 70; never overfill a fixture then call its
+        // legitimate refusal to take a stone back a case regression.
+        auto bag = w->get_map()->create_ireg_object(801, 0);
+        case_item->set_flag(Obj_flags::okay_to_take);
+        bag->set_flag(Obj_flags::okay_to_take);
+        if (!bag->as_container()) throw std::runtime_error("fixture_bag_unavailable");
+        for (int frame = 0; frame < 9; ++frame) {
+            auto object = w->get_map()->create_ireg_object(330, frame % 8);
+            object->set_flag(Obj_flags::okay_to_take);
+            auto* stone = object->as_virtstone();
+            if (!stone) throw std::runtime_error("fixture_stone_unavailable");
+            // Explicit synthetic pre-marked UNIT fixture, never a spell test.
+            stone->set_target_pos(Tile_coord(1000+frame, 1100+frame, frame % 4));
+            stone->set_target_map(frame % 2); // Exercise persistence of nonzero map data, not teleportation.
+            if (!bag->as_container()->add(object.get(), true, false)) throw std::runtime_error("fixture_add_failed");
+        }
+        auto gold = w->get_map()->create_ireg_object(644, 0);
+        gold->set_flag(Obj_flags::okay_to_take);
+        const int hand = !a->get_readied(lhand) ? lhand : !a->get_readied(rhand) ? rhand : -1;
+        if (hand < 0) throw std::runtime_error("fixture_requires_free_hand");
+        if (!bag->as_container()->add(gold.get(), false, false)
+            || !a->add_readied(bag.get(), hand) || !a->add(case_item.get(), false, false))
+            throw std::runtime_error("fixture_add_failed");
+        w->set_all_dirty();
+        return "\"category\":\"test_setup\",\"synthetic_physical_case_fixture\":true,\"case\":"
+            + describe(case_item.get()) + ",\"source_bag\":" + describe(bag.get());
+    }
     if (op == "test_stale_event_metadata") {
         auto o = resolve(x);
         if (input || !Game_time::save_metadata_valid() || !Game_time::has_event(o.get()))
@@ -305,13 +365,51 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
         cli_reply(sequence,true,"\"category\":\"gameplay\",\"status\":\"dispatched\"");
         return {};
     }
+    if (op == "move_gump") {
+        if (input || w->get_usecode()->in_usecode() || w->get_gump_man()->modal_gump_mode())
+            throw std::runtime_error("player_control_owned");
+        auto owner = resolve(x);
+        int target_y;
+        if (!(in >> target_y)) throw std::runtime_error("missing_gump_position");
+        Gump* target = nullptr;
+        for (auto* g : *w->get_gump_man()) if (g->get_owner() == owner.get()) target = g;
+        if (!target) throw std::runtime_error("gump_not_open");
+        auto* win = w->get_win();
+        int sx=-1,sy=-1;
+        for (int gy=win->get_start_y();gy<win->get_start_y()+win->get_full_height() && sx<0;++gy)
+            for (int gx=win->get_start_x();gx<win->get_start_x()+win->get_full_width();++gx) {
+                if (w->get_gump_man()->find_gump(gx,gy)!=target) continue;
+                int lx,ly;
+                if (!w->get_gump_man()->map_game_to_gump(target,gx,gy,lx,ly)
+                    || target->on_button(lx,ly) || target->find_object(lx,ly)) continue;
+                sx=gx;sy=gy;break;
+            }
+        if (sx<0) throw std::runtime_error("gump_background_not_visible");
+        const int dx=sx+y-target->get_x(),dy=sy+target_y-target->get_y();
+        if (!w->start_dragging(sx,sy)) throw std::runtime_error("native_drag_refused");
+        // A zero/sub-threshold move never detached the gump from the list.
+        // Preserve the native moved result so drop raises it rather than
+        // appending a second list entry pointing at the same Gump.
+        const bool moved = w->drag(dx,dy);
+        w->drop_dragged(dx,dy,moved);
+        return "\"category\":\"gameplay\",\"x\":" + std::to_string(target->get_x()) + ",\"y\":" + std::to_string(target->get_y());
+    }
     if (op == "transfer_item") {
         if (input || w->get_usecode()->in_usecode() || w->main_actor_dont_move()
             || !w->main_actor_can_act() || w->get_gump_man()->modal_gump_mode())
             throw std::runtime_error("player_control_owned");
         auto source_object = resolve(x);
         auto target_object = resolve(y);
+        int drop_x = -1, drop_y = -1;
+        bool positioned = false;
+        if (in >> drop_x) {
+            if (!(in >> drop_y) || drop_x < 0 || drop_y < 0) throw std::runtime_error("invalid_drop_coordinates");
+            positioned = true;
+        }
         auto* destination = target_object->as_container();
+        bool destination_open = false;
+        for (auto* g : *w->get_gump_man())
+            if (g->get_container() == destination) destination_open = true;
         auto* member = destination ? party_inventory_actor(destination) : nullptr;
         if (!member || !member->can_act_charmed() || a->distance(member) > 8)
             throw std::runtime_error("requires_nearby_party_container");
@@ -334,7 +432,10 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
                 } else hit=w->find_object(gx,gy);
                 if(sx<0 && hit==source_object.get()) { sx=gx;sy=gy; }
                 if(dx<0 && g && !g->on_button(lx,ly)
-                    && (hit==destination || (!hit && g->get_cont_or_actor(lx,ly)==destination))) { dx=gx;dy=gy; }
+                    && ((!positioned && ((!destination_open && hit==destination)
+                        || (!hit && g->get_container()==destination && g->get_cont_or_actor(lx,ly)==destination)))
+                        || (positioned && g->get_container()==destination
+                            && lx-g->get_x()==drop_x && ly-g->get_y()==drop_y))) { dx=gx;dy=gy; }
             }
         if(sx<0 || dx<0) throw std::runtime_error("source_or_destination_not_visible");
         cli_reply(sequence,true,"\"category\":\"gameplay\",\"status\":\"dispatched\"");
@@ -576,7 +677,18 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
 		auto r  = w->get_shape_rect(o.get());
 		int  sx = r.x + r.w / 2, sy = r.y + r.h / 2;
 		if (w->find_object(sx, sy) != o.get()) {
-			throw std::runtime_error("object_occluded_or_offscreen");
+			// A partially exposed physical item need not have an exposed centre.
+			// Use only an actual visible hit inside its observed sprite bounds.
+			bool found = false;
+			for (int py = r.y; py < r.y+r.h && !found; ++py)
+				for (int px = r.x; px < r.x+r.w; ++px)
+					if (px >= 0 && py >= 0 && px < w->get_width() && py < w->get_height()
+						&& !w->get_gump_man()->find_gump(px, py) && w->find_object(px, py) == o.get()) {
+						sx = px; sy = py; found = true; break;
+					}
+			if (!found) {
+				throw std::runtime_error("object_occluded_or_offscreen");
+			}
 		}
 		cli_reply(sequence, true, "\"category\":\"gameplay\",\"status\":\"dispatched\"");
 		w->double_clicked(sx, sy);

@@ -302,7 +302,11 @@ namespace {
             min = 0; max = 1; // Optional full renderer capture, without guard-band cropping.
         } else if (op == "test_calendar" || op == "drop_item") {
             min = max = 4;
-        } else if (op == "ready_inventory" || op == "transfer_item") {
+        } else if (op == "move_gump") {
+            min = max = 3;
+        } else if (op == "transfer_item") {
+            min = 2; max = 4; // Optional destination-gump-local drop coordinates.
+        } else if (op == "ready_inventory") {
             min = max = 2;
         } else if (op == "test_light_item" || op == "test_remove_fuel_receiver" || op == "test_stall" || op == "test_equipment" || op == "test_stale_event_metadata" || op == "test_legacy_clock" || op == "test_time_rate" || op == "test_temporary_effect" || op == "native_wait" || op == "inspect_inventory" || op == "interact_inventory" || op == "inspect_usecode") {
             min = max = 1;
@@ -321,7 +325,7 @@ namespace {
 			max = 2;
 		} else if (
 				op != "state" && op != "ui_state" && op != "exit" && op != "continue" && op != "dismiss" && op != "combat"
-				&& op != "test_exposure" && op != "test_orb_chart_item" && op != "wait_eligibility" && op != "controls" && op != "screenshot" && op != "quit_prompt" && op != "movement_status") {
+				&& op != "test_exposure" && op != "test_orb_chart_item" && op != "test_virtue_case" && op != "test_jawbone_items" && op != "wait_eligibility" && op != "controls" && op != "screenshot" && op != "quit_prompt" && op != "movement_status") {
 			throw std::runtime_error("unknown_command");
 		}
 		std::vector<int> args;

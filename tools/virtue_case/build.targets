@@ -1,0 +1,7 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)..\..\..\build-exult-fork\dependencies.targets" />
+  <PropertyGroup>
+    <!-- Reuse the ordinary tree, retaining a distinct directory per project. -->
+    <IntDir>$(MSBuildThisFileDirectory)..\..\..\exult-fork\msvcstuff\vs2019\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+</Project>
