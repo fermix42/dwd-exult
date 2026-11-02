@@ -26,7 +26,7 @@
 
 namespace {
 bool installed = false;
-constexpr int width = 320, height = 200;
+constexpr int width = 196, height = 135;
 // Original BG shape 330 frames: yellow/red/blue/orange/green/purple/black/white.
 // Fixed columns read top to bottom: Honesty..Justice, Sacrifice..Humility.
 constexpr int stone_frames[] = {2, 0, 1, 4, 3, 5, 7, 6};
@@ -35,8 +35,8 @@ int slot_for(const Game_object* object) {
     for (int i = 0; i < 8; ++i) if (object->get_framenum() == stone_frames[i]) return i;
     return -1;
 }
-int slot_x(int slot) { return 30 + (slot / 4) * 156; }
-int slot_y(int slot) { return 67 + (slot % 4) * 36; }
+int slot_x(int slot) { return 44 + (slot / 4) * 71; }
+int slot_y(int slot) { return 52 + (slot % 4) * 18; }
 
 std::unique_ptr<Shape_file> load_art() {
     const U7object resource(BUNDLE_CHECK(BUNDLE_EXULT_BG_FLX, EXULT_BG_FLX), EXULT_BG_FLX_VIRTUE_CASE_SHP);
@@ -47,10 +47,10 @@ std::unique_ptr<Shape_file> load_art() {
     if (art->get_num_frames() != 14) throw std::runtime_error("Invalid Virtue Case art frame count");
     for (int i = 0; i < 14; ++i) {
         const auto* f = art->get_frame(i);
-        const int w = i == 0 ? 28 : i == 1 ? width : i < 10 ? 28 : 56;
-        const int h = i == 0 ? 20 : i == 1 ? height : i < 10 ? 32 : 20;
-        const int ox = i == 0 || (i >= 2 && i < 10) ? 14 : 0;
-        const int oy = i == 0 ? 19 : i >= 2 && i < 10 ? 16 : 0;
+        const int w = i == 0 ? 28 : i == 1 ? width : i < 10 ? 13 : 32;
+        const int h = i == 0 ? 20 : i == 1 ? height : i < 10 ? 15 : 12;
+        const int ox = i == 0 ? 14 : i >= 2 && i < 10 ? 6 : 0;
+        const int oy = i == 0 ? 19 : i >= 2 && i < 10 ? 7 : 0;
         if (!f || f->get_width() != w || f->get_height() != h || f->get_xleft() != ox || f->get_yabove() != oy)
             throw std::runtime_error("Invalid Virtue Case art geometry");
     }
@@ -67,11 +67,11 @@ public:
         : Gump_button(parent, -1, x, y, SF_OTHER), art(art), frame(frame), label(label) {}
     TileRect get_rect() const override {
         int sx = 0, sy = 0; local_to_screen(sx, sy);
-        return TileRect(sx, sy, frame < 0 ? 28 : 56, frame < 0 ? 8 : 20);
+        return TileRect(sx, sy, frame < 0 ? 28 : 32, 12);
     }
     bool on_widget(int mx, int my) const override {
         screen_to_local(mx, my);
-        return mx >= 0 && my >= 0 && mx < (frame < 0 ? 28 : 56) && my < (frame < 0 ? 8 : 20);
+        return mx >= 0 && my >= 0 && mx < (frame < 0 ? 28 : 32) && my < (12);
     }
     const char* cli_action() const override {
         return frame < 0 ? "close" : frame == 10 ? "mark_unimplemented" : "recall_unimplemented";
@@ -86,8 +86,8 @@ public:
         if (frame < 0) return; // The catch is already part of the background.
         int sx = 0, sy = 0; local_to_screen(sx, sy);
         art->get_frame(frame + (is_pushed() ? 1 : 0))->paint(gwin->get_win()->get_ib8(), sx, sy);
-        auto font = fontManager.get_font("SMALL_BLACK_FONT");
-        font->paint_text(gwin->get_win()->get_ib8(), label, sx + (56 - font->get_text_width(label))/2, sy + 6 + (is_pushed() ? 1 : 0));
+        auto font = fontManager.get_font("TINY_BLACK_FONT");
+        font->paint_text(gwin->get_win()->get_ib8(), label, sx + (32 - font->get_text_width(label))/2, sy + 3 + (is_pushed() ? 1 : 0));
     }
 };
 
@@ -100,9 +100,9 @@ public:
     explicit Case_gump(Container_game_object* cont) : Gump(cont, 0, 0, -1), art(load_art()), background(art->get_frame(1)) {
         set_object_area(TileRect(0, 0, width, height));
         for (int i = 0; i < 8; ++i) seated[i] = art->get_frame(i+2);
-        add_elem(new Case_button(this, art.get(), 10, 42, 13, "MARK"));
-        add_elem(new Case_button(this, art.get(), 12, 222, 13, "RECALL"));
-        add_elem(new Case_button(this, art.get(), -1, 146, 192, ""));
+        add_elem(new Case_button(this, art.get(), 10, 38, 14, "MARK"));
+        add_elem(new Case_button(this, art.get(), 12, 130, 14, "RECALL"));
+        add_elem(new Case_button(this, art.get(), -1, 86, 118, ""));
         set_pos();
     }
     Gump* clone(Container_game_object* cont, int initx, int inity) override {

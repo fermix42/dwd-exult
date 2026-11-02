@@ -105,14 +105,23 @@ try:
     channels = 4 if mode==6 else 3
     check('renderer capture is RGB/RGBA', mode in (2,6))
     left = 160 if a.ultrawide else 0
+    manifest_path = Path(__file__).resolve().parents[2]/'data/bg/virtue_case/asset_manifest.json'
+    canvas = json.loads(manifest_path.read_text())['canvas']
+    check('case centered at declared native canvas size', (gump['x'],gump['y'])==((320-canvas[0])//2,(200-canvas[1])//2))
+    # The existing renderer uses integer midpoint coordinates, with4px layer
+    # padding. Odd-sized canvases therefore have a half-pixel-origin offset.
+    ox = left + int((gump['x']+canvas[0]//2)*factor-(canvas[0]+8)*factor/2)+4*factor
+    oy = int((gump['y']+canvas[1]//2)*factor-(canvas[1]+8)*factor/2)+4*factor
+    _,_,_,background,_,_ = read_png(manifest_path.parent/'open_case.png')
     exact = True
-    for y in range(12,188):
-        for x in range(12,308):
-            start = ((y*factor)*width+left+x*factor)*channels
+    for y in range(8,canvas[1]-8):
+        for x in range(8,canvas[0]-8):
+            if background[y*canvas[0]+x]==255: continue
+            start = ((oy+y*factor)*width+ox+x*factor)*channels
             pixel = pixels[start:start+channels]
             for dy in range(factor):
                 for dx in range(factor):
-                    pos = ((y*factor+dy)*width+left+x*factor+dx)*channels
+                    pos = ((oy+y*factor+dy)*width+ox+x*factor+dx)*channels
                     if pixels[pos:pos+channels] != pixel: exact = False
     check('rendered case pixels are exact integer nearest-neighbor blocks', exact)
     controls = [c for c in do('controls')['controls'] if c['gump_id']==gump['id']]

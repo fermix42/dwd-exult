@@ -359,4 +359,5 @@ EXTRA_DIST += \
 	bg/virtue_case/stone_justice.png \
 	bg/virtue_case/stone_sacrifice.png \
 	bg/virtue_case/stone_spirituality.png \
-	bg/virtue_case/stone_valor.png
+	bg/virtue_case/stone_valor.png \
+	bg/virtue_case/source_case_reference.png

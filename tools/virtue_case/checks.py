@@ -146,12 +146,12 @@ try:
               and observed['shape'] == 330 and observed['stone_target'] == original['stone_target']
               and observed['stone_target_map'] == original['stone_target_map'])
     capture('eight-stones')
-    slots = {2: (30,67), 0: (30,103), 1: (30,139), 4: (30,175),
-             3: (186,67), 5: (186,103), 7: (186,139), 6: (186,175)}
+    slots = {2: (44,52), 0: (44,70), 1: (44,88), 4: (44,106),
+             3: (115,52), 5: (115,70), 7: (115,88), 6: (115,106)}
     contents = inventory(case)
     check('all eight fixed compartments occupied correctly', len(contents) == 8
           and all((o['gump_tx'], o['gump_ty']) == slots[o['frame']] for o in contents))
-    for px, py in [(10,10), (160,45), (310,195), (8,100), (312,80), (186,175)]:
+    for px, py in [(20,5), (98,31), (178,120), (20,80), (179,80), (115,106)]:
         do('transfer_item', ref=first['ref'], destination=bag)
         do('transfer_item', ref=first['ref'], destination=case, x=px, y=py)
         check(f'drop at case local {px},{py} selects Honesty', inspect(first['ref'])['owner'] == case

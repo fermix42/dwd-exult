@@ -1,5 +1,37 @@
 # Virtue Stone Case — native Stage A development handoff
 
+Current presentation: owner-supplied image at **196x135 native pixels**.
+This compact revision supersedes the320x200 presentation described historically
+below. It uses13x15 seated stones at(44/115,52/70/88/106), original BG tiny-font
+lid lettering,32x12 button rectangles at(38,14)/(130,14), and a closing-catch
+hit rectangle[86,118,28,12]. Original closed28x20 art and stone identities stay.
+At native scale the case is centered in the320x200 viewport and can be moved.
+
+The supplied image is deterministically center-sampled at196x135 and quantized
+to static BG palette indices0..223 without dithering. Only perimeter-connected
+near-black background pixels become transparent255; dark interior pixels stay
+opaque. No AI repainting or replacement illustration is used. The full supplied
+PNG is retained as `data/bg/virtue_case/source_case_reference.png`. Reproduce:
+`python tools/virtue_case/compact_art.py --source data/bg/virtue_case/source_case_reference.png`.
+The script samples the prior approved gem frames from commit da74f5607, retaining
+that earlier art in Git; repeated imports do not repeatedly shrink the result.
+
+Existing font4 TINY_BLACK_FONT is6 pixels high; MARK/RECALL measure21/26 pixels.
+Label plates now offer32 pixels of text width, so future editable names should
+use a width check and a practical6-character cap. Labels remain blank; no label
+editing/persistence or spell behavior has been added. Runtime ordinary push/unpush
+selects separate cropped normal/depressed lid-plate frames. Close uses the brass
+catch already in the supplied image. No context menu or extra X button is added.
+
+The14-frame resource retains its appended BG FLEX index18; prior indices remain.
+Native drawing, dirty bounds, acceptance/seat anchors and opaque picking all
+use the compact dimensions; the same real shape330 objects are dragged. Compact
+BG/Keyring fixture checks and actual1x/2x renderer captures are recorded separately
+under `test-output/virtue-compact`. The renderer's existing odd-height midpoint
+rounding shifts the135-high layer's display origin by up to half a scaled pixel;
+pixel-block validation accounts for that origin and skips transparent background.
+No global renderer/scaler change is required or made.
+
 Unreleased physical prototype. Human gameplay and artwork acceptance is pending.
 This follows the owner's superseding native-Exult architecture instruction. It
 works in ordinary Black Gate and original Keyring; no DWDKeyring edition,
@@ -64,7 +96,7 @@ destination x/y/z/map data. No save-format extension or text database was added.
 Runtime pointers correctly refresh after load; tests compare stable references
 only within a world, and restored physical contents/data across loads.
 
-## Production-art presentation (unreleased)
+## Previous320x200 production-art presentation (superseded)
 
 The approved production package replaces the generated placeholder: closed case
 28x20, open case 320x200, eight separate 28x32 stones, and two 56x20 physical lid
@@ -211,7 +243,7 @@ No human acceptance, release approval or migration of existing player saves is
 implied. Immediate next step: human review of physical handling and provisional
 artwork; later-stage implementation requires the separately scoped approval.
 
-## Production-art integration validation
+## Previous320x200 integration validation
 
 The focused `tools/virtue_case/checks.py` suite now uses the 320x200 geometry
 and a 640x400 logical viewport so real source/destination containers stay visible.
