@@ -1476,6 +1476,10 @@ void Game_window::read() {
  if(cli_enabled)cli_world_reset();
 	Game_window::Scoped_ui_layer_mask load_layers(this, 0);
 	Audio::get_ptr()->cancel_streams();
+	// Container gumps retain owner pointers and save their window positions
+	// on destruction. Close them while those owners still belong to this world,
+	// as in ~Game_window(), rather than after setup_game replaces the objects.
+	gump_man->close_all_gumps(true);
 	// Display red plasma during load...
 	setup_load_palette();
 
