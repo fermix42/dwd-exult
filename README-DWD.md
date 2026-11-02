@@ -1,9 +1,11 @@
 # Dark Wraith Dragon's Exult
 
-**Unpublished 1.0.0-rc.1 candidate documentation. No DWD version has been publicly
-released.** Authoritative identity and upstream provenance are in
-[packaging/dwd/version.json](packaging/dwd/version.json); each candidate includes
-`release-metadata.json` identifying its exact build commit.
+**[1.0.0-rc.1 is published as a GitHub prerelease](https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.1)**, not a stable/latest
+release. Published 2026-11-02T01:13:28Z (November 1, 2026 in America/Phoenix).
+Tag: `dwd-v1.0.0-rc.1`; exact binary build source:
+`41a83ac4f2f4f73c080655f29d7946f7944deacb`. Current documentation is newer than
+that immutable build. Original candidate metadata, including the build-time
+publication status in version.json/release-metadata.json, is preserved unchanged.
 
 ## 0. About Dark Wraith Dragon's Exult
 
@@ -18,8 +20,8 @@ stable release. It preserves the familiar interface and `Exult.exe` name. The
 original [README](README), [ChangeLog](ChangeLog), [AUTHORS](AUTHORS), [COPYING](COPYING),
 [INSTALL](INSTALL) and [FAQ](FAQ) remain the upstream references. DWD additions below
 supplement their descriptions, including the original README's audio choices.
-The public source repository is https://github.com/fermix42/dwd-exult. The owner
-renamed it and made it public; this does not announce or publish a DWD binary release.
+The official source and downloads are at https://github.com/fermix42/dwd-exult;
+see the [first public prerelease](https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.1).
 
 ## 2. Installation and upgrading
 
@@ -294,10 +296,10 @@ does not certify every backend, gameplay feature, platform or installation scena
 
 ## 8. Reporting bugs and contributing
 
-Until publication, report issues to the maintainer through the existing private
-project channel. Include `release-metadata.json`, game/mod version, reproduction
+Report issues to the maintainer through the existing project channel or
+[GitHub issues](https://github.com/fermix42/dwd-exult/issues). Include `release-metadata.json`, game/mod version, reproduction
 steps and relevant logs. Keep ROMs, proprietary game files, personal paths and
-credentials out of reports. Proposed future issues URL: the project's `/issues`.
+credentials out of reports.
 Contributors should read [AGENTS.md](AGENTS.md) and preserve accepted implementations.
 
 ## 9. Credits and acknowledgments

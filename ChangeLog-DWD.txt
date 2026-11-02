@@ -3,7 +3,11 @@ Version History
 ==================================================
 
 version: 1.0.0-rc.1
-Status: Unpublished candidate, prepared November 1, 2026
+Status: Published GitHub prerelease, 2026-11-02T01:13:28Z
+Local publication date: November 1, 2026 (America/Phoenix)
+Tag: dwd-v1.0.0-rc.1
+Binary build revision: 41a83ac4f2f4f73c080655f29d7946f7944deacb
+Release: https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.1
 Based on: Exult 1.13.1git (upstream development version)
 Upstream revision: 97984e9e0cbb4ccacaab0249da9c51b533818f74
 DWD revision: Recorded per build in release-metadata.json and Exult version output.
@@ -35,7 +39,7 @@ DWD revision: Recorded per build in release-metadata.json and Exult version outp
       Candidate validation follow-up (November 1, 2026): built the Windows
       installer and optional mods, verified isolated install/upgrade/uninstall,
       and added matching external dependency sources. Downloads are unsigned
-      under the free project policy; publication still requires approval.
+      under the free project policy; publication was not yet approved at that stage.
 
       Installer and portable-path follow-up (November 1, 2026):
     - Defaulted installation to Games\DWDExult on the system drive, retaining

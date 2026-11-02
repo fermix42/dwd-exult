@@ -1,7 +1,11 @@
 # DWD release preparation and validation
 
-This is an unpublished candidate. Do not push tags, publish, rename the repository,
-change visibility or merge a default branch without the owner's explicit approval.
+The first [public prerelease](https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.1)
+was published with explicit owner authorization at 2026-11-02T01:13:28Z (November 1, 2026
+America/Phoenix). Tag `dwd-v1.0.0-rc.1` targets exact verified binary source
+`41a83ac4f2f4f73c080655f29d7946f7944deacb`. It is not stable or latest. Current
+reporting commits are newer documentation only; accepted files/metadata and the tag
+are immutable. Other publication/settings changes still require owner approval.
 
 ## Source selection
 
@@ -122,10 +126,11 @@ provenance and Defender verification remain intact.
 The public untagged candidate already has verified GitHub provenance, recorded in
 READINESS.md/VALIDATION.md. Attestations bind artifacts to their source/workflow;
 they do not authenticate a Windows publisher through Authenticode, suppress
-SmartScreen or guarantee safety. The README and proposed notes below explain
+SmartScreen or guarantee safety. The README and published notes below explain
 Unknown publisher separately from SmartScreen reputation and provide PowerShell
 checksum instructions. No global Windows security disabling is recommended.
-Release creation/attachment still requires separate approval.
+The exact prerelease was owner-authorized and is now published as recorded below.
+Other release creation/attachment requires separate approval.
 
 `build-mods.py` follows the checked-in upstream Makefile.mingw install file lists,
 using ordinary UCC/expack in disposable staging. It emits required directory ZIP
@@ -199,13 +204,13 @@ attestations and pending human checks are in READINESS.md; later documentation-o
 updates never change the source revision embedded in existing artifacts.
 
 
-## First prerelease publication plan -- prepared, not executed
+## First prerelease publication record -- executed and verified
 
-Owner review identity:
+Published identity:
 
 - Title: **Dark Wraith Dragon's Exult 1.0.0-rc.1**.
 - Version: `1.0.0-rc.1`; type: GitHub **prerelease**, not stable or latest.
-- Proposed tag: `dwd-v1.0.0-rc.1`, pointing exactly to
+- Annotated tag: `dwd-v1.0.0-rc.1`, pointing exactly to
   `41a83ac4f2f4f73c080655f29d7946f7944deacb`.
 - The final owner decision follows AGENTS.md's `dwd-vMAJOR.MINOR.PATCH`
   convention. The earlier unprefixed proposal was superseded before any tag was
@@ -222,18 +227,19 @@ No accepted artifact was rebuilt, repacked, signed or modified. The original
 740-byte `SHA256SUMS.txt` is preserved unchanged too; its own SHA-256 is
 `fc1241bb336e2ff1562052f66d990ffabcfc14399bd4e69281de4c699a0edbc0`.
 Its eight entries include five supporting Actions metadata files that are not among
-the four proposed release assets. Player instructions compare the matching package
+the four published release assets. Player instructions compare the matching package
 entry individually rather than bulk-check nonexistent metadata downloads.
 
-| Proposed release asset | Bytes | SHA-256 |
+| Published release asset | Bytes | SHA-256 |
 | --- | ---: | --- |
 | `DWD-Exult-1.0.0-rc.1-Setup.exe` | 12090878 | `561a1bd2ea4bebdb0fd1710dd6533f1e14fa0f13305d68bde813d1b1eb7d1fa9` |
 | `DWD-Exult-1.0.0-rc.1-Windows-x64.zip` | 13174126 | `5c9716f2fab539df70bd85f59b725f682aabbbff96e622b3b9dce2198c45fce1` |
 | `DWD-Exult-1.0.0-rc.1-Source.zip` | 57157239 | `860e747db1ed343a4ed1cb282b673aa9641bfb4ad3de16c5866d3c696646f584` |
 | `SHA256SUMS.txt` (original workflow manifest) | 740 | `fc1241bb336e2ff1562052f66d990ffabcfc14399bd4e69281de4c699a0edbc0` |
 
-GitHub releases and the local/remote `dwd-v1.0.0-rc.1` tag were checked: no conflicting
-release or tag exists. Recheck immediately before any future approved mutation.
+Before publication, local/remote tag and GitHub Release checks found no conflict.
+The annotated tag and public prerelease now exist at the exact approved identity;
+do not overwrite or move them.
 [GitHub's asset requirements](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)
 allow up to 1,000 assets, each under 2 GiB; all four existing files fit. The
 [GitHub CLI release documentation](https://cli.github.com/manual/gh_release_create)
@@ -243,7 +249,7 @@ GitHub's automatic source zip/tar links are separate from the uploaded matching
 Source.zip, which includes corresponding dependency source/recipes and must remain
 an explicit release asset.
 
-The owner has explicitly authorized this exact prerelease. Publication sequence:
+The owner explicitly authorized this exact prerelease. Completed publication sequence:
 
 1. Recheck tag/release availability and the preserved file hashes. If anything is
    missing or mismatched, stop and report it; do not rebuild/substitute silently.
@@ -262,7 +268,7 @@ asset uploads and public prerelease publication once draft verification passes.
 No further confirmation is required. Do not dispatch Actions, change branch
 settings, rebuild binaries or make external announcements.
 
-## Proposed player-facing prerelease notes
+## Published player-facing prerelease notes
 
 <!-- BEGIN PROPOSED PRERELEASE NOTES -->
 
@@ -369,3 +375,44 @@ unchanged path options: forward-slash aliases can rewrite config formatting.
 [Exact build source](https://github.com/fermix42/dwd-exult/tree/41a83ac4f2f4f73c080655f29d7946f7944deacb)
 
 <!-- END PROPOSED PRERELEASE NOTES -->
+
+
+## Publication verification record
+
+Public prerelease: [Dark Wraith Dragon's Exult 1.0.0-rc.1](https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.1).
+GitHub release ID 430974718, published at 2026-11-02T01:13:28Z (November 1, 2026,
+America/Phoenix). Annotated tag `dwd-v1.0.0-rc.1` has object
+`b280519e0b7cef59592a49ce462d8a4f7cfffe78` and peels to exact binary build
+`41a83ac4f2f4f73c080655f29d7946f7944deacb`; documentation tip is separate.
+
+The draft had exactly the four approved assets above, unchanged approved player
+notes, correct title, target and prerelease flag. Actual draft downloads matched
+all four original sizes/SHA-256 hashes before publication. Existing provenance for
+the three packages verified against the original source SHA/workflow/run.
+GitHub's by-tag draft read returned 404; authenticated release-list/ID access found
+the correct existing unpublished draft and asset-ID downloads worked. No duplicate
+was created, no content failed verification and no asset was replaced.
+
+After publication, unauthenticated API/page access and direct public downloads of
+all four assets succeeded. Each downloaded size and SHA-256 matched the original
+accepted hosted-candidate files and unchanged checksum manifest. Source ZIP commit
+comment/source-provenance remained correct. GitHub CLI attestations for all three
+publicly downloaded packages verified, with certificate identity binding source
+41a83ac4f and workflow run 41362896916. SHA256SUMS.txt is integrity-checked against
+the approved original; it is not claimed to have its own build attestation.
+
+GitHub reports draft=false and prerelease=true. Publication explicitly used
+make_latest=false; the latest-stable API returns 404 because this repository has
+no stable/latest release. GitHub's automatic source zip/tar links remain separate
+from the four uploaded assets; our dependency-inclusive Source.zip is included.
+The newest Actions run IDs remained 41362896916, 41361780387 and 41095228129: no
+unexpected tag/release-triggered build or external automation occurred.
+
+Local evidence: `../test-output/dwd-publication/` holds approved file manifest,
+exact notes, draft/public metadata, downloaded files, SHA/size verification results,
+verified provenance and workflow inventory. Documentation tag correction was
+committed before publication as db9c5f68a. Post-publication housekeeping is another
+documentation-only commit; it never changes the binary build SHA or release tag.
+No rebuild, gameplay/audio retest, code signing, branch-setting change, paid service
+or external announcement was performed. All previously accepted classifications,
+optional NOT TESTED recommendations and the known path-alias limitation remain.

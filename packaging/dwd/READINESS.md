@@ -1,13 +1,17 @@
 # DWD 1.0.0-rc.1 candidate readiness -- November 1, 2026
 
-**Hosted candidate verified; owner downloader installation and menu discovery
-accepted. Awaiting separate binary-publication approval.** No GitHub Release/prerelease or tag was created.
+**First public prerelease published and independently verified.**
+[Dark Wraith Dragon's Exult 1.0.0-rc.1](https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.1)
+was published at 2026-11-02T01:13:28Z (November 1, 2026 America/Phoenix), tagged
+`dwd-v1.0.0-rc.1` at the verified build SHA. It is a prerelease, not stable/latest.
 A pre-existing command-line path-alias limitation remains explicitly recorded.
 
 | Identity/result | Verified value |
 | --- | --- |
 | Public repository | https://github.com/fermix42/dwd-exult |
 | Default branch | `codex/dwd-release-preparation` |
+| Published tag | `dwd-v1.0.0-rc.1` |
+| Public prerelease | https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.1 |
 | Immutable successful build SHA | `41a83ac4f2f4f73c080655f29d7946f7944deacb` |
 | Incorporated upstream | Exult 1.13.1git, `97984e9e0cbb4ccacaab0249da9c51b533818f74` |
 | Hosted run | [DWD candidate review](https://github.com/fermix42/dwd-exult/actions/runs/41362896916): build PASS, attest PASS |
@@ -78,8 +82,8 @@ Byte-identical binary reproducibility is not claimed. Hosted Defender: no threat
 [Provenance verified for all four files](https://github.com/fermix42/dwd-exult/attestations/62439805)
 bind the installer, portable/source ZIPs and Exult.exe to 41a83ac4f2f4f73c080655f29d7946f7944deacb and https://github.com/fermix42/dwd-exult/actions/runs/41362896916.
 These are free provenance attestations, not Authenticode signing. Candidate and
-diagnostic Actions artifacts expire after seven days (November 8, 2026); no
-permanent release assets have been published. Full inventories, all hashes and
+diagnostic Actions artifacts expire after seven days (November 8, 2026); the four
+approved files are now also published as permanent GitHub prerelease assets. Full inventories, all hashes and
 scoped evidence are in [VALIDATION.md](VALIDATION.md).
 
 | Hosted package | SHA-256 |
@@ -123,22 +127,20 @@ replacement artifacts were generated for this documentation-only update.
   the downloader change. Use canonical Windows backslashes or omit unchanged path
   options. It is reported under the owner's unrelated-failure boundary, not hidden
   or silently fixed. Full path-alias preservation is not certified.
-- **Authorization still required:** exact tag, assets and GitHub Release/prerelease
-  publication. No tag/release/announcement or paid service is authorized here.
+- **Publication completed:** the exact tag, four assets and prerelease were
+  explicitly owner-authorized and published. Future versions/settings changes and
+  external announcements are outside this authorization; no paid service is allowed.
 
-The verified hosted candidate and reported human downloader installation/menu
-acceptance are ready for the owner's first public prerelease publication decision.
-The remaining recommended tests are optional owner decisions, not newly imposed
-mandatory release blockers. The existing CLI path-alias limitation remains
-documented and unchanged; full path-alias preservation is not certified. Public
-binary publication still requires separate explicit approval of the tag/assets and
-Release/prerelease. This reporting update is documentation-only and does not
-regenerate or relabel the immutable
-`41a83ac4f2f4f73c080655f29d7946f7944deacb` artifacts; its documentation commit has a
-different SHA.
+The verified hosted candidate and human downloader installation/menu acceptance
+now support the published prerelease. Recommended listening/clean-Windows checks
+remain optional NOT TESTED items, not newly imposed blockers. The existing CLI
+path-alias limitation remains documented and unchanged. Current reporting commits
+are newer documentation only; immutable source and artifacts remain
+`41a83ac4f2f4f73c080655f29d7946f7944deacb`. No next development cycle or stable
+release is authorized by this publication.
 
 
-## Final unsigned policy and prepared publication -- November 1, 2026
+## Final unsigned policy and publication -- November 1, 2026
 
 The owner explicitly accepts unsigned installer/executable distribution and Unknown
 publisher as its consequence. Signing is not a requirement, defect, failed test or
@@ -150,12 +152,12 @@ not Authenticode or a safety guarantee. No signing workflow step is introduced.
 README/release notes explain the separate SmartScreen reputation warning and
 built-in PowerShell checksum verification without disabling Windows protections.
 
-Prepared title: **Dark Wraith Dragon's Exult 1.0.0-rc.1**; proposed tag
+Released title: **Dark Wraith Dragon's Exult 1.0.0-rc.1**; tag
 `dwd-v1.0.0-rc.1`; type **prerelease**, not stable/latest. Anchor the tag to exact binary
 build `41a83ac4f2f4f73c080655f29d7946f7944deacb`, never the newer documentation tip.
 The final owner tag decision follows the established dwd-v convention. The earlier
-unprefixed proposal is superseded; no packaging code or metadata is changed. No tag or release identity conflict was
-found in local/remote checks; GitHub has no Releases. Recheck at publication time.
+unprefixed proposal is superseded; no packaging code or metadata is changed. Prepublication checks found no conflict;
+the approved tag/Release now exist and must not be overwritten.
 
 Hosted artifact 13106221647 remains available (expires November 8, 2026 at
 23:43:30 UTC). A fresh download, prior local files and separately preserved copies
@@ -168,9 +170,9 @@ instructions compare the appropriate package entry. No verified artifact was
 rebuilt, regenerated, signed, substituted or modified. Original checksum-file
 SHA-256: `fc1241bb336e2ff1562052f66d990ffabcfc14399bd4e69281de4c699a0edbc0`.
 
-[RELEASE.md](RELEASE.md#first-prerelease-publication-plan----prepared-not-executed)
+[RELEASE.md](RELEASE.md#first-prerelease-publication-record----executed-and-verified)
 contains the exact four-file manifest, reviewed GitHub asset requirements,
-post-approval publication sequence and complete proposed player-facing notes.
+completed publication sequence and complete published player-facing notes.
 All four files fit GitHub's per-asset limit; attaching existing files needs no build.
 
 All prior automated results (53/39/7 local and 23/39 hosted), build/provenance PASS,
@@ -180,13 +182,10 @@ Fresh simplified-audio-selector/MT32Emu listening and clean Windows/runtime
 validation remain optional NOT TESTED recommendations. The documented command-line
 path-alias limitation is unchanged, not reopened.
 
-No technical preparation blocker remains on the recorded scope. The first unsigned
-prerelease is prepared for the owner's final publication decision. Approval is
-still required to create/push the exact tag, create the prerelease/draft, upload
-these four files and publish the reviewed notes. Nothing has been tagged, uploaded,
-published or announced by this task; repository/workflow settings are unchanged.
-Only documentation is committed/pushed. New documentation SHAs do not replace the
-immutable binary build SHA or existing provenance.
+Publication is complete and verified within the accepted scope. The owner-approved
+four files were uploaded unchanged and published after draft verification, without
+rebuild, signing, test reruns or external announcements. Repository/workflow settings
+are unchanged. New documentation SHAs do not replace immutable source/provenance.
 
 
 ## Final publication authorization -- November 1, 2026
@@ -199,7 +198,33 @@ Local/remote conflict checks found no tag/Release; the public repository and def
 branch, remote source commit and sufficient permissions were verified. Only manual
 workflow_dispatch is enabled in the tag's source; inherited automation is disabled.
 All four approved local files and manifest package entries match the owner's hashes.
-Publication will use those files unchanged, verify a draft by downloading its exact
-four assets, then publish without another confirmation if all checks pass.
+Publication used those files unchanged, verified the exact four draft downloads,
+then published under this authorization without another confirmation.
 No rebuild, signing, gameplay/audio retest, settings change or external announcement.
 The immutable binary source remains distinct from these documentation-only commits.
+
+
+## Independent post-publication verification
+
+Published at 2026-11-02T01:13:28Z (November 1, 2026 America/Phoenix): https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.1.
+Anonymous GitHub API/page access and all four direct public downloads: PASS.
+Exact four-file inventory, sizes and SHA-256 values against the approved originals:
+PASS, both before publication from the draft and after publication publicly.
+Unchanged checksum manifest: 740 bytes, SHA-256
+`fc1241bb336e2ff1562052f66d990ffabcfc14399bd4e69281de4c699a0edbc0`.
+Source ZIP commit/provenance and remote annotated-tag dereference: PASS at
+`41a83ac4f2f4f73c080655f29d7946f7944deacb`.
+Publicly downloaded installer/portable/source ZIP GitHub attestations: PASS, bound
+to the original exact source SHA and successful workflow run 41362896916.
+GitHub reports prerelease=true, draft=false; make_latest=false was explicit and
+latest-stable API returns 404. No unexpected Actions run or automated release.
+Automatic source archives are additional GitHub links, not replacements for our
+uploaded corresponding-source ZIP. All four approved assets are present.
+
+No unexpected publication defect or file mismatch occurred. The unpublished draft
+by-tag REST read returned 404; authenticated ID-based access resolved this before
+verification/publication, with no duplicate draft, failed content or replacement.
+The chronological DWD changelog now records this first publication. VALIDATION.md
+historical test results remain unchanged; no accepted tests were repeated.
+Current docs may be newer than the release tag; source commit and assets remain
+unchanged. The first unsigned DWD prerelease is successfully published and verified.
