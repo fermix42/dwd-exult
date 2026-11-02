@@ -59,8 +59,9 @@ path setup. Explicit developer CLI runs keep their disposable test-root contract
 
 The installer retains automatic all-in-one digital music/effects download into
 `data`. Original Keyring and SourceForge Island install under `mods/blackgate`;
-original SI Fixes installs under `mods/serpentisle`. These three are built from
-accepted checked-in sources and also supplied as optional ZIPs under `mods`.
+original SI Fixes installs under `mods/serpentisle`. These three are official
+HTTPS downloads, selected only when needed; their archives and installable payloads
+are absent from the installer and portable binary ZIP.
 Original Ultima VI Remake and Glimmerscape retain their upstream download sources
 and install under the respective game mod roots. Download hashes, original package
 bytes, documentation and credits are preserved. Inno's transient bootstrap/download
@@ -242,13 +243,49 @@ The planned Virtue Stone case is not implemented. No mod is merged into original
 
 ## 7. Known limitations
 
-Only Windows Release/x64 has local build evidence. Other platform projects are
-source compatibility work, not verified DWD platform support. This candidate is
-unsigned, as permitted by this free project’s zero-budget policy. Windows may show
-SmartScreen or unknown-publisher warnings. Verify SHA-256 before running it.
-Free GitHub provenance attestations are prepared for approved public releases;
-they are not Windows Authenticode signatures and do not prevent SmartScreen warnings. The corresponding-source ZIP includes matching dependency archives, patches and
-vcpkg recipes. A clean Windows VM test remains an additional confidence item.
+Windows Release/x64 has local and GitHub-hosted build evidence. Other platform
+projects are source compatibility work, not verified DWD platform support.
+The owner has accepted unsigned distribution: the installer and executable remain
+unsigned. Signing is not a release requirement or blocker. Paid certificates and
+signing services are not authorized; SignPath Foundation and other signing
+arrangements are not being pursued. Reconsidering signing requires a separate
+owner decision.
+
+Windows may display **Unknown publisher** because it cannot authenticate the
+publisher through a trusted Authenticode signature. Microsoft Defender SmartScreen
+may separately warn about an application's reputation. These warnings do not, by
+themselves, establish that the application contains malware. Obtain DWD Exult only
+from the [official GitHub repository](https://github.com/fermix42/dwd-exult).
+Keep Windows security protections enabled.
+
+Before running a download, open PowerShell in its folder and use the built-in
+[Get-FileHash](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/get-filehash)
+command, then compare the complete hash with the matching filename in the published
+`SHA256SUMS.txt` and release notes (letter case does not matter):
+
+```powershell
+Get-FileHash -LiteralPath '.\DWD-Exult-1.0.0-rc.1-Setup.exe' -Algorithm SHA256
+```
+
+Substitute the portable or source ZIP filename to check those downloads. A mismatch
+means the file should not be used. The preserved workflow checksum file also lists
+supporting metadata; match the entry for the file you actually downloaded.
+[GitHub provenance](https://github.com/fermix42/dwd-exult/attestations/62439805)
+associates these hosted artifacts with exact source revision
+`41a83ac4f2f4f73c080655f29d7946f7944deacb` and its workflow. Optional GitHub CLI
+verification for the installer is:
+
+```powershell
+gh attestation verify '.\DWD-Exult-1.0.0-rc.1-Setup.exe' --repo fermix42/dwd-exult
+```
+
+Checksums, provenance and prior Defender scans are not an Authenticode signature
+or a guarantee of safety. See Microsoft's
+[SmartScreen explanation](https://learn.microsoft.com/windows/apps/package-and-deploy/smartscreen-reputation).
+The corresponding-source ZIP includes matching dependency archives, patches and
+vcpkg recipes. Fresh simplified-audio-selector/MT32Emu listening and a clean player
+Windows/runtime-prerequisite test remain NOT TESTED recommendations, not automatic
+publication blockers.
 The owner completed scoped installer, BG/Keyring, SI/SI Fixes and Enhanced OPL3
 with synthesized OPL2 effects acceptance; see [validation](packaging/dwd/VALIDATION.md). Native quiz encounters, some late-game Orb story states and
 natural SI Fixes Batlin vision have the unperformed-test limits recorded in the

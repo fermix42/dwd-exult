@@ -136,3 +136,54 @@ Release/prerelease. This reporting update is documentation-only and does not
 regenerate or relabel the immutable
 `41a83ac4f2f4f73c080655f29d7946f7944deacb` artifacts; its documentation commit has a
 different SHA.
+
+
+## Final unsigned policy and prepared publication -- November 1, 2026
+
+The owner explicitly accepts unsigned installer/executable distribution and Unknown
+publisher as its consequence. Signing is not a requirement, defect, failed test or
+release blocker. No paid certificate/service is authorized. SignPath Foundation
+and other signing arrangements are not being pursued; any future reconsideration
+requires a separate owner decision. Checksums, public source, GitHub-hosted builds,
+verified provenance and existing Defender evidence remain the verification approach,
+not Authenticode or a safety guarantee. No signing workflow step is introduced.
+README/release notes explain the separate SmartScreen reputation warning and
+built-in PowerShell checksum verification without disabling Windows protections.
+
+Prepared title: **Dark Wraith Dragon's Exult 1.0.0-rc.1**; proposed tag
+`v1.0.0-rc.1`; type **prerelease**, not stable/latest. Anchor the tag to exact binary
+build `41a83ac4f2f4f73c080655f29d7946f7944deacb`, never the newer documentation tip.
+This explicit owner tag choice supersedes the general dwd-v convention for this
+candidate without changing packaging code. No tag or release identity conflict was
+found in local/remote checks; GitHub has no Releases. Recheck at publication time.
+
+Hosted artifact 13106221647 remains available (expires November 8, 2026 at
+23:43:30 UTC). A fresh download, prior local files and separately preserved copies
+of all three packages matched every recorded SHA-256. Four publication files are
+preserved byte-for-byte at
+`C:\Codex\Ultima7 Decomp\release-candidates\DWD-Exult-1.0.0-rc.1-41a83ac4f`:
+installer, portable ZIP, dependency-inclusive source ZIP and original unchanged
+`SHA256SUMS.txt`. The latter also lists supporting Actions metadata; player
+instructions compare the appropriate package entry. No verified artifact was
+rebuilt, regenerated, signed, substituted or modified. Original checksum-file
+SHA-256: `fc1241bb336e2ff1562052f66d990ffabcfc14399bd4e69281de4c699a0edbc0`.
+
+[RELEASE.md](RELEASE.md#first-prerelease-publication-plan----prepared-not-executed)
+contains the exact four-file manifest, reviewed GitHub asset requirements,
+post-approval publication sequence and complete proposed player-facing notes.
+All four files fit GitHub's per-asset limit; attaching existing files needs no build.
+
+All prior automated results (53/39/7 local and 23/39 hosted), build/provenance PASS,
+Defender results and scoped HUMAN PASS evidence are preserved. VALIDATION.md is
+unchanged; no gameplay/audio/installer tests or Actions runs were repeated.
+Fresh simplified-audio-selector/MT32Emu listening and clean Windows/runtime
+validation remain optional NOT TESTED recommendations. The documented command-line
+path-alias limitation is unchanged, not reopened.
+
+No technical preparation blocker remains on the recorded scope. The first unsigned
+prerelease is prepared for the owner's final publication decision. Approval is
+still required to create/push the exact tag, create the prerelease/draft, upload
+these four files and publish the reviewed notes. Nothing has been tagged, uploaded,
+published or announced by this task; repository/workflow settings are unchanged.
+Only documentation is committed/pushed. New documentation SHAs do not replace the
+immutable binary build SHA or existing provenance.

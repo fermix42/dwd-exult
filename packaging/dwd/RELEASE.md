@@ -24,6 +24,10 @@ in READINESS.md and VALIDATION.md. Tags/Releases require separate approval.
 
 ## Build and stage
 
+The recipe below is retained for future builds. For this accepted 1.0.0-rc.1, use
+the unchanged hosted files and publication plan at the end; do not rebuild, rerun
+validation or dispatch Actions solely for the unsigned-policy documentation.
+
 `version.json` is authoritative. MSVC generates an ignored identity header before
 compilation. The upstream engine VERSION remains separate for compatibility.
 Other build systems must run `python packaging/dwd/release.py metadata` before
@@ -70,8 +74,8 @@ application paths are present in DWD; binary/toolchain differences below are int
 | Docs | Original text, HTML, images, keys, licenses | Preserved; adds DWD README/history, INSTALL, metadata, notices |
 | Installer | Inno, architecture macros, paths, optional mods/downloads, uninstall | Generated from full upstream script; separate AppId, HKCU registry, group, ordinary-user {sd}\Games\DWDExult default |
 | Profile | Official profile | Executable-root storage mandatory; owned paths relocatable |
-| Mod support | Source-built optional mod ZIPs and exconfig | All three built from committed sources; embedded in installer and supplied under portable mods/ |
-| Platforms | Multiple upstream builds | Only local Windows Release/x64 evidence; no ARM/x86/Linux/macOS support claim |
+| Mod support | Source-built optional mod ZIPs and exconfig | Original three mods are pinned official HTTPS downloads; no installable mod payload in binary packages; source retained |
+| Platforms | Multiple upstream builds | Local and hosted Windows Release/x64 evidence; no ARM/x86/Linux/macOS support claim |
 | Publishing | Exult infrastructure, snapshots, notifications | Inherited YAML renamed .disabled; only manual DWD review workflow active |
 | Source | Upstream source distribution | Exact clean engine source, Git-free metadata, verified external dependency sources, SPDX inventory, patches and vcpkg recipes |
 
@@ -87,12 +91,14 @@ Exult Team credentials or infrastructure are needed by the DWD workflow.
   optional downloads/mod installation and uninstall in an isolated environment.
 - Verify installed launch/config/save ownership and preservation of official Exult,
   proprietary resources and saves. Check DLL imports, runtime redistribution and
-  the MSVC runtime prerequisite on a clean machine.
+  retain the clean-machine MSVC runtime prerequisite check as a NOT TESTED
+  recommendation, not an automatic publication blocker for this accepted candidate.
 - Distribute the generated matching source ZIP beside binaries, including external
   dependency archives/recipes and component licenses. DLLs remain replaceable.
   Windows API/UCRT and the MSVC v14 runtime are system/toolchain prerequisites,
   not GPL dependency-source archives. No app-local Microsoft CRT binaries are bundled.
-  The proposed source URL is not currently a published availability promise.
+  Public source is available at https://github.com/fermix42/dwd-exult; the matching
+  dependency-inclusive source ZIP must accompany the approved binaries.
 - Run focused semantic CLI runtime checks on the exact packaged binary, plus human
   visual/audio/gameplay review as appropriate. Do not reopen accepted limitations
   or claim full campaign/platform testing from focused historical evidence.
@@ -105,13 +111,21 @@ separately authorizing any distribution.
 
 ## Zero-budget follow-up
 
-Unsigned Windows builds are approved by permanent project policy. Authenticode is
-not a gate, and no paid service is required. SHA-256, exact source provenance and
-Defender scanning remain required. The optional public/tagged GitHub attestation
-job uses actions/attest@v4 with a dedicated OIDC/attestation permission scope. It is
-free for public repositories and is not a Windows signature or a SmartScreen bypass.
-No attestation has been generated locally; hosted execution requires approval to
-push and run the branch. Release creation/attachment requires separate approval.
+The owner's final November 1, 2026 decision is to distribute the installer and
+executable unsigned. Unknown publisher is an accepted consequence; Authenticode
+signing is not a prerequisite, defect, failed test or release blocker. No paid
+certificates/services are authorized. Do not pursue SignPath Foundation or other
+signing arrangements, or add signing workflow steps. Future reconsideration requires
+a separate owner decision. Existing checksum, public-source, hosted-build,
+provenance and Defender verification remain intact.
+
+The public untagged candidate already has verified GitHub provenance, recorded in
+READINESS.md/VALIDATION.md. Attestations bind artifacts to their source/workflow;
+they do not authenticate a Windows publisher through Authenticode, suppress
+SmartScreen or guarantee safety. The README and proposed notes below explain
+Unknown publisher separately from SmartScreen reputation and provide PowerShell
+checksum instructions. No global Windows security disabling is recommended.
+Release creation/attachment still requires separate approval.
 
 `build-mods.py` follows the checked-in upstream Makefile.mingw install file lists,
 using ordinary UCC/expack in disposable staging. It emits required directory ZIP
@@ -124,7 +138,8 @@ the included source archive is not a Git repository. No offline build is claimed
 The local install regression uses `installer-check.py`, same installed executable,
 disposable mods/configs/saves and protected-file hashes. It is a host-isolated test,
 not a fresh Windows VM. Scoped owner human acceptance is recorded in VALIDATION.md;
-clean-OS prerequisites and hosted execution remain untested. Do not repeat completed
+clean-OS prerequisites remain a NOT TESTED recommendation; hosted execution and
+artifact verification passed as recorded in READINESS.md. Do not repeat completed
 owner tests absent a relevant implementation change.
 
 ## Mandatory storage and additional tests
@@ -168,9 +183,9 @@ Private jobs are skipped unless the owner explicitly confirms sufficient free
 compute AND artifact storage with spending blocked via
 `private_free_usage_confirmed=true`. This input is an acknowledgement, not a billing
 API check or guarantee; verify account usage first. Standard public runners are
-free; larger runners and private overages are not authorized. Public/tagged runs
-can generate free attestations after independent approval; the first private,
-untagged run cannot. Do not enable billable resources to make a run succeed.
+free; larger runners and private overages are not authorized. The approved public
+untagged run generated verified free attestations. Private runs do not use this
+public-attestation path. Do not enable billable resources to make a run succeed.
 
 
 Hosted upstream MSBuild currently places its installed triplet at
@@ -182,3 +197,174 @@ failed path lookup and the successful corrected run. Native MSBuild output is
 preserved separately from PowerShell transcripts. Hosted candidate identity,
 attestations and pending human checks are in READINESS.md; later documentation-only
 updates never change the source revision embedded in existing artifacts.
+
+
+## First prerelease publication plan -- prepared, not executed
+
+Owner review identity:
+
+- Title: **Dark Wraith Dragon's Exult 1.0.0-rc.1**.
+- Version: `1.0.0-rc.1`; type: GitHub **prerelease**, not stable or latest.
+- Proposed tag: `v1.0.0-rc.1`, pointing exactly to
+  `41a83ac4f2f4f73c080655f29d7946f7944deacb`.
+- This specific owner-requested `v` tag takes precedence for this candidate over
+  AGENTS.md's general `dwd-v` convention. Do not change the packager or rerun its
+  tag-gated build path: accepted files already identify the exact build commit.
+- Later acceptance/policy documentation commits are not the binary build revision.
+  Release notes link current branch documentation separately from exact source.
+
+On November 1, 2026, GitHub reported the accepted candidate artifact (ID 13106221647)
+available, unexpired until November 8 at 23:43:30 UTC. It was downloaded again;
+all three package hashes matched the owner's baseline AND previous local copies.
+Byte-for-byte preserved publication files are outside Git at
+`C:\Codex\Ultima7 Decomp\release-candidates\DWD-Exult-1.0.0-rc.1-41a83ac4f`.
+No accepted artifact was rebuilt, repacked, signed or modified. The original
+740-byte `SHA256SUMS.txt` is preserved unchanged too; its own SHA-256 is
+`fc1241bb336e2ff1562052f66d990ffabcfc14399bd4e69281de4c699a0edbc0`.
+Its eight entries include five supporting Actions metadata files that are not among
+the four proposed release assets. Player instructions compare the matching package
+entry individually rather than bulk-check nonexistent metadata downloads.
+
+| Proposed release asset | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `DWD-Exult-1.0.0-rc.1-Setup.exe` | 12090878 | `561a1bd2ea4bebdb0fd1710dd6533f1e14fa0f13305d68bde813d1b1eb7d1fa9` |
+| `DWD-Exult-1.0.0-rc.1-Windows-x64.zip` | 13174126 | `5c9716f2fab539df70bd85f59b725f682aabbbff96e622b3b9dce2198c45fce1` |
+| `DWD-Exult-1.0.0-rc.1-Source.zip` | 57157239 | `860e747db1ed343a4ed1cb282b673aa9641bfb4ad3de16c5866d3c696646f584` |
+| `SHA256SUMS.txt` (original workflow manifest) | 740 | `fc1241bb336e2ff1562052f66d990ffabcfc14399bd4e69281de4c699a0edbc0` |
+
+GitHub releases and the local/remote `v1.0.0-rc.1` tag were checked: no conflicting
+release or tag exists. Recheck immediately before any future approved mutation.
+[GitHub's asset requirements](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)
+allow up to 1,000 assets, each under 2 GiB; all four existing files fit. The
+[GitHub CLI release documentation](https://cli.github.com/manual/gh_release_create)
+supports uploading existing files, an existing verified tag, prerelease status,
+curated notes and explicitly not marking it latest. No rebuild is required.
+GitHub's automatic source zip/tar links are separate from the uploaded matching
+Source.zip, which includes corresponding dependency source/recipes and must remain
+an explicit release asset.
+
+After separate owner approval of the exact tag, target, notes and four files:
+
+1. Recheck tag/release availability and the preserved file hashes. If anything is
+   missing or mismatched, stop and report it; do not rebuild/substitute silently.
+2. Create and push only the annotated `v1.0.0-rc.1` tag at the full verified build
+   SHA. Verify the remote tag peels to that SHA; never use the newer default tip.
+3. Create a prerelease draft for the existing tag with `--verify-tag`,
+   `--prerelease`, `--latest=false`, and a notes file containing exactly the reviewed
+   player-facing section below. Attach only the four listed existing files, with
+   no clobber/replacement. This plan creates no draft, tag or upload now.
+4. Verify draft target, prerelease flag, notes, asset names/sizes/hashes and existing
+   provenance. Publish that approved prerelease, then download/check the uploaded
+   files and verify that their hashes still match. No rebuild or signing step.
+
+Only preparation and documentation push are currently authorized. Tag creation/
+push, draft/Release creation, uploads and public publication await separate owner
+approval. Do not dispatch another Actions run or change branch settings.
+
+## Proposed player-facing prerelease notes
+
+<!-- BEGIN PROPOSED PRERELEASE NOTES -->
+
+Dark Wraith Dragon's Exult **1.0.0-rc.1** is the first Windows x64 release candidate
+of an independent fork of the open-source [Exult project](https://exult.info/).
+It is based on Exult **1.13.1git**, upstream revision
+`97984e9e0cbb4ccacaab0249da9c51b533818f74`; it is not an official Exult Team release
+or a stable DWD release.
+
+### What is included
+
+- Borderless windows, left/right placement and aspect-correct sizing.
+- Enhanced OPL3 Stereo music, original OPL2 (SB/ADLIB) playback, independent
+  synthesized AdLib/Roland effects and a main-menu Music Player. Music and effects
+  are selected separately; MT32EMU remains the single emulated Roland music choice
+  and requires compatible, legally obtained user-supplied ROMs.
+- Native Wait in BG/SI, correct initial numeric quiz-slider answers, and an Orb of
+  the Moons paper chart for supported Black Gate/Keyring layouts. See the README
+  for controls, compatibility and save precautions.
+
+### Install or use the portable ZIP
+
+Use `DWD-Exult-1.0.0-rc.1-Setup.exe`, or extract the complete `DWDExult` folder from
+`DWD-Exult-1.0.0-rc.1-Windows-x64.zip` into a writable location. The installer's
+Setup Paths Only mode can configure an extracted folder. The MSVC v14 x64 runtime
+is required and is not bundled. Supply your original Ultima VII: The Black Gate
+and/or Serpent Isle installations; the Windows binary packages do not contain the
+commercial games or Roland ROMs.
+
+DWD has an independent installation identity. Configuration, mods and separate
+base/mod saves stay beside its executable. Do not install inside an original game
+folder or over official Exult. Back up saves/configuration before upgrading.
+
+The installer offers original Marzo's Keyring, Serpent Isle Fixes and SourceForge
+Island as official downloads when selected and needed; these payloads are not
+bundled in either Windows binary package. New optional downloads need internet.
+Engine upgrades preserve installed optional content, including customized or
+unverified packages; existing content requires explicit acknowledged repair before
+replacement. Saves remain separate. A failed optional download is reported and
+skipped so the engine can finish installing.
+
+### Unsigned Windows downloads and verification
+
+The installer and executable are **unsigned**, by the owner's accepted release
+policy. Windows may show **Unknown publisher** because it cannot authenticate the
+publisher through a trusted Authenticode signature. Microsoft Defender SmartScreen
+may separately show a reputation warning. These warnings alone do not establish
+that the application contains malware. See Microsoft's
+[SmartScreen explanation](https://learn.microsoft.com/windows/apps/package-and-deploy/smartscreen-reputation).
+Keep Windows security protections enabled.
+
+Obtain DWD Exult only from [the official GitHub repository](https://github.com/fermix42/dwd-exult).
+In PowerShell, open your download folder and run:
+
+```powershell
+Get-FileHash -LiteralPath '.\DWD-Exult-1.0.0-rc.1-Setup.exe' -Algorithm SHA256
+```
+
+Compare the full hash with the matching filename below or in `SHA256SUMS.txt`.
+Use the ZIP filename instead when checking a ZIP; letter case is irrelevant. Do
+not use a file whose hash differs. The unchanged workflow checksum file also
+lists supporting metadata; compare the entry for your downloaded package.
+
+| File | SHA-256 |
+| --- | --- |
+| `DWD-Exult-1.0.0-rc.1-Setup.exe` | `561a1bd2ea4bebdb0fd1710dd6533f1e14fa0f13305d68bde813d1b1eb7d1fa9` |
+| `DWD-Exult-1.0.0-rc.1-Windows-x64.zip` | `5c9716f2fab539df70bd85f59b725f682aabbbff96e622b3b9dce2198c45fce1` |
+| `DWD-Exult-1.0.0-rc.1-Source.zip` | `860e747db1ed343a4ed1cb282b673aa9641bfb4ad3de16c5866d3c696646f584` |
+
+Build source: `41a83ac4f2f4f73c080655f29d7946f7944deacb`.
+[Hosted build](https://github.com/fermix42/dwd-exult/actions/runs/41362896916) and
+[GitHub provenance](https://github.com/fermix42/dwd-exult/attestations/62439805)
+associate the files with that exact source and workflow. With the optional GitHub
+CLI installed, verify a downloaded package with:
+
+```powershell
+gh attestation verify '.\DWD-Exult-1.0.0-rc.1-Setup.exe' --repo fermix42/dwd-exult
+```
+
+Checksums, provenance and prior Defender scans are not an Authenticode signature
+or a guarantee of safety.
+
+### Source, acceptance and limits
+
+The engine retains Exult's GPL licensing, original authorship and credits;
+component and mod notices remain applicable. The matching `Source.zip` includes
+upstream/DWD source and corresponding dependency sources/recipes. GitHub's automatic
+source links do not replace that dependency-inclusive archive. Thanks to the Exult
+Team, Marzo Sette Torres Junior, mod contributors and all component authors.
+
+Focused automated checks and prior human gameplay/save/audio acceptance are
+recorded in the [current validation report](https://github.com/fermix42/dwd-exult/blob/codex/dwd-release-preparation/packaging/dwd/VALIDATION.md).
+The owner also accepted all three downloads, launching Exult and finding the mods
+in the menu; no new gameplay/save-load acceptance of those fresh downloads is
+implied. Fresh simplified-audio-selector listening and clean Windows/runtime
+validation remain NOT TESTED recommendations, not automatically release blockers.
+Other platforms, full campaigns and every mod/language combination are not certified.
+For unattended `/BGDIR` and `/SIDIR`, use canonical Windows backslashes or omit
+unchanged path options: forward-slash aliases can rewrite config formatting.
+
+[Current README](https://github.com/fermix42/dwd-exult/blob/codex/dwd-release-preparation/README-DWD.md) ·
+[DWD changelog](https://github.com/fermix42/dwd-exult/blob/codex/dwd-release-preparation/ChangeLog-DWD.txt) ·
+[Readiness](https://github.com/fermix42/dwd-exult/blob/codex/dwd-release-preparation/packaging/dwd/READINESS.md) ·
+[Exact build source](https://github.com/fermix42/dwd-exult/tree/41a83ac4f2f4f73c080655f29d7946f7944deacb)
+
+<!-- END PROPOSED PRERELEASE NOTES -->
