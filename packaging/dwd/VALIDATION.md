@@ -597,15 +597,59 @@ logs. The exact SHA remains immutable after later documentation-only updates.
 
 Prior accepted installation, BG/Keyring and SI/SI Fixes save/load, isolated saves,
 Enhanced OPL3/OPL2 effects and idempotent upgrades retain their original HUMAN PASS
-scope. New downloader interactive owner acceptance: **HUMAN NOT TESTED**, required
-before binary publication. Fresh simplified audio-selector/MT32EMU listening:
+scope. New downloader installation and menu-discovery owner acceptance is now
+**HUMAN PASS**, as reported November 1, 2026 in the entry below; this closes that
+specific interactive requirement. Earlier NOT TESTED entries retain their historical
+scope and are superseded for these observations only. Fresh simplified
+audio-selector/MT32EMU listening:
 **NOT TESTED** (existing recommendation, no broad repeat cycle). Clean player
 Windows OS/runtime prerequisites remain NOT TESTED. The pre-existing explicit CLI
 path-alias/config rewrite limitation is recorded above for owner review.
 
 Source, hosted build, hashes, provenance and affected canonical-path packaging
-checks are ready for owner prerelease review. Do not publish yet: new downloader
-interactive acceptance and separate exact tag/asset/Release authorization remain.
+checks, together with the reported human downloader installation/menu acceptance,
+are ready for the owner's first public prerelease publication decision. Recommended
+listening/clean-environment tests remain NOT TESTED, not mandatory blockers. Do not
+publish yet: separate exact tag/asset/Release authorization remains required.
 No final tag, Release/prerelease, unrelated merge, force push, commercial signing or
 billable resource was created. Subsequent report commits are documentation-only;
 artifact provenance remains 41a83ac4f2f4f73c080655f29d7946f7944deacb, not the newer branch tip.
+
+
+### November 1, 2026 -- owner downloader installation and menu acceptance
+
+Owner-reported interactive acceptance of the GitHub-hosted DWD Exult 1.0.0-rc.1
+installer built from immutable source
+`41a83ac4f2f4f73c080655f29d7946f7944deacb`, produced by
+[the successful hosted workflow](https://github.com/fermix42/dwd-exult/actions/runs/41362896916).
+The owner ran that installer, observed successful downloads of all three optional
+mods, launched Exult afterward and observed all three mods in the game-selection
+menu.
+
+| Owner observation | Result |
+| --- | --- |
+| Marzo's Black Gate Keyring optional download | HUMAN PASS |
+| Marzo's Serpent Isle Fixes optional download | HUMAN PASS |
+| SourceForge Island optional download | HUMAN PASS |
+| Exult launches after installation | HUMAN PASS |
+| All three mods appear in Exult's game-selection menu | HUMAN PASS |
+
+These observations close the outstanding interactive downloader installation and
+menu-discovery acceptance requirement. They do not establish new gameplay or
+save/load acceptance of these freshly downloaded packages, an interactive repeat
+installation, download-failure handling or manual checksum verification. The owner
+did not report separately inspecting logs, network request counts, internal file
+manifests or rollback behavior. Existing automated and prior human evidence retains
+its original scope; none of those additional observations is inferred here.
+
+The 53 local installer, 39 local portable, seven live-download, 23 hosted-installer
+and 39 hosted-portable assertions, hosted build/provenance PASS, Defender results
+and prior human gameplay/save/load/audio acceptance remain unchanged. No tests were
+repeated for this report. The documented forward-slash /BGDIR and /SIDIR limitation
+and its classifications remain unchanged.
+
+Fresh simplified-audio-selector/MT32Emu listening and clean player Windows
+environment/runtime-prerequisite validation remain NOT TESTED recommendations.
+Public binary prerelease publication requires separate owner approval. This update
+changes documentation only: the verified build SHA, hosted artifacts and their
+checksums/provenance are unchanged; the new reporting commit has a separate SHA.

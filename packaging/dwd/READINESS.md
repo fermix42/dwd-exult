@@ -1,7 +1,7 @@
 # DWD 1.0.0-rc.1 candidate readiness -- November 1, 2026
 
-**Hosted candidate verified; awaiting owner downloader acceptance and separate
-binary-publication approval.** No GitHub Release/prerelease or tag was created.
+**Hosted candidate verified; owner downloader installation and menu discovery
+accepted. Awaiting separate binary-publication approval.** No GitHub Release/prerelease or tag was created.
 A pre-existing command-line path-alias limitation remains explicitly recorded.
 
 | Identity/result | Verified value |
@@ -89,13 +89,33 @@ scoped evidence are in [VALIDATION.md](VALIDATION.md).
 | `DWD-Exult-1.0.0-rc.1-Windows-x64.zip` | `5c9716f2fab539df70bd85f59b725f682aabbbff96e622b3b9dce2198c45fce1` |
 
 
+## Human downloader acceptance -- November 1, 2026
+
+The owner reports running the GitHub-hosted installer from immutable build
+`41a83ac4f2f4f73c080655f29d7946f7944deacb`, successfully downloading all three
+optional mods, launching Exult afterward and seeing all three in its game-selection
+menu.
+
+| Owner observation | Result |
+| --- | --- |
+| Marzo's Black Gate Keyring optional download | HUMAN PASS |
+| Marzo's Serpent Isle Fixes optional download | HUMAN PASS |
+| SourceForge Island optional download | HUMAN PASS |
+| Exult launches after installation | HUMAN PASS |
+| All three mods appear in Exult's game-selection menu | HUMAN PASS |
+
+This closes the interactive downloader installation/menu-discovery requirement.
+It does not add human gameplay/save/load testing of the freshly downloaded mods,
+repeat-installation or download-failure testing, manual checksum verification,
+or owner inspection of logs, request counts, internal manifests or rollback.
+Existing automated and prior human evidence keeps its original scope; see
+[VALIDATION.md](VALIDATION.md). No tests, builds or workflows were repeated and no
+replacement artifacts were generated for this documentation-only update.
+
 ## Outstanding items and recommendation
 
-- **HUMAN NOT TESTED:** interactive acceptance of the new downloader before binary
-  publication. Existing owner gameplay/save/audio/idempotent acceptance stays valid
-  for the builds actually tested; automated live downloads are not HUMAN PASS.
-- **NOT TESTED:** fresh simplified audio-selector/MT32EMU listening (recommended)
-  and clean player Windows OS/runtime prerequisite testing. No unrelated campaign,
+- **NOT TESTED recommendations:** fresh simplified audio-selector/MT32Emu listening
+  and clean player Windows environment/runtime-prerequisite validation. No unrelated campaign,
   platform or full audio acceptance cycle was repeated.
 - **Known pre-existing limitation:** explicit forward-slash `/BGDIR=C:/...` and
   `/SIDIR=C:/...` aliases cause a config rewrite and loss of formatting/comments;
@@ -106,8 +126,13 @@ scoped evidence are in [VALIDATION.md](VALIDATION.md).
 - **Authorization still required:** exact tag, assets and GitHub Release/prerelease
   publication. No tag/release/announcement or paid service is authorized here.
 
-Recommend owner review of this verified hosted candidate for the first prerelease,
-with downloader interactive acceptance completed and the existing CLI path-alias
-limitation reviewed before any unqualified config-preservation claim. Do not publish
-binaries yet. The final report update is documentation-only and does not regenerate
-or relabel these immutable 41a83ac4f2f4f73c080655f29d7946f7944deacb artifacts.
+The verified hosted candidate and reported human downloader installation/menu
+acceptance are ready for the owner's first public prerelease publication decision.
+The remaining recommended tests are optional owner decisions, not newly imposed
+mandatory release blockers. The existing CLI path-alias limitation remains
+documented and unchanged; full path-alias preservation is not certified. Public
+binary publication still requires separate explicit approval of the tag/assets and
+Release/prerelease. This reporting update is documentation-only and does not
+regenerate or relabel the immutable
+`41a83ac4f2f4f73c080655f29d7946f7944deacb` artifacts; its documentation commit has a
+different SHA.
