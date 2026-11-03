@@ -8,6 +8,7 @@
 #include "Gump.h"
 #include "imagewin.h"
 #include "actions.h"
+#include "schedule.h"
 #include "actors.h"
 #include "chunks.h"
 #include "combat.h"
@@ -340,8 +341,14 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
         w->set_all_dirty();return "\"category\":\"test_setup\",\"synthetic_commission_items\":true";
     }
     if (op == "case_commission_state") {
+        std::ostringstream schedules;schedules<<"[";bool comma=false;
+        if(auto* list=w->get_npc(86)->get_schedules())for(const auto& entry:*list) {
+            if(comma)schedules<<",";comma=true;
+            schedules<<"{\"hour\":"<<entry.get_time()*3<<",\"type\":"<<entry.get_type()<<",\"tile\":"<<tile(entry.get_pos())<<"}";
+        }
+        schedules<<"]";
         return "\"category\":\"inspection\",\"commission\":"+Case_commission::inspect()
-            +",\"xanthia\":"+describe(w->get_npc(86))+",\"william\":"+describe(w->get_npc(93));
+            +",\"xanthia\":"+describe(w->get_npc(86))+",\"william\":"+describe(w->get_npc(93))+",\"xanthia_schedule\":"+schedules.str();
     }
     if (op == "case_spell_state") {
         std::ostringstream out;
@@ -806,4 +813,3 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
 	}
 	throw std::runtime_error("unknown_command");
 }
-

@@ -23,7 +23,7 @@ struct Quest { unsigned stage=NOT_STARTED, requirements=0, deadline=0; } quest;
 int speaker=0;
 bool offer=false;
 std::set<std::string> used;
-const std::array<const char*,8> names={"Virtue Stone case","commission case","case materials","case timber","give cloth","pay Guild fee","case progress","collect case"};
+const std::array<const char*,9> names={"Virtue Stone case","commission case","case materials","case timber","buy case timber","give cloth","pay Guild fee","case progress","collect case"};
 std::vector<Actor*> party() {
     Actor* actors[9];auto* w=Game_window::get_instance();const int n=w->get_party(actors,1);
     return {actors,actors+n};
@@ -33,9 +33,29 @@ Game_object* party_stone() {
         for(auto* item:items) if(item->as_virtstone())return item; }
     return nullptr;
 }
+int quantity(int shape) {
+    int total=0;for(auto* actor:party())total+=actor->count_objects(shape,c_any_qual,c_any_framenum);return total;
+}
+bool take(int shape,int count) {
+    if(quantity(shape)<count)return false;
+    for(auto* actor:party()) { count=actor->remove_quantity(count,shape,c_any_qual,c_any_framenum);if(!count)return true; }
+    return false;
+}
+void complete_requirement(unsigned bit) {
+    quest.requirements|=bit;quest.stage=REQUIREMENTS_IN_PROGRESS;
+    if(quest.requirements==7) {
+        quest.stage=BUILDING;
+        quest.deadline=Game_window::get_instance()->get_clock()->get_total_minutes()+48*60;
+    }
+}
 void refresh() {
     if(quest.stage==BUILDING && Game_window::get_instance()->get_clock()->get_total_minutes()>=quest.deadline)
         quest.stage=READY_FOR_DELIVERY;
+}
+void receipt(Conversation* conv,const char* text) {
+    std::string message=text;
+    if(quest.stage==BUILDING)message+="~@All is in hand. The Guild may begin thy case; allow two days for the work.@";
+    conv->show_npc_message(message.c_str());
 }
 std::vector<std::string> available(int npc) {
     refresh();std::vector<std::string> result;
@@ -43,8 +63,16 @@ std::vector<std::string> available(int npc) {
     if(npc==86) {
         if(quest.stage==NOT_STARTED && party_stone()) {
             result.push_back("Virtue Stone case");if(offer)result.push_back("commission case");
-        } else if(quest.stage==COMMISSION_ACCEPTED || quest.stage==REQUIREMENTS_IN_PROGRESS) result.push_back("case materials");
+        } else if(quest.stage==COMMISSION_ACCEPTED || quest.stage==REQUIREMENTS_IN_PROGRESS) {
+            result.push_back("case materials");
+            if(!(quest.requirements&2))result.push_back("give cloth");
+            if(!(quest.requirements&4))result.push_back("pay Guild fee");
+        }
         else if(quest.stage==BUILDING)result.push_back("case progress");
+    }
+    if(npc==93 && (quest.stage==COMMISSION_ACCEPTED || quest.stage==REQUIREMENTS_IN_PROGRESS)
+        && !(quest.requirements&1)) {
+        result.push_back("case timber");if(offer)result.push_back("buy case timber");
     }
     result.erase(std::remove_if(result.begin(),result.end(),[](const auto& t){return used.count(t);}),result.end());
     return result;
@@ -73,7 +101,22 @@ int Case_commission::choose(Conversation* conv,int npc,const std::string& topic)
         quest.stage=COMMISSION_ACCEPTED;offer=false;
         conv->show_npc_message("@Aye, I shall undertake thy commission. William can send the timber directly to our Guild. Thou mayst bring the cloth and pay our fee when thou art ready.@");
     } else if(topic=="case materials") {
-        conv->show_npc_message("@Suitable timber from William, a length of cloth for the lining, and one hundred gold for our labor and fittings. Then allow us two days for the work.@");
+        std::string message="@We still require ";
+        if(!(quest.requirements&1))message+="timber arranged with William; ";
+        if(!(quest.requirements&2))message+="a length of cloth; ";
+        if(!(quest.requirements&4))message+="one hundred gold for labor and fittings; ";
+        message+="then allow two days for the work.@";conv->show_npc_message(message.c_str());
+    } else if(topic=="case timber" && npc==93 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&1)) {
+        offer=true;conv->show_npc_message("@Xanthia's commission? Aye, I can spare sound, seasoned timber for a small case. Twenty gold, and I shall deliver it straight to the Artist's Guild. Wilt thou buy it?@");
+    } else if(topic=="buy case timber" && npc==93 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&1)) {
+        if(!take(644,20))conv->show_npc_message("@Twenty gold for sound, seasoned timber, delivered to the Artist's Guild. Thou hast not enough gold at present.@");
+        else { complete_requirement(1);receipt(conv,"@Twenty gold, then. I shall have the timber sent straight to Xanthia at the Artist's Guild. Thou needst not carry it thyself.@"); }
+    } else if(topic=="give cloth" && npc==86 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&2)) {
+        if(!take(851,1))conv->show_npc_message("@I need a length of cloth for the lining. Bring one when thou art ready.@");
+        else { complete_requirement(2);receipt(conv,"@This cloth will do very well. I shall keep it safe for thy case.@"); }
+    } else if(topic=="pay Guild fee" && npc==86 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&4)) {
+        if(!take(644,100))conv->show_npc_message("@The Guild's labor and fittings cost one hundred gold. Thou hast not enough. We can settle it when thou art able.@");
+        else { complete_requirement(4);receipt(conv,"@One hundred gold. I thank thee; our fee is settled.@"); }
     } else if(topic=="case progress") {
         conv->show_npc_message("@Good work takes time. Our two days are not yet passed. Return anon, Avatar.@");
     }
@@ -91,6 +134,6 @@ void Case_commission::read(IDataSource* in) {
     quest=value;
 }
 std::string Case_commission::inspect() {
-    refresh();std::ostringstream out;out<<"{\"stage\":"<<quest.stage<<",\"requirements\":"<<quest.requirements<<",\"deadline\":"<<quest.deadline<<",\"minutes\":"<<Game_window::get_instance()->get_clock()->get_total_minutes()<<",\"party_has_stone\":"<<(party_stone()?"true":"false")<<"}";return out.str();
+    refresh();std::ostringstream out;out<<"{\"stage\":"<<quest.stage<<",\"requirements\":"<<quest.requirements<<",\"deadline\":"<<quest.deadline<<",\"minutes\":"<<Game_window::get_instance()->get_clock()->get_total_minutes()<<",\"gold\":"<<quantity(644)<<",\"cloth\":"<<quantity(851)<<",\"party_has_stone\":"<<(party_stone()?"true":"false")<<"}";return out.str();
 }
 
