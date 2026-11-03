@@ -7,19 +7,16 @@ int delivery_phase=-1;
 Tile_coord placed_at(-1,-1,-1);
 Game_object* guild_workbench() {
     Game_object_vector tables;
-    Game_object::find_nearby(tables,Tile_coord(1578,387,0),633,1,0);
-    for(auto* table:tables)if(table->get_tile()==Tile_coord(1578,387,0))return table;
+    Game_object::find_nearby(tables,Tile_coord(1592,370,0),633,1,0);
+    for(auto* table:tables)if(table->get_tile()==Tile_coord(1592,370,0))return table;
     return nullptr;
 }
 Tile_coord free_bench_spot(Game_object* bench) {
     if(!bench)return Tile_coord(-1,-1,-1);
     const auto at=bench->get_tile();const auto& info=bench->get_info();
-    for(int dy=0;dy<info.get_3d_ytiles(bench->get_framenum());++dy)
-        for(int dx=0;dx<info.get_3d_xtiles(bench->get_framenum());++dx) {
-            Tile_coord candidate(at.tx-dx,at.ty-dy,at.tz+info.get_3d_height());
-            const auto free=Map_chunk::find_spot(candidate,0,Virtue_case::shape,0);
-            if(free==candidate)return candidate;
-        }
+    // Use the clear front-edge patch, not an arbitrary fallback behind tools/walls.
+    const Tile_coord candidate(at.tx,at.ty,at.tz+info.get_3d_height());
+    if(Map_chunk::find_spot(candidate,0,Virtue_case::shape,0)==candidate)return candidate;
     return Tile_coord(-1,-1,-1);
 }
 class Guild_delivery : public Actor_action {
@@ -55,7 +52,7 @@ public:
             if(npc->get_tile()!=stand) {npc->say("Give me a little room to reach my workbench, Avatar.");return 0;}
             phase=1;return 200;
         }
-        const int dir=npc->get_direction(table->get_tile());
+        const int dir=npc->get_direction(spot);
         if(phase==1) {npc->change_frame(npc->get_dir_framenum(dir,Actor::standing));phase=2;return 300;}
         if(phase==2) {npc->change_frame(npc->get_dir_framenum(dir,Actor::reach1_frame));phase=3;return 350;}
         if(phase==3) {
@@ -93,7 +90,8 @@ bool start_guild_delivery() {
     if(!npc || !npc->can_act() || !bench || surface.tx<0)return false;
     const auto at=bench->get_tile();
     const std::array<Tile_coord,4> approaches={Tile_coord(at.tx-1,at.ty+1,at.tz),Tile_coord(at.tx+1,at.ty-1,at.tz),
-        Tile_coord(at.tx-3,at.ty-1,at.tz),Tile_coord(at.tx-1,at.ty-3,at.tz)};
+        Tile_coord(at.tx-bench->get_info().get_3d_xtiles(bench->get_framenum()),at.ty-1,at.tz),
+        Tile_coord(at.tx-1,at.ty-bench->get_info().get_3d_ytiles(bench->get_framenum()),at.tz)};
     for(const auto& approach:approaches) {
         auto path=std::make_unique<Path_walking_actor_action>(nullptr,6,3);
         Actor_action* route=path->walk_to_tile(npc,npc->get_tile(),approach);

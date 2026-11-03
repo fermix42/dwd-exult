@@ -134,18 +134,18 @@ try:
  while time.monotonic()<end:
   data=do('case_commission_state');quest=data['commission'];npc=data['xanthia']
   if quest['delivery_phase']==2 and not reached:
-   check('Xanthia reaches workbench and uses original reach frame',(npc['frame']&15)in (5,8) and abs(npc['tile']['x']-1578)<=3 and abs(npc['tile']['y']-387)<=3);capture('xanthia-reaches-workbench');reached=True
+   check('Xanthia reaches workbench and uses original reach frame',(npc['frame']&15)in (5,8) and abs(npc['tile']['x']-1592)<=3 and abs(npc['tile']['y']-370)<=3);capture('xanthia-reaches-workbench');reached=True
   if quest['stage']==5 and not placed:
-   check('one real case appears on tabletop during placement',len(cases())==1 and cases()[0]['tile']['z']==2);capture('case-placed-on-workbench');placed=True
+   check('one real case appears on visible front of native workbench',len(cases())==1 and cases()[0]['tile']==dict(x=1592,y=370,z=2));capture('case-placed-on-workbench');placed=True
   if placed and not quest['delivery_active']:break
   if quest['stage']==4 and not quest['delivery_active'] and retries<3:
    retries+=1;s=talk();choose('collect case');continue
   if quest['delivery_phase']==0 and max(abs(npc['tile']['x']-d.state()['x']),abs(npc['tile']['y']-d.state()['y']))>7:
    do('move_to_object',ref=npc['ref'])
   time.sleep(.04)
- check('placement animation and reward were both observed',reached and placed);check('delivery becomes terminal',q()['stage']==5 and not q()['delivery_active']);case=cases()[0];check('reward is original native empty case with eight blank notes',case['class_id']==6 and case['case_labels']==['']*8)
+ check('placement animation and reward were both observed',reached and placed);check('delivery becomes terminal',q()['stage']==5 and not q()['delivery_active']);case=cases()[0];check('placed case centre remains visible and reachable after Xanthia steps aside',bool(case['hit_test_target'])and bool(case['reachable']));time.sleep(6);capture('unobstructed-reward-after-step-aside');do('save',slot=7);do('load',slot=7);case=cases()[0];check('tabletop reward and terminal state survive reload before pickup',q()['stage']==5 and len(cases())==1 and case['tile']==dict(x=1592,y=370,z=2));check('reward is original native empty case with eight blank notes',case['class_id']==6 and case['case_labels']==['']*8)
  # Reach and pick up the real world item using normal drag/drop into the backpack.
- do('move_to',x=1577,y=388,z=0,timeout=35);check('Avatar walks to the workbench',arrived());case=cases()[0];do('key',key='1');avatar=do('inspect_world',radius=2)['avatar'];pack=next(e['ref']for e in do('inspect_actor',ref=avatar)['object']['equipment']if e['slot']==1);show(pack);do('move_gump',ref=pack,x=30,y=220);do('move_gump',ref=avatar,x=30,y=5);do('transfer_item',ref=case['ref'],destination=pack);check('real case can be picked up normally',obj(case['ref'])['owner']==pack);show(case['ref']);check('delivered case opens accepted specialized gump',any('Case_gump'in g['type']for g in d.state()['gumps']));check('delivered case is empty',not inv(case['ref']));close_gumps();do('save',slot=5);do('load',slot=5);check('terminal delivery survives normal save/load',q()['stage']==5)
+ do('move_to',x=1592,y=371,z=0,timeout=35);check('Avatar walks to the workbench',arrived());case=cases()[0];do('key',key='1');avatar=do('inspect_world',radius=2)['avatar'];pack=next(e['ref']for e in do('inspect_actor',ref=avatar)['object']['equipment']if e['slot']==1);show(pack);do('move_gump',ref=pack,x=30,y=220);do('move_gump',ref=avatar,x=30,y=5);do('transfer_item',ref=case['ref'],destination=pack);check('real case can be picked up normally',obj(case['ref'])['owner']==pack);show(case['ref']);check('delivered case opens accepted specialized gump',any('Case_gump'in g['type']for g in d.state()['gumps']));check('delivered case is empty',not inv(case['ref']));close_gumps();do('save',slot=5);do('load',slot=5);check('terminal delivery survives normal save/load',q()['stage']==5)
  s=talk();check('all commission topics permanently absent after delivery',not set(['Virtue Stone case','commission case','case materials','give cloth','pay Guild fee','case progress','collect case']).intersection(s['choices']));leave();check('repeated conversation creates no extra case',len([o for o in inv()if o['shape']==1601])==1 and not cases());do('save',slot=6);do('exit')
 except Exception:
  d.failures+=1;events.append(dict(error=traceback.format_exc()));print(traceback.format_exc(),flush=True)
