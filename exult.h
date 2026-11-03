@@ -32,9 +32,6 @@ class GameManager;
 class ShortcutBar_gump;
 class TouchUI;
 
-// Route synchronous semantic input through the normal SDL event handler.
-void Dispatch_text_input(const char* text);
-
 /*
  *  Get a click, or, optionally, a keyboard char.
  *

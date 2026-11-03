@@ -48,6 +48,10 @@ void*       cli_input_paint = nullptr;
 bool SaveIMG_RW(SDL_Surface*, SDL_IOStream*, bool, int);
 
 namespace {
+	// One outstanding case-editor command; retain SDL's borrowed text until
+	// the normal game loop has polled and handled all queued events.
+	int case_input_id = -1;
+	std::string case_input_text;
 	struct Inbox {
 		std::mutex              mutex;
 		std::deque<std::string> lines;
@@ -75,6 +79,14 @@ std::string cli_quote(const std::string& s) {
 
 void cli_reply(int id, bool ok, const std::string& body) {
 	std::cout << "@CLI {\"id\":" << id << ",\"ok\":" << (ok ? "true" : "false") << "," << body << "}" << std::endl;
+}
+
+void cli_case_input_complete() {
+	if (!cli_enabled || case_input_id < 0) return;
+	const int id = case_input_id;
+	case_input_id = -1;
+	case_input_text.clear();
+	cli_reply(id, true, "\"category\":\"gameplay\",\"status\":\"queue_drained\"");
 }
 
 static bool cli_listener_active() {
@@ -446,21 +458,25 @@ int cli_poll(bool input, void*) {
             else if(x<0x800){text[0]=0xc0|(x>>6);text[1]=0x80|(x&63);}
             else if(x<0x10000){text[0]=0xe0|(x>>12);text[1]=0x80|((x>>6)&63);text[2]=0x80|(x&63);}
             else {text[0]=0xf0|(x>>18);text[1]=0x80|((x>>12)&63);text[2]=0x80|((x>>6)&63);text[3]=0x80|(x&63);}
-            if(!w->get_gump_man()->get_kbd_focus())throw std::runtime_error("no_text_entry_focus");
-            Dispatch_text_input(text);
-            cli_reply(id,true,"\"category\":\"gameplay\",\"text_dispatched\":true");
+            if(Virtue_case::editing_slot()<0 || !w->get_gump_man()->get_kbd_focus())throw std::runtime_error("no_case_text_entry_focus");
+            if(case_input_id>=0)throw std::runtime_error("case_input_pending");
+            case_input_text=text;
+            SDL_Event event{};event.type=SDL_EVENT_TEXT_INPUT;
+            event.text.windowID=SDL_GetWindowID(w->get_win()->get_screen_window());
+            event.text.text=case_input_text.c_str();
+            if(!SDL_PushEvent(&event))throw std::runtime_error("text_event_queue_refused");
+            case_input_id=id;
         } else if (op == "key") {
             SDL_Event event{}; event.type = SDL_EVENT_KEY_DOWN;
             event.key.key = static_cast<SDL_Keycode>(x); event.key.mod = static_cast<SDL_Keymod>(y); event.key.down = true;
-            // A focused in-place label editor has a synchronous native keyboard
-            // handler, just like semantic close controls. Do not leave its Enter/
-            // Backspace event outstanding before the next text-input command.
-            const bool handled = Virtue_case::editing_slot()>=0 && w->get_gump_man()->handle_kbd_event(&event);
-            if(!handled) {
-                SDL_PushEvent(&event);
-                event.type = SDL_EVENT_KEY_UP; event.key.down = false; SDL_PushEvent(&event);
-            }
-            cli_reply(id, true, "\"category\":\"gameplay\",\"status\":\"dispatched\"");
+            event.key.windowID=SDL_GetWindowID(w->get_win()->get_screen_window());
+            const bool case_editor=Virtue_case::editing_slot()>=0;
+            if(case_editor && case_input_id>=0)throw std::runtime_error("case_input_pending");
+            if(!SDL_PushEvent(&event))throw std::runtime_error("key_down_queue_refused");
+            event.type = SDL_EVENT_KEY_UP; event.key.down = false;
+            if(!SDL_PushEvent(&event))throw std::runtime_error("key_up_queue_refused");
+            if(case_editor)case_input_id=id;
+            else cli_reply(id, true, "\"category\":\"gameplay\",\"status\":\"dispatched\"");
         } else if (op == "test_orb_chart_item") {
             if (input || w->get_usecode()->in_usecode() || w->get_gump_man()->gump_mode())
                 throw std::runtime_error("chart_fixture_requires_gameplay");

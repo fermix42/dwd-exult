@@ -311,10 +311,24 @@ callback completion counter), `case_casting` and `case_targeting`. Controls expo
 `edit_label_0` through `edit_label_7` as well as `mark`, `recall`, and `close`.
 `test_case_extra` supplies a second empty case in an explicitly synthetic fixture.
 
-`text_character codepoint` routes UTF-8 through the normal SDL event dispatcher
-(then the focused native text-input handler); client `type_text` sends its characters. `key` supports `backspace`,
-`enter` and `escape`. When the case editor owns focus it routes the same native
-keyboard handler synchronously; ordinary gameplay retains queued key delivery.
+`text_character codepoint` requires a focused nonmodal case label editor and
+pushes an SDL_EVENT_TEXT_INPUT event with SDL_PushEvent. Client `type_text` sends
+these one character at a time. `key` sends SDL key-down/key-up pairs; while the
+case editor owns focus this includes Backspace, Enter and Escape.
+
+For case-editor text and keys, the response is delayed until the ordinary main
+loop has drained SDL_PollEvent through its existing Handle_event and the real
+focused gump keyboard handler. `status: queue_drained` means event processing
+finished, not that an edit succeeded: assert committed case_labels, editor focus,
+and save/load results. The CLI retains the borrowed text buffer until that point.
+No label setter or direct editor call is used. Other gameplay key commands retain
+their existing dispatch semantics. This is scoped input for the case tests, not a
+general UI automation API; modal/targeting text entry is unsupported.
+
+Use this CLI path for future Virtue Stone Case keyboard tests. Do not use computer
+control, GUI automation, or simulated desktop input. It tests SDL queue/handler
+behavior; physical keyboard layout, IME and OS text generation remain human checks.
+
 `aim_object ref` positions only the engine cursor on a visible object's opaque
 mask without clicking (renderer evidence). `spellbook_cast ref spell` requires
 an actual open spellbook gump and invokes its normal casting method. No command

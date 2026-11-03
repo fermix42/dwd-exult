@@ -4,6 +4,8 @@ extern bool        cli_enabled;
 extern std::string cli_run_dir;
 void               cli_start();
 int                cli_poll(bool input, void* unused);
+// Acknowledge case-editor input only after the ordinary SDL queue is drained.
+void               cli_case_input_complete();
 bool               cli_validate_paths();
 void               cli_require_write_path(const std::string&);
 bool               cli_config_isolated(const std::string&);

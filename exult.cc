@@ -195,14 +195,6 @@ static void BuildGameMap(BaseGameInfo* game, int mapnum);
 static void Handle_events();
 static void Handle_event(SDL_Event& event);
 
-// Semantic text input must traverse the same routing as platform SDL events.
-void Dispatch_text_input(const char* text) {
-	SDL_Event event{};
-	event.type = SDL_EVENT_TEXT_INPUT;
-	event.text.text = text;
-	Handle_event(event);
-}
-
 /*
  *  Statics:
  */
@@ -1436,6 +1428,7 @@ static void Handle_events() {
 		while (!quitting_time && SDL_PollEvent(&event)) {
 			Handle_event(event);
 		}
+		if (cli_enabled) cli_case_input_complete();
 
 		// Animate unless dormant.
 		if (gwin->have_focus() && !dragging) {

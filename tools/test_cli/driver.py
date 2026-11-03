@@ -144,8 +144,10 @@ class Driver:
   if op=='transfer_item':
    return self.raw(op,int(c['ref']),int(c['destination']),int(c['x']),int(c['y'])) if 'x' in c else self.raw(op,int(c['ref']),int(c['destination']))
   if op=='type_text':
-   for ch in c['text']:self.raw('text_character',ord(ch))
-   return {'ok':True,'category':'gameplay','characters_dispatched':len(c['text'])}
+   for ch in c['text']:
+    reply=self.raw('text_character',ord(ch))
+    if reply.get('status')!='queue_drained':raise RuntimeError('Expected queued case text input completion; rebuild Exult')
+   return {'ok':True,'category':'gameplay','characters_dispatched':len(c['text']),'status':'queue_drained'}
   if op=='aim_object':return self.raw(op,int(c['ref']))
   if op=='test_case_extra':return self.raw(op)
   if op=='spellbook_cast':return self.raw(op,int(c['ref']),int(c['spell']))

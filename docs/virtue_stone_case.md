@@ -396,3 +396,26 @@ adapter now passes through that same main dispatcher so the existing real-engine
 label suite also covers the formerly missing route. Normal Windows key input was
 verified through the actual BG and Keyring Play launchers, with visible committed
 Yew and K notes respectively. Clipboard paste is not implemented by this fix.
+
+
+## Queued CLI keyboard verification (current workflow)
+
+Future Virtue Stone Case keyboard tests use only the existing --test-cli mode in
+the ordinary Exult.exe. Text now enters via SDL_PushEvent/SDL_EVENT_TEXT_INPUT;
+Backspace, Enter and Escape enter via SDL key-down/key-up events. The main game
+loop polls these events and invokes its normal handler and the real focused gump
+keyboard handler. A reply is deferred until that queue drain, keeping the text
+buffer alive and preventing command-order races. The prior synchronous semantic
+text wrapper and direct focused-editor key shortcut have been removed.
+
+The existing label_checks.py verifies character entry, Backspace, Enter, Escape,
+character/pixel limits, focus cancellation, and actual note persistence. It does
+not set label strings to establish keyboard success. Check state, not merely
+queue acknowledgement. No computer control, desktop injection or GUI automation
+belongs in this workflow. OS keyboard layout/IME/hardware behavior remains for
+the human tester and is not a development gate. No generalized input framework.
+
+Queued-input verification: queued-case-keyboard-bg and
+queued-case-keyboard-keyring each passed79 real-engine assertions with normal
+shutdown, using the ordinary shared Release/x64 Exult.exe. No computer-control
+or GUI-automation tools were used. Existing fixtures remain explicitly synthetic.

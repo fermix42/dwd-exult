@@ -1,7 +1,8 @@
 """Real-engine Stage C input, note ownership, persistence and spell interoperability.
 
 Stats/inventory are explicit fixtures; spells still execute installed Usecode.
-Semantic text traverses the normal SDL dispatcher, not the editor directly.
+Text and editor keys traverse SDL_PushEvent -> SDL_PollEvent -> native handler.
+No computer control or desktop input is used.
 """
 import argparse,json,shutil,subprocess,sys,time,traceback
 from pathlib import Path
