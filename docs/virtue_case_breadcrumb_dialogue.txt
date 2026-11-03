@@ -1,5 +1,5 @@
-VIRTUE STONE CASE — STAGE E WRITING CANDIDATES
-PENDING HUMAN EDITORIAL ACCEPTANCE
+VIRTUE STONE CASE — STAGE E FINAL DIALOGUE
+HUMAN EDITORIAL ACCEPTED — November 3, 2026
 November 3, 2026
 
 Breadcrumb A — Organizing the Virtue Stones
@@ -20,3 +20,7 @@ The quotation marks above delimit the exact spoken strings. Native overhead spee
 presents them without an added dialogue window, portrait or conversation topic.
 These optional observations give no directions and identify no case maker.
 Stage D's separately accepted Xanthia/William dialogue remains unchanged.
+
+All four remarks are final and must remain verbatim. In particular, Shamino's
+Breadcrumb B sentence remains exactly as approved; the proposed rewrite was rejected.
+Overhead readability, runtime timing and final gameplay acceptance remain pending.

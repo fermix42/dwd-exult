@@ -91,6 +91,7 @@ std::vector<std::string> available(int npc) {
     return result;
 }
 }
+bool Case_commission::is_delivered() { return GAME_BG && quest.stage==DELIVERED; }
 void Case_commission::reset() {
     ++delivery_generation;active_delivery=nullptr;delivery_requested=false;delivery_phase=-1;placed_at=Tile_coord(-1,-1,-1);
     quest={};speaker=0;offer=false;used.clear();

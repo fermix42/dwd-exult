@@ -7,6 +7,8 @@ class IDataSource;
 class ODataSource;
 namespace Case_commission {
 void reset();
+// Persistent successful tabletop handoff; independent of current case ownership.
+bool is_delivered();
 void begin(Actor* npc);
 void end();
 void topics(Conversation* conversation, int npc);

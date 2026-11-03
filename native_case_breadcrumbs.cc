@@ -3,6 +3,7 @@
 #include <config.h>
 #endif
 #include "native_case_breadcrumbs.h"
+#include "native_case_commission.h"
 #include "actors.h"
 #include "contain.h"
 #include "databuf.h"
@@ -73,6 +74,7 @@ void Case_breadcrumbs::reset() {
     flags=next_minute=deliveries=0;last_npc=-1;last_text.clear();map_valid.fill(0);
 }
 void Case_breadcrumbs::observe() {
+    if(Case_commission::is_delivered()) { flags&=~(pending_a|pending_b);return; }
     if(!GAME_BG || ((flags&done_a) && (flags&done_b)))return;
     const auto items=inventory();
     if(items.colors>=3 && !(flags&done_a))flags|=pending_a;
@@ -84,6 +86,7 @@ void Case_breadcrumbs::inventory_added(Game_object* object) {
     if(owner && (owner==w->get_main_actor() || owner->is_in_party()))observe();
 }
 void Case_breadcrumbs::minute() {
+    if(Case_commission::is_delivered()) { flags&=~(pending_a|pending_b);return; }
     if(!GAME_BG || !(flags&(pending_a|pending_b)))return;
     // Eligibility is latched by inventory, MARK, recruitment and load events.
     auto* w=Game_window::get_instance();
