@@ -138,6 +138,10 @@ namespace {
 		auto* hit       = owner ? nullptr : w->find_object(rect.x + rect.w / 2, rect.y + rect.h / 2);
 		std::ostringstream out;
 		out << "{\"ref\":" << reference(o) << ",\"shape\":" << o->get_shapenum() << ",\"frame\":" << o->get_framenum()
+			<< ",\"sprite\":{\"width\":" << (o->get_shape() ? o->get_shape()->get_width() : 0)
+			<< ",\"height\":" << (o->get_shape() ? o->get_shape()->get_height() : 0)
+			<< ",\"xleft\":" << (o->get_shape() ? o->get_shape()->get_xleft() : 0)
+			<< ",\"yabove\":" << (o->get_shape() ? o->get_shape()->get_yabove() : 0) << "}"
 			<< ",\"class_id\":" << int(info.get_shape_class()) << ",\"type\":"
 			<< cli_quote(
 					   o->as_actor()       ? "actor"
