@@ -117,10 +117,10 @@ int Case_commission::choose(Conversation* conv,int npc,const std::string& topic)
     used.insert(topic);
     if(topic=="Virtue Stone case" && quest.stage==NOT_STARTED && party_stone()) {
         offer=true;
-        say(conv,"@I should like to commission a carrying case for the Virtue Stones,@ you say.~@Virtue Stones? I am not familiar with them. Might I see one?@~You show Xanthia one of the stones.~@Oh, how lovely! And quite unusual. Tell me, what sort of case hast thou in mind?@~@Something sturdy, yet small enough to carry on my travels. I should hate to have such precious things rattling about in my pack,@ you reply.~@Hmm. A fine wooden case, lined with soft cloth to protect the stones. Aye, I believe I could fashion something suitable.@~@Good timber, and soft cloth for the lining. We must give those stones a proper home! The Guild's work and fittings will cost one hundred gold.@");
+        say(conv,"@I should like to commission a carrying case for the Virtue Stones,@ you say.~@Virtue Stones? I am not familiar with them. Might I see one?@~You show Xanthia one of the stones.~@Oh, how lovely! And quite unusual. Tell me, what sort of case hast thou in mind?@~@Something sturdy, yet small enough to carry on my travels. I should hate to have such precious things rattling about in my pack,@ you reply.~@Hmm. A fine wooden case, lined with soft cloth to protect the stones. Aye, I believe I could fashion something suitable.@~@We must give those stones a proper home! The Guild's work and fittings will cost one hundred gold.@");
     } else if(topic=="commission case" && quest.stage==NOT_STARTED && party_stone()) {
         quest.stage=COMMISSION_ACCEPTED;offer=false;
-        say(conv,"@I shall be pleased to make it. Ask William to send the timber here, and bring me the cloth and our fee. Once we have everything, we shall need two days for the work.@");
+        say(conv,"@I shall be pleased to make it. Ask William to send the timber here, and bring me the cloth and the Guild's fee. Once we have everything, we shall need two days for the work.@");
     } else if(topic=="case materials") {
         std::vector<std::string> needed;
         if(!(quest.requirements&1))needed.push_back("timber from William");

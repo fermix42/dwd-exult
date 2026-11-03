@@ -49,7 +49,7 @@ public:
                     if(route==path.get())path.release();walk.reset(route);npc->set_frame_time(200);return 200;
                 }
             }
-            if(npc->get_tile()!=stand) {npc->say("I cannot get to the table, Avatar. Give me a little room.");return 0;}
+            if(npc->get_tile()!=stand) {npc->say("I cannot reach the table, Avatar. Give me a little room.");return 0;}
             phase=1;return 200;
         }
         const int dir=npc->get_direction(spot);

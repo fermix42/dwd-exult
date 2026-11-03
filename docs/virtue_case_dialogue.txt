@@ -1,4 +1,10 @@
-VIRTUE STONE CASE — FINAL DIALOGUE FOR HUMAN EDITORIAL REVIEW
+VIRTUE STONE CASE — ACCEPTED STAGE D DIALOGUE
+
+Stage D — Human dialogue editorial review: ACCEPTED.
+Owner approval recorded2026-11-03, with the three explicitly authorized final
+wording corrections verified. No further editorial revision is required.
+Acceptance covers the dialogue and existing approved Stage D scope only;
+other gameplay checks and release milestones retain their previous status.
 
 Only added quest text is reproduced. Quotation/paragraph markers are resolved.
 NPC speech belongs to Xanthia except in the two William topics. Avatar lines
@@ -18,11 +24,11 @@ You show Xanthia one of the stones.
 
 "Hmm. A fine wooden case, lined with soft cloth to protect the stones. Aye, I believe I could fashion something suitable."
 
-"Good timber, and soft cloth for the lining. We must give those stones a proper home! The Guild's work and fittings will cost one hundred gold."
+"We must give those stones a proper home! The Guild's work and fittings will cost one hundred gold."
 
 TOPIC: commission case — XANTHIA
 
-"I shall be pleased to make it. Ask William to send the timber here, and bring me the cloth and our fee. Once we have everything, we shall need two days for the work."
+"I shall be pleased to make it. Ask William to send the timber here, and bring me the cloth and the Guild's fee. Once we have everything, we shall need two days for the work."
 
 TOPIC: case materials — XANTHIA
 
@@ -74,7 +80,7 @@ WHEN CLOTH OR PAYMENT COMPLETES ALL REQUIREMENTS — XANTHIA
 
 DELIVERY ACTION SPEECH — XANTHIA
 
-I cannot get to the table, Avatar. Give me a little room.
+I cannot reach the table, Avatar. Give me a little room.
 
 There is no room for the case here. Clear a space on the table, please.
 

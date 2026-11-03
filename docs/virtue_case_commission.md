@@ -1,5 +1,9 @@
 # Native BG Virtue Stone Case commission (unpublished candidate)
 
+**Stage D - Human dialogue editorial review: ACCEPTED.** Owner approval and the
+three final wording corrections are recorded in the editorial report linked below.
+Other gameplay checks and release milestones retain their previous status.
+
 The current writing and full script are in [Final editorial review](virtue_case_editorial_review.md)
 and [Dialogue script](virtue_case_dialogue.txt). Earlier writing examples below are historical.
 

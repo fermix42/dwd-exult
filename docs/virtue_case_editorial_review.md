@@ -1,4 +1,18 @@
-# Final Stage D writing review (unpublished candidate)
+# Stage D dialogue editorial acceptance (unpublished implementation)
+
+**Stage D — Human dialogue editorial review: ACCEPTED.**
+
+Recorded2026-11-03 from the owner's explicit acceptance, conditional on three exact
+wording corrections. The owner reviewed and approved the complete dialogue; those
+three corrections were explicitly authorized and are now implemented and verified.
+No further editorial revision is required. Acceptance is limited to the dialogue
+and existing approved Stage D scope. Separately outstanding gameplay features,
+checks and release milestones retain their previous status. Automated regression
+results support implementation verification; they are not human GUI acceptance.
+
+Finalization baseline:6044249b17e052ccd11eb793feb81f242e9abee3 on
+codex/virtue-stone-case. The earlier comparison and385-assertion evidence below
+are retained as history; the acceptance verification at the end is current.
 
 Starting HEAD:98cb4f4a38f0bed68c8a79e7ce261a810d4a9e7a.
 Branch:codex/virtue-stone-case, isolated exult-virtue-native worktree.
@@ -44,7 +58,7 @@ Keyring source names these NPCs but supplies no NPC overrides for the effective
 0x456/0x45d conversation functions. Runtime checks inspect both loaded functions;
 Keyring's separate shape0x456 spell-item code is not confused with NPC0x456.
 
-## Editorial decisions and material changes
+## Earlier candidate editorial decisions (historical)
 
 The accepted introductory speech is preserved. Brief `you say` / `you reply`
 attribution remains only where required to distinguish Avatar speech in the
@@ -52,7 +66,7 @@ existing single-NPC text presentation. It follows direct speech; no introductory
 `You ask Xanthia about...` narration or new portrait/UI is introduced. Showing
 the actual party-owned stone is the only narrated physical action in the exchange.
 
-| Before | Revised |
+| Before | Previous candidate wording |
 |---|---|
 | `thou sayest` / `thou repliest` | `you say` / `you reply` |
 | `Thou showest her a stone from thy company's belongings.` | `You show Xanthia one of the stones.` |
@@ -111,7 +125,7 @@ coverage remains applicable because those implementations did not change.
 Not newly certified: sleeping, leaving/returning to Minoc, every NPC schedule
 boundary or human judgement of writing quality. These were not reopened by this
 editorial revision. No GUI/computer-control/desktop-input testing was used. Human
-writing acceptance remains pending. No companion breadcrumbs, merge, tag or release.
+writing acceptance was pending at that earlier checkpoint and is now recorded above. No companion breadcrumbs, merge, tag or release.
 
 ## Human review
 
@@ -131,7 +145,7 @@ tools/virtue_case/commission_checks.py, tools/virtue_case/transaction_checks.py,
 docs/virtue_case_dialogue.txt, docs/virtue_case_editorial_review.md and the index
 notice in docs/virtue_case_commission.md. Build products/fixtures remain outside Git.
 
-## Final runtime evidence
+## Previous candidate runtime evidence (historical)
 
 | Run | Assertions |
 |---|---:|
@@ -155,5 +169,81 @@ pre-runtime issues were a PowerShell here-string parse error before edits ran an
 an over-simple source-comparison regex; neither was an engine test failure. The
 corrected literal-aware source comparison passed for both production files.
 
-No automatic result constitutes human writing acceptance. The exact script and
-before/after notes are ready for owner review. No merge/publication/tag occurred.
+No automatic result constitutes human writing acceptance. The owner has now
+approved the full dialogue, subject only to the three final corrections recorded
+below. No merge/publication/tag occurred.
+
+
+## Final owner-authorized corrections and acceptance verification
+
+Only the following three substitutions were made after6044249b1. Full-file
+comparison confirms the two production files and authoritative dialogue script
+match that baseline plus exactly these substitutions; every other spoken line,
+state guard, transition, timing value, save format and animation operation is
+unchanged. The approved `Hmm. A fine wooden case...` paragraph remains intact.
+
+A. Introduction, immediately after that paragraph:
+
+> "We must give those stones a proper home! The Guild's work and fittings will cost one hundred gold."
+
+The redundant `Good timber, and soft cloth for the lining.` prefix was removed.
+
+B. `commission case`, exact accepted response:
+
+> "I shall be pleased to make it. Ask William to send the timber here, and bring me the cloth and the Guild's fee. Once we have everything, we shall need two days for the work."
+
+Only `our fee` changed to `the Guild's fee`.
+
+C. Interrupted walk, exact accepted speech:
+
+> I cannot reach the table, Avatar. Give me a little room.
+
+Only `get to` changed to `reach`.
+
+One ordinary executable was rebuilt through the accepted workflow and tested in
+ordinary BG and original Keyring profiles; no separate engine/mod build or altered
+rules were introduced. The executable contains all three exact corrected strings
+and none of the three superseded complete strings. Existing dialogue tests also
+verify A and B in the actual paged response and verify C in the loaded executable.
+The interrupted-walk bark was not newly forced; existing delivery and obstruction
+suites retain their ordinary gameplay paths. Seven incomplete-material combinations
+remain checked in real menus. Original effective NPC functions and ordinary menu
+choices remain intact. No test infrastructure was added and no assertions weakened.
+
+| Final real-engine run | Assertions |
+|---|---:|
+| accepted-commission-bg | 35 |
+| accepted-transaction-bg | 37 |
+| accepted-delivery-bg | 34 |
+| accepted-label-bg | 79 |
+| accepted-obstruction-bg | 9 |
+| accepted-commission-keyring | 35 |
+| accepted-transaction-keyring | 37 |
+| accepted-delivery-keyring | 35 |
+| accepted-label-keyring | 79 |
+| accepted-obstruction-keyring | 9 |
+
+Total: **389 passing gameplay assertions, zero failures**, all normal cleanup.
+Relative to385: six additional exact-wording assertions (A/B/C in each profile),
+minus two repetitions of optional food-use checks in timed delivery (one Iolo food
+check in BG and one Avatar food check in Keyring). Every previous named gameplay
+check/branch remains covered; nothing was removed. The original32 dialogue checks
+per profile remain, plus three final-wording checks each. Transaction counts remain
+37 each; labels79 each; obstruction9 each. Delivery counts34 BG/35 Keyring reflect
+those two fewer feed repetitions, not changed construction timing or rules.
+
+Evidence: C:/Codex/Ultima7 Decomp/test-output/virtue-stage-d-accepted/runs.
+Build log: test-output/virtue-stage-d-final-dialogue/acceptance-build.log.
+Existing human-review environments, launchers, earned checkpoints and player saves
+were preserved without modification. Only docs/virtue_case_dialogue.txt,
+docs/virtue_case_editorial_review.md, docs/virtue_case_commission.md,
+native_case_commission.cc, native_case_delivery.inc and the existing
+commission_checks.py changed in this finalization. No art, spell/label code,
+prices, prerequisite,48-hour deadline, save/load format or studio-table handoff
+mechanics changed. No other project/worktree was modified.
+
+Outstanding independent work retains its prior status: sleeping/leave-and-return
+checks not newly certified, companion breadcrumbs not started, release/merge/
+publication not authorized. No GUI acceptance is inferred from automation.
+The human dialogue editorial milestone is complete; no further editorial revision
+is required. No Git tag, merge, publication or release was performed.
