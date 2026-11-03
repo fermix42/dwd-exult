@@ -5,6 +5,9 @@
 #include "native_case_commission.h"
 #include "native_virtue_case.h"
 #include "actors.h"
+#include "actions.h"
+#include "chunks.h"
+#include "gamemap.h"
 #include "contain.h"
 #include "conversation.h"
 #include "useval.h"
@@ -52,6 +55,8 @@ void refresh() {
     if(quest.stage==BUILDING && Game_window::get_instance()->get_clock()->get_total_minutes()>=quest.deadline)
         quest.stage=READY_FOR_DELIVERY;
 }
+#include "native_case_delivery.inc"
+
 void receipt(Conversation* conv,const char* text) {
     std::string message=text;
     if(quest.stage==BUILDING)message+="~@All is in hand. The Guild may begin thy case; allow two days for the work.@";
@@ -69,6 +74,7 @@ std::vector<std::string> available(int npc) {
             if(!(quest.requirements&4))result.push_back("pay Guild fee");
         }
         else if(quest.stage==BUILDING)result.push_back("case progress");
+        else if(quest.stage==READY_FOR_DELIVERY && !active_delivery)result.push_back("collect case");
     }
     if(npc==93 && (quest.stage==COMMISSION_ACCEPTED || quest.stage==REQUIREMENTS_IN_PROGRESS)
         && !(quest.requirements&1)) {
@@ -78,12 +84,20 @@ std::vector<std::string> available(int npc) {
     return result;
 }
 }
-void Case_commission::reset() { quest={};speaker=0;offer=false;used.clear(); }
+void Case_commission::reset() {
+    ++delivery_generation;active_delivery=nullptr;delivery_requested=false;delivery_phase=-1;placed_at=Tile_coord(-1,-1,-1);
+    quest={};speaker=0;offer=false;used.clear();
+}
 void Case_commission::begin(Actor* npc) {
     speaker=GAME_BG && npc && (npc->get_npc_num()==86 || npc->get_npc_num()==93)?npc->get_npc_num():0;
     offer=false;used.clear();
 }
-void Case_commission::end() { speaker=0;offer=false;used.clear(); }
+void Case_commission::end() {
+    const bool deliver=delivery_requested;delivery_requested=false;speaker=0;offer=false;used.clear();
+    if(deliver && !start_guild_delivery()) {
+        if(auto* npc=Game_window::get_instance()->get_npc(86))npc->say("Give me room to reach my workbench, then ask me again.");
+    }
+}
 void Case_commission::topics(Conversation* conv,int npc) {
     if(npc!=speaker || !npc)return;
     for(const auto* name:names) { Usecode_value value(name);conv->remove_answer(value); }
@@ -117,6 +131,9 @@ int Case_commission::choose(Conversation* conv,int npc,const std::string& topic)
     } else if(topic=="pay Guild fee" && npc==86 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&4)) {
         if(!take(644,100))conv->show_npc_message("@The Guild's labor and fittings cost one hundred gold. Thou hast not enough. We can settle it when thou art able.@");
         else { complete_requirement(4);receipt(conv,"@One hundred gold. I thank thee; our fee is settled.@"); }
+    } else if(topic=="collect case" && npc==86 && quest.stage==READY_FOR_DELIVERY && !active_delivery) {
+        if(free_bench_spot(guild_workbench()).tx<0)conv->show_npc_message("@Thy case is finished, but I need a little clear space upon my workbench. Make room, then ask me again.@");
+        else {delivery_requested=true;conv->show_npc_message("@Thy case is finished, Avatar! Come, I shall set it upon my workbench for thee.@");return 2;}
     } else if(topic=="case progress") {
         conv->show_npc_message("@Good work takes time. Our two days are not yet passed. Return anon, Avatar.@");
     }
@@ -134,6 +151,6 @@ void Case_commission::read(IDataSource* in) {
     quest=value;
 }
 std::string Case_commission::inspect() {
-    refresh();std::ostringstream out;out<<"{\"stage\":"<<quest.stage<<",\"requirements\":"<<quest.requirements<<",\"deadline\":"<<quest.deadline<<",\"minutes\":"<<Game_window::get_instance()->get_clock()->get_total_minutes()<<",\"gold\":"<<quantity(644)<<",\"cloth\":"<<quantity(851)<<",\"party_has_stone\":"<<(party_stone()?"true":"false")<<"}";return out.str();
+    refresh();std::ostringstream out;out<<"{\"stage\":"<<quest.stage<<",\"requirements\":"<<quest.requirements<<",\"deadline\":"<<quest.deadline<<",\"minutes\":"<<Game_window::get_instance()->get_clock()->get_total_minutes()<<",\"delivery_active\":"<<(active_delivery?"true":"false")<<",\"delivery_phase\":"<<delivery_phase<<",\"placed_x\":"<<placed_at.tx<<",\"placed_y\":"<<placed_at.ty<<",\"placed_z\":"<<placed_at.tz<<",\"gold\":"<<quantity(644)<<",\"cloth\":"<<quantity(851)<<",\"party_has_stone\":"<<(party_stone()?"true":"false")<<"}";return out.str();
 }
 

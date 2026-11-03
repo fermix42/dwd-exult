@@ -161,7 +161,7 @@ namespace {
 			int          points = 0, shape = 0;
 			Game_object* weapon = nullptr;
 			auto*        wi     = n->get_weapon(points, shape, weapon);
-			out << ",\"npc\":" << n->get_npc_num() << ",\"health\":" << n->get_property(Actor::health)
+			out << ",\"food\":" << n->get_property(Actor::food_level) << ",\"npc\":" << n->get_npc_num() << ",\"health\":" << n->get_property(Actor::health)
 				<< ",\"schedule\":" << int(n->get_schedule_type())
                 << ",\"scheduled_type_at_calendar\":" << (planned ? int(planned->get_type()) : -1)
                 << ",\"effective_schedule\":" << (schedule ? schedule->get_actual_type(n) : n->get_schedule_type())
@@ -340,6 +340,14 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
         }
         w->set_all_dirty();return "\"category\":\"test_setup\",\"synthetic_commission_items\":true";
     }
+    if (op == "test_case_commission_food") {
+        player_ready(input);if(!GAME_BG)throw std::runtime_error("fixture_requires_BG");
+        for(int i=0;i<8;++i) {
+            auto food=w->get_map()->create_ireg_object(377,8);food->set_flag(Obj_flags::okay_to_take);
+            if(!a->add(food.get(),true,false))throw std::runtime_error("food_fixture_does_not_fit");
+        }
+        return "\"category\":\"test_setup\",\"synthetic_food_inventory\":true";
+    }
     if (op == "case_commission_state") {
         std::ostringstream schedules;schedules<<"[";bool comma=false;
         if(auto* list=w->get_npc(86)->get_schedules())for(const auto& entry:*list) {
@@ -347,8 +355,10 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
             schedules<<"{\"hour\":"<<entry.get_time()*3<<",\"type\":"<<entry.get_type()<<",\"tile\":"<<tile(entry.get_pos())<<"}";
         }
         schedules<<"]";
+        Actor* group[9];const int count=w->get_party(group,1);std::string members="[";
+        for(int i=0;i<count;++i){if(i)members+=",";members+=describe(group[i]);}members+="]";
         return "\"category\":\"inspection\",\"commission\":"+Case_commission::inspect()
-            +",\"xanthia\":"+describe(w->get_npc(86))+",\"william\":"+describe(w->get_npc(93))+",\"xanthia_schedule\":"+schedules.str();
+            +",\"xanthia\":"+describe(w->get_npc(86))+",\"william\":"+describe(w->get_npc(93))+",\"xanthia_schedule\":"+schedules.str()+",\"party\":"+members;
     }
     if (op == "case_spell_state") {
         std::ostringstream out;
@@ -441,13 +451,13 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
         int gx,gy;
         if(op=="target_object" || op=="aim_object") {
             auto object=resolve(x);
-            if (object->get_owner()) {
+            if (object->get_owner() || (object->as_actor() && w->get_gump_man()->find_gump(object.get(),c_any_shapenum))) {
                 gx=gy=-1;
                 auto* win=w->get_win();
                 for(int py=win->get_start_y();py<win->get_start_y()+win->get_full_height() && gx<0;++py)
                     for(int px=win->get_start_x();px<win->get_start_x()+win->get_full_width();++px) {
                         auto* g=w->get_gump_man()->find_gump(px,py);int lx,ly;
-                        if(g && w->get_gump_man()->map_game_to_gump(g,px,py,lx,ly) && g->find_object(lx,ly)==object.get()) {
+                        if(g && w->get_gump_man()->map_game_to_gump(g,px,py,lx,ly) && (g->find_object(lx,ly)==object.get() || (!g->find_object(lx,ly) && g->find_actor(lx,ly)==object.get()))) {
                             gx=px;gy=py;break;
                         }
                     }

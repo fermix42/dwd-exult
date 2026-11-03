@@ -66,6 +66,7 @@ EXULTSOURCES =	\
 	native_orb_chart.h	\
 	native_case_commission.cc	\
 	native_case_commission.h	\
+	native_case_delivery.inc	\
 	native_virtue_case.cc	\
 	native_virtue_case.h	\
 	native_wait.cc	\

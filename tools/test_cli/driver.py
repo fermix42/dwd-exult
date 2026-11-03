@@ -152,7 +152,7 @@ class Driver:
   if op=='test_case_extra':return self.raw(op)
   if op=='spellbook_cast':return self.raw(op,int(c['ref']),int(c['spell']))
   if op=='test_case_spell_setup':return self.raw(op,int(c.get('scenario',0)))
-  if op=='test_case_commission_start':return self.raw(op)
+  if op in ('test_case_commission_start','test_case_commission_food'):return self.raw(op)
   if op=='test_case_commission_items':return self.raw(op,int(c.get('scenario',1)))
   if op in ('case_spell_state','case_commission_state'):return self.raw(op)
   if op=='target_at':return self.raw(op,int(c['x']),int(c['y']))

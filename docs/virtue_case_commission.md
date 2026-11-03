@@ -85,3 +85,37 @@ replaced unfinished long walking routes. They are retained and not counted PASS.
 
 Stage D2 d2-transactions-bg-04 and d2-transactions-keyring-04 each passed33
 real-engine assertions, including both cloth/payment orders and deadline save/load.
+
+
+## Construction and physical delivery
+
+The final requirement records an absolute game-minute deadline, current time +2880.
+Normal time, native Wait and save/load all use the same game clock; progress dialogue
+does not modify the deadline. Expiry changes only BUILDING to READY_FOR_DELIVERY.
+The case is not granted automatically.
+
+Collection ends the existing NPC conversation through its ordinary bye branch.
+A private Actor_action walks Xanthia to the original table at1578,387, using native
+pathfinding, door handling and bounded retries. There is no NPC teleportation or
+schedule-table replacement. The actor faces the table, reaches, places one native
+empty case at supported tabletop lift2, straightens and walks aside. A blocked route
+or full tabletop leaves collection retryable. Follow Xanthia normally: the ordinary
+engine stops offscreen NPC walking. The action is intentionally not serialized;
+load before placement leaves READY with no reward, so the player can ask again.
+Placement and DELIVERED happen in the same engine-thread operation. Save after
+placement preserves both terminal state and the ordinary world object. Loss or
+removal of that object cannot reopen the quest or create a replacement.
+
+D3 BG calendar run01 passed the47/48-hour boundary and hunger/food interactions,
+but failed delivery observation. Runs02–05 retained failures involving offscreen
+walking, doorway interruption and test navigation. The bounded local replan and
+following test corrected those issues. Run06 reached the bench and created the
+case, but the test incorrectly required one-handed reach frame5; this sprite uses
+native two-handed reach frame8. Run07 passed18 assertions including actual reach,
+placement at lift2, pickup, specialized gump opening, empty labels, save/reload and
+permanently absent completed topics. Screenshots are actual engine captures.
+
+Full final D3 runs d3-delivery-bg-final and d3-delivery-keyring-01 each passed32
+assertions, including the47/48-hour boundary and full delivery/pickup lifecycle.
+Existing label/spell interoperability checks d4-labels-bg and d4-labels-keyring
+passed79 each through real SDL text/key events and original spell Usecode.

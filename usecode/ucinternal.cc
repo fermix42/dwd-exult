@@ -1691,8 +1691,13 @@ const char* Usecode_internal::get_user_choice() {
 	for (;;) {
         Case_commission::topics(conv,commission_npc);
 		get_user_choice_num();
-        if(user_choice && Case_commission::choose(conv,commission_npc,user_choice)) {
-            show_pending_text();continue;
+        if(user_choice) {
+            const int handled=Case_commission::choose(conv,commission_npc,user_choice);
+            if(handled) {
+                show_pending_text();
+                if(handled==2) {delete[] user_choice;user_choice=newstrdup("bye");break;}
+                continue;
+            }
         }
 		if (!chart_topic || !user_choice || std::strcmp(user_choice, "Orb chart")) break;
 		conv->show_npc_message(Orb_chart::give()
