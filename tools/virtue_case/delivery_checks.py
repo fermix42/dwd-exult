@@ -134,7 +134,7 @@ try:
  while time.monotonic()<end:
   data=do('case_commission_state');quest=data['commission'];npc=data['xanthia']
   if quest['delivery_phase']==2 and not reached:
-   check('Xanthia reaches workbench and uses original reach frame',(npc['frame']&15)in (5,8) and abs(npc['tile']['x']-1592)<=3 and abs(npc['tile']['y']-370)<=3);capture('xanthia-reaches-workbench');reached=True
+   check('Xanthia reaches workbench and uses original reach frame',(npc['frame']&15)in (5,8) and abs(npc['tile']['x']-1592)<=3 and abs(npc['tile']['y']-370)<=3);do('save',slot=8);capture('xanthia-reaches-workbench');reached=True
   if quest['stage']==5 and not placed:
    check('one real case appears on visible front of native workbench',len(cases())==1 and cases()[0]['tile']==dict(x=1592,y=370,z=2));capture('case-placed-on-workbench');placed=True
   if placed and not quest['delivery_active']:break

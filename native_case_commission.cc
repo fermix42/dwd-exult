@@ -122,11 +122,16 @@ int Case_commission::choose(Conversation* conv,int npc,const std::string& topic)
         quest.stage=COMMISSION_ACCEPTED;offer=false;
         say(conv,"@Aye, I shall undertake thy commission. Arrange the timber with William; he can send it straight to the Guild. Bring me the cloth and our fee when thou art ready. Once all is in hand, allow us two days for the work.@");
     } else if(topic=="case materials") {
-        std::string message="@We still require ";
-        if(!(quest.requirements&1))message+="timber arranged with William; ";
-        if(!(quest.requirements&2))message+="a length of cloth; ";
-        if(!(quest.requirements&4))message+="one hundred gold for labor and fittings; ";
-        message+="then allow two days for the work.@";say(conv,message.c_str());
+        std::vector<std::string> needed;
+        if(!(quest.requirements&1))needed.push_back("timber from William");
+        if(!(quest.requirements&2))needed.push_back("a length of cloth");
+        if(!(quest.requirements&4))needed.push_back("one hundred gold for labor and fittings");
+        std::string message="@We still need ";
+        for(size_t i=0;i<needed.size();++i) {
+            if(i)message+=i+1==needed.size()?" and ":", ";
+            message+=needed[i];
+        }
+        message+=". Once all is in hand, allow us two days for the work.@";say(conv,message.c_str());
     } else if(topic=="timber delivery" && npc==93 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&1)) {
         offer=true;say(conv,"@I require some fine timber. Couldst thou arrange its delivery to the Artist's Guild?@ thou askest.~@Aye, I can provide suitable wood for twenty gold and have it sent to the Guild. Wilt thou buy it?@");
     } else if(topic=="buy timber" && npc==93 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&1)) {

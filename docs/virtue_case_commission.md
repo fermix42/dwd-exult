@@ -1,5 +1,10 @@
 # Native BG Virtue Stone Case commission (unpublished candidate)
 
+Human functional review accepted the original quest/delivery. Current corrections
+and review evidence are in [Stage D human review corrections](virtue_case_review_corrections.md).
+That report supersedes dialogue topic, delivery coordinate and private review
+scale references below; the following records the original Stage D implementation.
+
 The accepted physical case, artwork, stones, spells, notes, SDL keyboard routing,
 Wait, Orb Chart, combat and audio implementations remain frozen. Quest code is
 separate in native_case_commission.cc. It appends topics at the existing native

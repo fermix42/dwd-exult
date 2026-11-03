@@ -10,10 +10,10 @@ provenance=[]
 for mod in ['', 'Keyring']:
     profile='keyring' if mod else 'bg'
     suffix=Path('mods/Keyring/saves') if mod else Path('.')
-    delivery='d3-delivery-keyring-01' if mod else 'd3-delivery-bg-final'
+    delivery='r3-delivery-keyring-04' if mod else 'r3-delivery-bg-04'
     for state,stage,source,slot in [
         ('not-started',0,None,None),
-        ('requirements',2,f'd2-transactions-{profile}-04',4),
+        ('requirements',2,f'r1-transactions-{profile}',4),
         ('building',3,delivery,1),('ready',4,delivery,3),('delivered',5,delivery,5)]:
         target=root/'prepared'/profile/state
         if target.exists():
@@ -21,7 +21,7 @@ for mod in ['', 'Keyring']:
             continue
         d=Driver()
         try:
-            args=dict(cmd='init',game='bg',mod=mod,run=f'd4-review-v2-{profile}-{state}')
+            args=dict(cmd='init',game='bg',mod=mod,run=f'r4-review-{profile}-{state}')
             checkpoint=BASE/'runs'/source/'saves'/suffix/f'exult{slot:02}bg.sav' if source else None
             if checkpoint:args['checkpoint']=str(checkpoint)
             d.execute(args)
