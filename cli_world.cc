@@ -15,6 +15,7 @@
 #include "gamewin.h"
 #include "game.h"
 #include "game_time.h"
+#include "native_case_commission.h"
 #include "gameclk.h"
 #include "databuf.h"
 #include "paths.h"
@@ -309,6 +310,38 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
         }
         if (x==4) book->remove_this();
         return "\"category\":\"test_setup\",\"synthetic_spell_inventory_and_stats\":true";
+    }
+    if (op == "test_case_commission_start") {
+        player_ready(input);
+        if(!GAME_BG)throw std::runtime_error("fixture_requires_BG");
+        // Explicitly owner-approved isolated Minoc starting fixture, not travel evidence.
+        a->move(1605,405,0,0);w->center_view(a->get_tile());w->set_all_dirty();
+        return "\"category\":\"test_setup\",\"synthetic_Minoc_start\":true";
+    }
+    if (op == "test_case_commission_items") {
+        player_ready(input);
+        if(!GAME_BG || x<0 || x>5)throw std::runtime_error("invalid_commission_item_fixture");
+        Actor* group[9];const int n=w->get_party(group,1);
+        for(int i=0;i<n;++i) for(int shape:{330,644,851})group[i]->remove_quantity(100000,shape,c_any_qual,c_any_framenum);
+        auto add=[&](Container_game_object* owner,int shape,int frame,int quantity) {
+            auto item=w->get_map()->create_ireg_object(shape,frame);item->set_flag(Obj_flags::okay_to_take);
+            if(quantity>1)item->modify_quantity(quantity-1);
+            if(!owner->add(item.get(),true,false))throw std::runtime_error("fixture_item_does_not_fit");
+        };
+        if(x) {
+            Container_game_object* owner=x==2 && n>1?group[1]:a;
+            if(x==3) {
+                auto bag=w->get_map()->create_ireg_object(801,0);owner->add(bag.get(),true,false);owner=bag->as_container();
+            }
+            add(owner,330,2,1);
+            if(x!=4)for(int i=0;i<5;++i)add(a,644,0,100);
+            if(x!=5) {add(owner,851,0,1);add(owner,851,0,1);}
+        }
+        w->set_all_dirty();return "\"category\":\"test_setup\",\"synthetic_commission_items\":true";
+    }
+    if (op == "case_commission_state") {
+        return "\"category\":\"inspection\",\"commission\":"+Case_commission::inspect()
+            +",\"xanthia\":"+describe(w->get_npc(86))+",\"william\":"+describe(w->get_npc(93));
     }
     if (op == "case_spell_state") {
         std::ostringstream out;
@@ -773,3 +806,4 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
 	}
 	throw std::runtime_error("unknown_command");
 }
+

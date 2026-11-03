@@ -500,6 +500,7 @@ public:
     bool native_light_contract();
     int orb_chart_layout() override;
     bool orb_chart_lord_british();
+    int case_commission_npc();
 	// Call desired function.
 	int         call_usecode(int id, Game_object* item, Usecode_events event) override;
 	bool        call_method(Usecode_value* inst, int id, Game_object* item) override;

@@ -27,6 +27,7 @@
 #include "game_time_compat.h"
 #include "quiz.h"
 #include "native_orb_chart.h"
+#include "native_case_commission.h"
 #include <sstream>
 
 #include "Audio.h"
@@ -1671,6 +1672,8 @@ void Usecode_internal::set_book(
  */
 
 const char* Usecode_internal::get_user_choice() {
+    const int commission_npc=case_commission_npc();
+    Case_commission::topics(conv,commission_npc);
 	// A separate, free chart-only topic, without replacing Lord British's script.
 	const bool chart_topic = orb_chart_lord_british() && get_global_flag_bool(0xdd)
 		&& conv->locate_answer("bye") >= 0;
@@ -1686,7 +1689,11 @@ const char* Usecode_internal::get_user_choice() {
 	// (breaks conversation with Cyclops on Dagger Isle ('foul magic' option))
 
 	for (;;) {
+        Case_commission::topics(conv,commission_npc);
 		get_user_choice_num();
+        if(user_choice && Case_commission::choose(conv,commission_npc,user_choice)) {
+            show_pending_text();continue;
+        }
 		if (!chart_topic || !user_choice || std::strcmp(user_choice, "Orb chart")) break;
 		conv->show_npc_message(Orb_chart::give()
 			? "@Here is my chart for the Orb. Thou mayst keep it.@"
@@ -3035,6 +3042,8 @@ int Usecode_internal::call_usecode(
 		Game_object*   item,    // Item ref.
 		Usecode_events event) {
 	conv->clear_answers();
+    const bool commission_root=call_stack.empty();
+    if(commission_root)Case_commission::begin(item?item->as_actor():nullptr);
 
 	int ret;
 	if (call_function(id, event, item, true)) {
@@ -3058,6 +3067,7 @@ int Usecode_internal::call_usecode(
 		}
 		modified_map = false;
 	}
+    if(commission_root)Case_commission::end();
 	return ret;
 }
 
@@ -3268,6 +3278,7 @@ void Usecode_internal::write() {
 		}
 	}
 	nfile.write4(0xffffffffU);    // End with -1.
+    Case_commission::write(&nfile);
 }
 
 /*
@@ -3388,9 +3399,11 @@ void Usecode_internal::read_usevars() {
 			fun->statics[i].restore(&nfile);
 		}
 	}
+    Case_commission::read(&nfile);
 }
 
 void Usecode_internal::clear_usevars() {
+    Case_commission::reset();
 	statics.clear();
 	const int nslots = funs.size();
 	for (int i = 0; i < nslots; ++i) {
@@ -3511,4 +3524,12 @@ bool Usecode_internal::orb_chart_lord_british() {
         && root->eventid == double_click && root->function == find_function(0x417)
         && orb_matches(root->function, {0x417, layout == 1 ? 14860 : 13817,
             layout == 1 ? 0x26ac741b06448997ULL : 0x4b216c2e94d65d2cULL});
+}
+
+int Usecode_internal::case_commission_npc() {
+    if(!GAME_BG || call_stack.empty())return 0;
+    const auto* root=call_stack.back();
+    if(!root || !root->caller_item || !root->caller_item->as_actor() || root->eventid!=double_click)return 0;
+    const int npc=root->caller_item->as_actor()->get_npc_num();
+    return (npc==86 || npc==93) && root->function==find_function(0x400+npc)?npc:0;
 }
