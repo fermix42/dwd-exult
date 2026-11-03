@@ -379,3 +379,20 @@ Keyring override is preserved and real Keyring casting is exercised.
 
 No commissioning quest, protected feature changes, merge, release or human final
 acceptance is included.
+
+
+## Normal keyboard text-event routing correction
+
+Human testing caught that the main nonmodal event dispatcher forwarded key-down
+and key-up events to the focused gump but omitted SDL_EVENT_TEXT_INPUT. The case
+editor was focused and could handle Enter/Backspace, but typed characters never
+reached it. The previous semantic text adapter called the editor directly, so
+its tests certified editor behavior without covering that missing event route.
+
+The main dispatcher now forwards text-input events to the focused gump, with the
+same existing dragging guard. Unfocused text is ignored, without invoking global
+key bindings. No artwork, spell rules or persistence changes. The semantic text
+adapter now passes through that same main dispatcher so the existing real-engine
+label suite also covers the formerly missing route. Normal Windows key input was
+verified through the actual BG and Keyring Play launchers, with visible committed
+Yew and K notes respectively. Clipboard paste is not implemented by this fix.

@@ -1,6 +1,7 @@
 """Real-engine Stage C input, note ownership, persistence and spell interoperability.
 
 Stats/inventory are explicit fixtures; spells still execute installed Usecode.
+Semantic text traverses the normal SDL dispatcher, not the editor directly.
 """
 import argparse,json,shutil,subprocess,sys,time,traceback
 from pathlib import Path

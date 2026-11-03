@@ -446,8 +446,8 @@ int cli_poll(bool input, void*) {
             else if(x<0x800){text[0]=0xc0|(x>>6);text[1]=0x80|(x&63);}
             else if(x<0x10000){text[0]=0xe0|(x>>12);text[1]=0x80|((x>>6)&63);text[2]=0x80|(x&63);}
             else {text[0]=0xf0|(x>>18);text[1]=0x80|((x>>12)&63);text[2]=0x80|((x>>6)&63);text[3]=0x80|(x&63);}
-            SDL_Event event{};event.type=SDL_EVENT_TEXT_INPUT;event.text.text=text;
-            if(!w->get_gump_man()->handle_kbd_event(&event))throw std::runtime_error("no_text_entry_focus");
+            if(!w->get_gump_man()->get_kbd_focus())throw std::runtime_error("no_text_entry_focus");
+            Dispatch_text_input(text);
             cli_reply(id,true,"\"category\":\"gameplay\",\"text_dispatched\":true");
         } else if (op == "key") {
             SDL_Event event{}; event.type = SDL_EVENT_KEY_DOWN;

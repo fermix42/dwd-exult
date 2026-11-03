@@ -195,6 +195,14 @@ static void BuildGameMap(BaseGameInfo* game, int mapnum);
 static void Handle_events();
 static void Handle_event(SDL_Event& event);
 
+// Semantic text input must traverse the same routing as platform SDL events.
+void Dispatch_text_input(const char* text) {
+	SDL_Event event{};
+	event.type = SDL_EVENT_TEXT_INPUT;
+	event.text.text = text;
+	Handle_event(event);
+}
+
 /*
  *  Statics:
  */
@@ -2144,6 +2152,11 @@ static void Handle_event(SDL_Event& event) {
 		break;
 	case SDL_EVENT_QUIT:
 		gwin->get_gump_man()->okay_to_quit();
+		break;
+	case SDL_EVENT_TEXT_INPUT:
+		if (!dragging) {
+			gwin->get_gump_man()->handle_kbd_event(&event);
+		}
 		break;
 	case SDL_EVENT_KEY_DOWN:    // Keystroke.
 	case SDL_EVENT_KEY_UP:

@@ -311,8 +311,8 @@ callback completion counter), `case_casting` and `case_targeting`. Controls expo
 `edit_label_0` through `edit_label_7` as well as `mark`, `recall`, and `close`.
 `test_case_extra` supplies a second empty case in an explicitly synthetic fixture.
 
-`text_character codepoint` routes UTF-8 through the active native text-input
-handler; client `type_text` sends its characters. `key` supports `backspace`,
+`text_character codepoint` routes UTF-8 through the normal SDL event dispatcher
+(then the focused native text-input handler); client `type_text` sends its characters. `key` supports `backspace`,
 `enter` and `escape`. When the case editor owns focus it routes the same native
 keyboard handler synchronously; ordinary gameplay retains queued key delivery.
 `aim_object ref` positions only the engine cursor on a visible object's opaque
