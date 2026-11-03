@@ -25,14 +25,17 @@ def check(label,value):
  d.assertions+=1;d.failures+=not value;events.append(dict(check=label,passed=bool(value)));print(label,bool(value),flush=True)
  if not value:raise AssertionError(label)
 def q():return do('case_commission_state')['commission']
+heard=[]
 def settle():
  for _ in range(200):
   s=d.state()
+  text=s.get('dialogue_text','')
+  if text and (not heard or heard[-1]!=text):heard.append(text);events.append(dict(dialogue_text=text))
   if 'continue'in s['legal_actions']:do('continue')
   elif s['input_owner']in ['answer_menu','gameplay']:return s
   else:time.sleep(.02)
  raise TimeoutError('input ownership')
-def choose(text):do('choose',text=text);return settle()
+def choose(text):heard.clear();do('choose',text=text);return settle()
 def leave():
  if settle()['input_owner']=='answer_menu':choose('bye')
  settle()
@@ -81,10 +84,10 @@ try:
  do('test_case_commission_items',scenario=4);s=talk();s=choose('pay Guild fee');check('insufficient Guild fee deducts nothing and leaves quest pending',q()['gold']==0 and q()['requirements']==0);check('failed fee topic suppressed','pay Guild fee'not in s['choices']);leave();s=talk();check('unfinished fee returns next conversation','pay Guild fee'in s['choices']);leave()
  do('test_case_commission_items',scenario=2);s=talk();before=q();s=choose('give cloth');check('companion cloth handoff consumes exactly one',q()['cloth']==before['cloth']-1 and q()['requirements']==2);check('successful cloth topic immediately disappears','give cloth'not in s['choices']);leave();do('save',slot=2);do('load',slot=2);check('cloth completion survives normal reload',q()['requirements']==2)
  s=talk();before=q();s=choose('pay Guild fee');check('Guild fee consumes exactly100 gold',q()['gold']==before['gold']-100 and q()['requirements']==6);check('completed fee and cloth topics removed','pay Guild fee'not in s['choices']and'give cloth'not in s['choices']);leave();do('save',slot=4)
- do('test_case_commission_items',scenario=4);s=talk(93);check('William original topics preserved','job'in s['choices']and'bye'in s['choices']);s=choose('case timber');check('William quotes price before purchase',q()['gold']==0 and'buy case timber'in s['choices']);s=choose('buy case timber');check('insufficient timber payment changes nothing',q()['gold']==0 and q()['requirements']==6);check('unchanged failed timber purchase suppressed','buy case timber'not in s['choices']and'case timber'not in s['choices']);leave()
- do('test_case_commission_items',scenario=1);s=talk(93);choose('case timber');before=q();s=choose('buy case timber');after=q();check('timber costs20 gold exactly once',after['gold']==before['gold']-20);check('last requirement starts construction for exactly48 hours',after['requirements']==7 and after['stage']==3 and after['deadline']==after['minutes']+2880);check('William timber topics permanently removed','case timber'not in s['choices']and'buy case timber'not in s['choices']);leave();deadline=q()['deadline'];do('save',slot=5);do('load',slot=5);check('construction deadline survives normal save/load',q()['deadline']==deadline and q()['stage']==3)
+ do('test_case_commission_items',scenario=4);s=talk(93);check('William original topics preserved','job'in s['choices']and'bye'in s['choices']);s=choose('timber delivery');check('William discusses timber and Guild without knowing the case',bool(heard)and not any(w in' '.join(heard).lower()for w in ['xanthia','virtue','case','two days','construction']));check('William quotes price before purchase',q()['gold']==0 and'buy timber'in s['choices']);s=choose('buy timber');check('insufficient timber payment changes nothing',q()['gold']==0 and q()['requirements']==6);check('unchanged failed timber purchase suppressed','buy timber'not in s['choices']and'timber delivery'not in s['choices']);leave()
+ do('test_case_commission_items',scenario=1);s=talk(93);choose('timber delivery');before=q();s=choose('buy timber');after=q();check('William final timber receipt never announces construction or duration',bool(heard)and not any(w in' '.join(heard).lower()for w in ['xanthia','virtue','case','two days','construction']));check('timber costs20 gold exactly once',after['gold']==before['gold']-20);check('last requirement starts construction for exactly48 hours',after['requirements']==7 and after['stage']==3 and after['deadline']==after['minutes']+2880);check('William timber topics permanently removed','timber delivery'not in s['choices']and'buy timber'not in s['choices']);leave();deadline=q()['deadline'];do('save',slot=5);do('load',slot=5);check('construction deadline survives normal save/load',q()['deadline']==deadline and q()['stage']==3)
  # Progress/ready dialogue is covered by the dedicated construction suite.
- do('load',slot=1);do('test_case_commission_items',scenario=1);talk();choose('pay Guild fee');check('fee can be first requirement',q()['requirements']==4);choose('give cloth');check('cloth can follow fee before timber',q()['requirements']==6);leave();talk(93);choose('case timber');choose('buy case timber');leave();check('alternate payment/cloth order also begins construction',q()['requirements']==7 and q()['stage']==3);do('save',slot=7);do('exit')
+ do('load',slot=1);do('test_case_commission_items',scenario=1);talk();choose('pay Guild fee');check('fee can be first requirement',q()['requirements']==4);choose('give cloth');check('cloth can follow fee before timber',q()['requirements']==6);leave();talk(93);choose('timber delivery');choose('buy timber');leave();check('alternate payment/cloth order also begins construction',q()['requirements']==7 and q()['stage']==3);do('save',slot=7);do('exit')
 except Exception:
  d.failures+=1;events.append(dict(error=traceback.format_exc()));print(traceback.format_exc(),flush=True)
 finally:

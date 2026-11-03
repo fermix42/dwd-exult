@@ -26,7 +26,7 @@ struct Quest { unsigned stage=NOT_STARTED, requirements=0, deadline=0; } quest;
 int speaker=0;
 bool offer=false;
 std::set<std::string> used;
-const std::array<const char*,9> names={"Virtue Stone case","commission case","case materials","case timber","buy case timber","give cloth","pay Guild fee","case progress","collect case"};
+const std::array<const char*,9> names={"Virtue Stone case","commission case","case materials","timber delivery","buy timber","give cloth","pay Guild fee","case progress","collect case"};
 std::vector<Actor*> party() {
     Actor* actors[9];auto* w=Game_window::get_instance();const int n=w->get_party(actors,1);
     return {actors,actors+n};
@@ -57,10 +57,17 @@ void refresh() {
 }
 #include "native_case_delivery.inc"
 
+// Native quest strings do not pass through the Usecode string-register parser.
+// Format only these strings; the original NPC conversation remains untouched.
+void say(Conversation* conv,std::string text) {
+    std::replace(text.begin(),text.end(),'@','"');
+    std::replace(text.begin(),text.end(),'~','\n');
+    conv->show_npc_message(text.c_str());
+}
 void receipt(Conversation* conv,const char* text) {
     std::string message=text;
-    if(quest.stage==BUILDING)message+="~@All is in hand. The Guild may begin thy case; allow two days for the work.@";
-    conv->show_npc_message(message.c_str());
+    if(speaker==86 && quest.stage==BUILDING)message+="~@All is in hand. The Guild may begin thy case; allow two days for the work.@";
+    say(conv,message.c_str());
 }
 std::vector<std::string> available(int npc) {
     refresh();std::vector<std::string> result;
@@ -78,7 +85,7 @@ std::vector<std::string> available(int npc) {
     }
     if(npc==93 && (quest.stage==COMMISSION_ACCEPTED || quest.stage==REQUIREMENTS_IN_PROGRESS)
         && !(quest.requirements&1)) {
-        result.push_back("case timber");if(offer)result.push_back("buy case timber");
+        result.push_back("timber delivery");if(offer)result.push_back("buy timber");
     }
     result.erase(std::remove_if(result.begin(),result.end(),[](const auto& t){return used.count(t);}),result.end());
     return result;
@@ -110,32 +117,32 @@ int Case_commission::choose(Conversation* conv,int npc,const std::string& topic)
     used.insert(topic);
     if(topic=="Virtue Stone case" && quest.stage==NOT_STARTED && party_stone()) {
         offer=true;
-        conv->show_npc_message("Thou sayest, @I should like to commission a carrying case for the Virtue Stones.@~@Virtue Stones? I am not familiar with them. Might I see one?@~Thou showest her a stone from thy company's belongings.~@Oh, how lovely! And quite unusual. Tell me, what sort of case hast thou in mind?@~@Something sturdy, yet small enough to carry on my travels. I should hate to have such precious things rattling about in my pack.@~@Hmm. A fine wooden case, lined with soft cloth to protect the stones. Aye, I believe I could fashion something suitable.@~@Arrange timber with William, bring me a length of cloth, and pay one hundred gold for our labor and fittings. Allow us two days once all is ready.@");
+        say(conv,"@I should like to commission a carrying case for the Virtue Stones,@ thou sayest.~@Virtue Stones? I am not familiar with them. Might I see one?@~Thou showest her a stone from thy company's belongings.~@Oh, how lovely! And quite unusual. Tell me, what sort of case hast thou in mind?@~@Something sturdy, yet small enough to carry on my travels. I should hate to have such precious things rattling about in my pack,@ thou repliest.~@Hmm. A fine wooden case, lined with soft cloth to protect the stones. Aye, I believe I could fashion something suitable.@~@I shall need good timber and a length of cloth for the lining. The Guild's labor and fittings will cost one hundred gold.@");
     } else if(topic=="commission case" && quest.stage==NOT_STARTED && party_stone()) {
         quest.stage=COMMISSION_ACCEPTED;offer=false;
-        conv->show_npc_message("@Aye, I shall undertake thy commission. William can send the timber directly to our Guild. Thou mayst bring the cloth and pay our fee when thou art ready.@");
+        say(conv,"@Aye, I shall undertake thy commission. Arrange the timber with William; he can send it straight to the Guild. Bring me the cloth and our fee when thou art ready. Once all is in hand, allow us two days for the work.@");
     } else if(topic=="case materials") {
         std::string message="@We still require ";
         if(!(quest.requirements&1))message+="timber arranged with William; ";
         if(!(quest.requirements&2))message+="a length of cloth; ";
         if(!(quest.requirements&4))message+="one hundred gold for labor and fittings; ";
-        message+="then allow two days for the work.@";conv->show_npc_message(message.c_str());
-    } else if(topic=="case timber" && npc==93 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&1)) {
-        offer=true;conv->show_npc_message("@Xanthia's commission? Aye, I can spare sound, seasoned timber for a small case. Twenty gold, and I shall deliver it straight to the Artist's Guild. Wilt thou buy it?@");
-    } else if(topic=="buy case timber" && npc==93 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&1)) {
-        if(!take(644,20))conv->show_npc_message("@Twenty gold for sound, seasoned timber, delivered to the Artist's Guild. Thou hast not enough gold at present.@");
-        else { complete_requirement(1);receipt(conv,"@Twenty gold, then. I shall have the timber sent straight to Xanthia at the Artist's Guild. Thou needst not carry it thyself.@"); }
+        message+="then allow two days for the work.@";say(conv,message.c_str());
+    } else if(topic=="timber delivery" && npc==93 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&1)) {
+        offer=true;say(conv,"@I require some fine timber. Couldst thou arrange its delivery to the Artist's Guild?@ thou askest.~@Aye, I can provide suitable wood for twenty gold and have it sent to the Guild. Wilt thou buy it?@");
+    } else if(topic=="buy timber" && npc==93 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&1)) {
+        if(!take(644,20))say(conv,"@Twenty gold for sound, seasoned timber, delivered to the Artist's Guild. Thou hast not enough gold at present.@");
+        else { complete_requirement(1);say(conv,"@Twenty gold, then. I shall have the timber sent straight to the Artist's Guild.@"); }
     } else if(topic=="give cloth" && npc==86 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&2)) {
-        if(!take(851,1))conv->show_npc_message("@I need a length of cloth for the lining. Bring one when thou art ready.@");
+        if(!take(851,1))say(conv,"@I need a length of cloth for the lining. Bring one when thou art ready.@");
         else { complete_requirement(2);receipt(conv,"@This cloth will do very well. I shall keep it safe for thy case.@"); }
     } else if(topic=="pay Guild fee" && npc==86 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&4)) {
-        if(!take(644,100))conv->show_npc_message("@The Guild's labor and fittings cost one hundred gold. Thou hast not enough. We can settle it when thou art able.@");
+        if(!take(644,100))say(conv,"@The Guild's labor and fittings cost one hundred gold. Thou hast not enough. We can settle it when thou art able.@");
         else { complete_requirement(4);receipt(conv,"@One hundred gold. I thank thee; our fee is settled.@"); }
     } else if(topic=="collect case" && npc==86 && quest.stage==READY_FOR_DELIVERY && !active_delivery) {
-        if(free_bench_spot(guild_workbench()).tx<0)conv->show_npc_message("@Thy case is finished, but I need a little clear space upon my workbench. Make room, then ask me again.@");
-        else {delivery_requested=true;conv->show_npc_message("@Thy case is finished, Avatar! Come, I shall set it upon my workbench for thee.@");return 2;}
+        if(free_bench_spot(guild_workbench()).tx<0)say(conv,"@Thy case is finished, but I need a little clear space upon my workbench. Make room, then ask me again.@");
+        else {delivery_requested=true;say(conv,"@Thy case is finished, Avatar! Come, I shall set it upon my workbench for thee.@");return 2;}
     } else if(topic=="case progress") {
-        conv->show_npc_message("@Good work takes time. Our two days are not yet passed. Return anon, Avatar.@");
+        say(conv,"@Good work takes time. Our two days are not yet passed. Return anon, Avatar.@");
     }
     return 1;
 }
