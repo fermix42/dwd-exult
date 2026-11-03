@@ -333,3 +333,18 @@ behavior; physical keyboard layout, IME and OS text generation remain human chec
 mask without clicking (renderer evidence). `spellbook_cast ref spell` requires
 an actual open spellbook gump and invokes its normal casting method. No command
 bypasses spell rules, sets a stone destination, or teleports the Avatar.
+
+
+### Private Virtue Stone Case commission fixtures
+
+`case_commission_state` observes quest stage, requirement bits, absolute game-minute
+construction deadline, active delivery phase, original NPCs/schedules and party food.
+It does not advance quest state except recognizing an expired construction deadline.
+`test_case_commission_start` places only the Avatar at the owner-approved disposable
+Minoc starting position (1605,405). It does not move either quest NPC or change flags.
+`test_case_commission_items scenario=N` supplies explicit inventory conditions for
+this quest's isolated tests; it never accepts a commission or completes requirements.
+`test_case_commission_food` supplies ordinary mutton. Food must still be used through
+original gameplay targeting; hunger and spell requirements remain enabled.
+These fixture commands require explicitly activated test CLI mode. They are not
+ordinary gameplay grants and do not establish travel or quest progress evidence.

@@ -119,3 +119,69 @@ Full final D3 runs d3-delivery-bg-final and d3-delivery-keyring-01 each passed32
 assertions, including the47/48-hour boundary and full delivery/pickup lifecycle.
 Existing label/spell interoperability checks d4-labels-bg and d4-labels-keyring
 passed79 each through real SDL text/key events and original spell Usecode.
+
+
+## Integration review evidence
+
+Final primary suites, per profile (BG and original Keyring): dialogue19,
+transactions33, calendar/delivery32, accepted label interoperability79,
+accepted spell rules42, quest edges7. Total424 assertions across both profiles.
+All primary suites passed with normal engine cleanup. Edge tests initially assumed
+2 real seconds would advance a game minute; those runs failed and are retained.
+The corrected test polls ordinary gameplay time for a bounded35 seconds and passed.
+No clock, quest progress, destination or NPC delivery position was fabricated.
+The sleep probe rejected radius64 (CLI maximum32); the follow-up found no existing
+bedroll/nearby beds in the starting fixture. It does not certify sleeping.
+
+Private review package is at
+C:/Codex/Ultima7 Decomp/test-output/virtue-stage-d/human-review.
+Each profile has not-started, requirements, building, ready and delivered saves.
+The first setup attempt assumed Keyring gamedat was below the BG gamedat directory;
+it failed before copying Keyring. The final preparer observes the real selected
+engine gamedat path; all ten checkpoints were verified before copying.
+Launchers show a checkpoint menu and restore only the disposable review profile.
+The private Keyring config explicitly selects canonical portable save/gamedat paths.
+A first CLI smoke exposed a formatting error in that private config; corrected to
+the engine's native multiline format. Both final launcher smoke tests loaded
+READY through the actual ordinary engine executable and canonical prepared paths.
+Both profiles were then restored to NOT_STARTED. No desktop automation was used;
+human desktop launch and acceptance remain pending.
+
+Actual screenshots:
+- runs/d3-delivery-bg-final/xanthia-reaches-workbench.png
+- runs/d3-delivery-bg-final/case-placed-on-workbench.png
+- runs/d3-delivery-keyring-01/xanthia-reaches-workbench.png
+- runs/d3-delivery-keyring-01/case-placed-on-workbench.png
+under the Stage D output root. The tabletop scene was visually inspected. These
+are real engine captures, not artwork previews. Accepted art/source files were
+unchanged against starting HEAD fb0ceafffb2971f9175ee6a10e27edaa1b0d5474.
+
+Not certified automatically: sleeping during construction, a completely blocked
+tabletop, leaving/returning to Minoc, every NPC schedule boundary, or natural quest
+pacing/visual acceptance. There is no new sleep automation framework. The owner
+can exercise these with the included building/ready checkpoints. This limitation
+is explicit; the passing automated suites do not constitute human acceptance.
+No companion breadcrumbs, merge, tag or release publication was performed.
+
+
+## Branch and source inventory
+
+Starting HEAD: fb0ceafffb2971f9175ee6a10e27edaa1b0d5474.
+Branch: codex/virtue-stone-case, isolated exult-virtue-native worktree.
+Logical commits:118b3d3c2 (dialogue/state),48bf315c4 (transactions),6ff4fac30
+(construction/delivery), followed by the D4 review/checkpoint documentation commit.
+The feature worktree and protected exult-fork checkout were clean at final checks.
+
+Changed source/build files: Makefile.am; msvcstuff/vs2019/Exult.vcxproj;
+native_case_commission.h/.cc; native_case_delivery.inc; usecode/ucinternal.h/.cc;
+cli_driver.cc; cli_world.cc; tools/test_cli/driver.py.
+Tests/review tools: tools/virtue_case/{commission_checks,transaction_checks,
+delivery_checks,commission_edge_checks,prepare_quest_review,start_quest_review}.py.
+Documentation: docs/test_cli_protocol.md, docs/virtue_case_commission.md,
+tools/virtue_case/HUMAN-QUEST-TEST.md. No accepted art, case/spell/editor production
+implementation, Native Wait, Orb Chart, combat, audio or ultima7-modern files changed.
+
+The review Exult.exe was built from the D3 code before the D3 commit was recorded;
+its embedded DWD revision therefore reads48bf315c4. Its tested code includes the
+committed D3 delivery implementation; D4 changes only tests and documentation.
+The review executable is the same ordinary build tested by all final D3/D4 runs.
