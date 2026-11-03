@@ -1,5 +1,6 @@
 // GPL-2.0-or-later. Semantic adapter: all operations run on the engine thread.
 #include "cli_world.h"
+#include "native_case_breadcrumbs.h"
 #include "cli_driver.h"
 #include "mouse.h"
 
@@ -351,6 +352,38 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
             if(!a->add(food.get(),true,false))throw std::runtime_error("food_fixture_does_not_fit");
         }
         return "\"category\":\"test_setup\",\"synthetic_food_inventory\":true";
+    }
+    if(op=="test_case_companion_start") {
+        player_ready(input);if(!GAME_BG || (x!=1 && x!=3 && x!=4))throw std::runtime_error("invalid_companion_fixture");
+        auto* npc=w->get_npc(x);if(npc->get_map_num()!=a->get_map_num())throw std::runtime_error("companion_fixture_map_mismatch");
+        w->center_view(npc->get_tile());w->get_map()->read_map_data();
+        Tile_coord target=npc->get_tile();target.tx+=2;target.ty+=2;target.tz=0;
+        target=Map_chunk::find_spot(target,3,a);
+        if(target.tx<0)throw std::runtime_error("no_companion_fixture_start");
+        a->move(target.tx,target.ty,target.tz,npc->get_map_num());w->center_view(a->get_tile());w->set_all_dirty();
+        return "\"category\":\"test_setup\",\"approved_Avatar_only_companion_start\":true";
+    }
+    if(op=="test_case_breadcrumb_items") {
+        player_ready(input);if(!GAME_BG || x<0 || x>3)throw std::runtime_error("invalid_breadcrumb_inventory_fixture");
+        if(x!=1 && x!=3) {
+            Actor* group[9];const int n=w->get_party(group,1);
+            for(int i=0;i<n;++i)group[i]->remove_quantity(10000,330,c_any_qual,c_any_framenum);
+            for(int frame:{2,x==2?2:0}) {
+                auto stone=w->get_map()->create_ireg_object(330,frame);stone->set_flag(Obj_flags::okay_to_take);
+                if(!a->add(stone.get(),true,false))throw std::runtime_error("stone_fixture_does_not_fit");
+            }
+            return "\"category\":\"test_setup\",\"synthetic_unmarked_inventory\":true";
+        }
+        Tile_coord proposed=a->get_tile();proposed.tx+=4;proposed.ty+=3;
+        Tile_coord spot=Map_chunk::find_spot(proposed,2,330,1);
+        if(spot.tx<0)throw std::runtime_error("no_stone_fixture_ground");
+        auto stone=w->get_map()->create_ireg_object(330,x==3?2:1);stone->set_flag(Obj_flags::okay_to_take);stone->move(spot);
+        return "\"category\":\"test_setup\",\"synthetic_world_stone\":"+describe(stone.get());
+    }
+    if(op=="case_breadcrumbs_state") {
+        std::string companions="[";
+        for(int id:{1,3,4}) {if(id!=1)companions+=",";companions+=describe(w->get_npc(id));}
+        return "\"category\":\"inspection\",\"breadcrumbs\":"+Case_breadcrumbs::inspect()+",\"companions\":"+companions+"]";
     }
     if (op == "case_commission_state") {
         std::ostringstream schedules;schedules<<"[";bool comma=false;

@@ -22,6 +22,7 @@
 #	include <config.h>
 #endif
 
+#include "native_case_breadcrumbs.h"
 #include "gameclk.h"
 #include "game_time.h"
 
@@ -316,6 +317,7 @@ void Game_clock::handle_event(
 		COUT("Clock updated to " << hour << ':' << minute);
 	}
 	Game_time::dispatch(Game_time::now());
+    if(min_old!=minute)Case_breadcrumbs::minute();
 	curtime += gwin->get_std_delay();
 	tqueue->add(curtime, this, udata);
 }

@@ -1,3 +1,4 @@
+#include "native_case_breadcrumbs.h"
 #include "native_virtue_case.h"
 /*
  *  Copyright (C) 2000-2025  The Exult Team
@@ -2166,6 +2167,7 @@ USECODE_INTRINSIC(mark_virtue_stone) {
 		vs->set_target_pos(obj->get_outermost()->get_tile());
 		vs->set_target_map(obj->get_outermost()->get_map_num());
         Virtue_case::mark_succeeded(obj);
+        Case_breadcrumbs::observe();
 	}
 	return no_ret;
 }

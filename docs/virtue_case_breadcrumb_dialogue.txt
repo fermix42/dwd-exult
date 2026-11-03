@@ -1,0 +1,22 @@
+VIRTUE STONE CASE — STAGE E WRITING CANDIDATES
+PENDING HUMAN EDITORIAL ACCEPTANCE
+November 3, 2026
+
+Breadcrumb A — Organizing the Virtue Stones
+Preferred: Iolo
+“These stones are quite a collection, my friend. Finding one in our packs is becoming an adventure of its own!”
+
+Fallback: Shamino
+“We are gathering quite a collection of stones. I hope we can still find what we need in our packs.”
+
+Breadcrumb B — Remembering destinations
+Preferred: Shamino
+“I hope thou rememberest where each of these stones will take us. I would rather not find out by surprise.”
+
+Fallback: Dupre
+“Which stone takes us where, Avatar? I should hate to arrive somewhere unexpected when I meant to find an inn.”
+
+The quotation marks above delimit the exact spoken strings. Native overhead speech
+presents them without an added dialogue window, portrait or conversation topic.
+These optional observations give no directions and identify no case maker.
+Stage D's separately accepted Xanthia/William dialogue remains unchanged.

@@ -348,3 +348,24 @@ this quest's isolated tests; it never accepts a commission or completes requirem
 original gameplay targeting; hunger and spell requirements remain enabled.
 These fixture commands require explicitly activated test CLI mode. They are not
 ordinary gameplay grants and do not establish travel or quest progress evidence.
+
+
+### Private companion breadcrumb observations and fixtures
+
+`case_breadcrumbs_state` is read-only. It reports `breadcrumbs` (pending/completed
+flags, current distinct colors, valid distinct marked-object count, saved cooldown,
+and transient last speaker/text/delivery count) plus descriptions of Iolo (1),
+Shamino (3), and Dupre (4). Inspection does not qualify or deliver a breadcrumb.
+
+`test_case_breadcrumb_items scenario=N` supplies explicitly synthetic real objects:
+0 replaces party stones with two unmarked colors; 2 supplies two separate unmarked
+objects of one color; 1 creates a third color in the nearby world; 3 creates a
+world stone duplicating an existing color. Pickup, insertion, MARK and removal
+must still use ordinary gameplay. It never sets destinations or breadcrumb flags.
+
+`test_case_companion_start npc=1|3|4` places only the Avatar near the original NPC
+in a disposable run. The owner explicitly approved these starting fixtures.
+It changes no NPC position, recruitment, schedule, quest or breadcrumb flags.
+Recruitment/dismissal still uses original conversations; sleeping NPCs require
+normal waiting. Fixture starts are not evidence of travel. All provisioning is
+available only in explicitly activated CLI tests, never ordinary gameplay.

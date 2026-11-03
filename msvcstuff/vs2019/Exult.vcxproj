@@ -418,6 +418,7 @@ for /f "tokens=* delims=" %%u in ('git ls-remote --get-url') do echo #define GIT
     <ClCompile Include="..\..\cli_world.cc" />
     <ClCompile Include="..\..\native_orb_chart.cc" />
     <ClCompile Include="..\..\native_virtue_case.cc" />
+    <ClCompile Include="..\..\native_case_breadcrumbs.cc" />
     <ClCompile Include="..\..\native_case_commission.cc" />
     <ClCompile Include="..\..\native_wait.cc" />
     <ClCompile Include="..\..\gumps\Wait_gump.cc" />

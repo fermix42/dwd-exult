@@ -71,6 +71,7 @@ public:
 	void remove_usecode_lightning();
 	int  get_weather();                  // Get # of last weather added.
 	bool has_active_sprites() const;     // Any sprite anims playing?
+	bool has_text_effects() const { return !texts.empty(); }
 	void set_sprites_always(bool tf);    // Set/clear 'always' on sprites.
 	void paint();                        // Draw all sprites/proj./weather.
 	void paint_text();                   // Draw text.

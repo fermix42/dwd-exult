@@ -24,6 +24,7 @@
 #	include <config.h>
 #endif
 
+#include "native_case_breadcrumbs.h"
 #include "party.h"
 
 #include "Face_stats.h"
@@ -72,6 +73,7 @@ bool Party_manager::add_to_party(Actor* npc    // (Should not be the Avatar.)
 		g_shortcutBar->set_changed();
 	}
 	Face_stats::UpdateButtons();
+    Case_breadcrumbs::observe();
 	return true;
 }
 

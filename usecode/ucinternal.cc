@@ -23,6 +23,7 @@
 #	include <config.h>
 #endif
 
+#include "native_case_breadcrumbs.h"
 #include "ucinternal.h"
 #include "game_time_compat.h"
 #include "quiz.h"
@@ -3284,6 +3285,7 @@ void Usecode_internal::write() {
 	}
 	nfile.write4(0xffffffffU);    // End with -1.
     Case_commission::write(&nfile);
+    Case_breadcrumbs::write(&nfile);
 }
 
 /*
@@ -3322,6 +3324,7 @@ void Usecode_internal::read() {
 	} catch (exult_exception& /*e*/) {
 		partyman->set_count(0);
 		partyman->link_party();    // Still need to do this.
+        Case_breadcrumbs::observe();
 		return;                    // Not an error if no saved game yet.
 	}
 	if (!pIn) {
@@ -3334,6 +3337,7 @@ void Usecode_internal::read() {
 		partyman->set_member(i, little_endian::Read2(in));
 	}
 	partyman->link_party();
+    Case_breadcrumbs::observe();
 	// Timers.
 	const int cnt = little_endian::Read4(in);
 	if (cnt == -1) {
@@ -3404,11 +3408,15 @@ void Usecode_internal::read_usevars() {
 			fun->statics[i].restore(&nfile);
 		}
 	}
+    const auto native_trailer=nfile.getPos();
     Case_commission::read(&nfile);
+    nfile.seek(native_trailer);
+    Case_breadcrumbs::read(&nfile);
 }
 
 void Usecode_internal::clear_usevars() {
     Case_commission::reset();
+    Case_breadcrumbs::reset();
 	statics.clear();
 	const int nslots = funs.size();
 	for (int i = 0; i < nslots; ++i) {

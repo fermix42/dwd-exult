@@ -23,6 +23,7 @@
 #	include <config.h>
 #endif
 
+#include "native_case_breadcrumbs.h"
 #include "contain.h"
 #include "native_virtue_case.h"
 
@@ -172,6 +173,7 @@ bool Container_game_object::add(
 	obj->set_owner(this);                       // Set us as the owner.
 	objects.append(obj->shared_from_this());    // Append to chain.
 	Virtue_case::seat(this, obj);
+    Case_breadcrumbs::inventory_added(obj);
 	// Guessing:
 	if (get_flag(Obj_flags::okay_to_take)) {
 		obj->set_flag(Obj_flags::okay_to_take);
