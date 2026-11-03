@@ -1,0 +1,89 @@
+VIRTUE STONE CASE — FINAL DIALOGUE FOR HUMAN EDITORIAL REVIEW
+
+Only added quest text is reproduced. Quotation/paragraph markers are resolved.
+NPC speech belongs to Xanthia except in the two William topics. Avatar lines
+use brief modern-English attribution; physical actions use ordinary narration.
+
+TOPIC: Virtue Stone case — XANTHIA
+
+"I should like to commission a carrying case for the Virtue Stones," you say.
+
+"Virtue Stones? I am not familiar with them. Might I see one?"
+
+You show Xanthia one of the stones.
+
+"Oh, how lovely! And quite unusual. Tell me, what sort of case hast thou in mind?"
+
+"Something sturdy, yet small enough to carry on my travels. I should hate to have such precious things rattling about in my pack," you reply.
+
+"Hmm. A fine wooden case, lined with soft cloth to protect the stones. Aye, I believe I could fashion something suitable."
+
+"Good timber, and soft cloth for the lining. We must give those stones a proper home! The Guild's work and fittings will cost one hundred gold."
+
+TOPIC: commission case — XANTHIA
+
+"I shall be pleased to make it. Ask William to send the timber here, and bring me the cloth and our fee. Once we have everything, we shall need two days for the work."
+
+TOPIC: case materials — XANTHIA
+
+[Completed mask 0] "Before we can begin thy case, I must have timber from William, a length of cloth and one hundred gold for labor and fittings. Bring what thou canst when thou art ready."
+[Completed mask 1] "Before we can begin thy case, I must have a length of cloth and one hundred gold for labor and fittings. Bring what thou canst when thou art ready."
+[Completed mask 2] "Before we can begin thy case, I must have timber from William and one hundred gold for labor and fittings. Bring what thou canst when thou art ready."
+[Completed mask 3] "Before we can begin thy case, I must have one hundred gold for labor and fittings. Bring what thou canst when thou art ready."
+[Completed mask 4] "Before we can begin thy case, I must have timber from William and a length of cloth. Bring what thou canst when thou art ready."
+[Completed mask 5] "Before we can begin thy case, I must have a length of cloth. Bring what thou canst when thou art ready."
+[Completed mask 6] "Before we can begin thy case, I must have timber from William. Bring what thou canst when thou art ready."
+
+TOPIC: timber delivery — WILLIAM
+
+"I require some fine timber. Couldst thou arrange its delivery to the Artist's Guild?" you ask.
+
+"Aye, I have suitable planks. Twenty gold for the wood and delivery to the Guild. Dost thou wish to buy them?"
+
+TOPIC: buy timber — WILLIAM
+
+"Thou hast not the twenty gold. Come back when thou canst pay, and I shall arrange the delivery."
+
+"Very well. I shall have the planks sent to the Artist's Guild."
+
+TOPIC: give cloth — XANTHIA
+
+"Have we forgotten the lining? Bring me a length of cloth. I would not have those lovely stones knocking against bare wood."
+
+"Yes, this will make a fine lining! I shall put it aside for thy case."
+
+TOPIC: pay Guild fee — XANTHIA
+
+"Not quite enough, I fear. The Guild must have one hundred gold for the work and fittings. Bring it when thou art able."
+
+"Splendid! That takes care of the Guild's fee."
+
+TOPIC: collect case — XANTHIA
+
+"Thy case is ready, but there is no room for it on the table. Clear a space and I shall set it out."
+
+"Thy case is finished, Avatar! Come, I shall set it upon the table for thee."
+
+TOPIC: case progress — XANTHIA
+
+"Patience, Avatar! I would not have thee carrying a poorly made case because we hurried the work. Give us a little more time."
+
+WHEN CLOTH OR PAYMENT COMPLETES ALL REQUIREMENTS — XANTHIA
+
+"There, that is everything! We can get to work on thy case now."
+
+DELIVERY ACTION SPEECH — XANTHIA
+
+I cannot get to the table, Avatar. Give me a little room.
+
+There is no room for the case here. Clear a space on the table, please.
+
+There! A fine piece of work, if I may say so myself. I trust it shall serve thee well, Avatar.
+
+IF DELIVERY CANNOT START — XANTHIA
+
+I cannot set out thy case just now, Avatar. Ask me again in a little while.
+
+AFTER DELIVERY
+
+No added commissioning topics remain. Original NPC dialogue continues.

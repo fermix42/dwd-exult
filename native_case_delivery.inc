@@ -49,7 +49,7 @@ public:
                     if(route==path.get())path.release();walk.reset(route);npc->set_frame_time(200);return 200;
                 }
             }
-            if(npc->get_tile()!=stand) {npc->say("Give me a little room to reach my workbench, Avatar.");return 0;}
+            if(npc->get_tile()!=stand) {npc->say("I cannot get to the table, Avatar. Give me a little room.");return 0;}
             phase=1;return 200;
         }
         const int dir=npc->get_direction(spot);
@@ -58,7 +58,7 @@ public:
         if(phase==3) {
             if(quest.stage!=READY_FOR_DELIVERY)return 0;
             spot=free_bench_spot(table.get());
-            if(spot.tx<0) {npc->change_frame(npc->get_dir_framenum(dir,Actor::standing));npc->say("Pray clear a little space upon my workbench.");return 0;}
+            if(spot.tx<0) {npc->change_frame(npc->get_dir_framenum(dir,Actor::standing));npc->say("There is no room for the case here. Clear a space on the table, please.");return 0;}
             auto object=Game_window::get_instance()->get_map()->create_ireg_object(Virtue_case::shape,0);
             if(!Virtue_case::is_case(object.get()))return 0;
             object->set_flag(Obj_flags::okay_to_take);object->move(spot);

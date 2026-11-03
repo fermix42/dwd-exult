@@ -1,5 +1,8 @@
 # Native BG Virtue Stone Case commission (unpublished candidate)
 
+The current writing and full script are in [Final editorial review](virtue_case_editorial_review.md)
+and [Dialogue script](virtue_case_dialogue.txt). Earlier writing examples below are historical.
+
 Human functional review accepted the original quest/delivery. Current corrections
 and review evidence are in [Stage D human review corrections](virtue_case_review_corrections.md).
 That report supersedes dialogue topic, delivery coordinate and private review

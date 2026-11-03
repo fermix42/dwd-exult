@@ -66,7 +66,7 @@ void say(Conversation* conv,std::string text) {
 }
 void receipt(Conversation* conv,const char* text) {
     std::string message=text;
-    if(speaker==86 && quest.stage==BUILDING)message+="~@All is in hand. The Guild may begin thy case; allow two days for the work.@";
+    if(speaker==86 && quest.stage==BUILDING)message+="~@There, that is everything! We can get to work on thy case now.@";
     say(conv,message.c_str());
 }
 std::vector<std::string> available(int npc) {
@@ -102,7 +102,7 @@ void Case_commission::begin(Actor* npc) {
 void Case_commission::end() {
     const bool deliver=delivery_requested;delivery_requested=false;speaker=0;offer=false;used.clear();
     if(deliver && !start_guild_delivery()) {
-        if(auto* npc=Game_window::get_instance()->get_npc(86))npc->say("Give me room to reach my workbench, then ask me again.");
+        if(auto* npc=Game_window::get_instance()->get_npc(86))npc->say("I cannot set out thy case just now, Avatar. Ask me again in a little while.");
     }
 }
 void Case_commission::topics(Conversation* conv,int npc) {
@@ -117,37 +117,37 @@ int Case_commission::choose(Conversation* conv,int npc,const std::string& topic)
     used.insert(topic);
     if(topic=="Virtue Stone case" && quest.stage==NOT_STARTED && party_stone()) {
         offer=true;
-        say(conv,"@I should like to commission a carrying case for the Virtue Stones,@ thou sayest.~@Virtue Stones? I am not familiar with them. Might I see one?@~Thou showest her a stone from thy company's belongings.~@Oh, how lovely! And quite unusual. Tell me, what sort of case hast thou in mind?@~@Something sturdy, yet small enough to carry on my travels. I should hate to have such precious things rattling about in my pack,@ thou repliest.~@Hmm. A fine wooden case, lined with soft cloth to protect the stones. Aye, I believe I could fashion something suitable.@~@I shall need good timber and a length of cloth for the lining. The Guild's labor and fittings will cost one hundred gold.@");
+        say(conv,"@I should like to commission a carrying case for the Virtue Stones,@ you say.~@Virtue Stones? I am not familiar with them. Might I see one?@~You show Xanthia one of the stones.~@Oh, how lovely! And quite unusual. Tell me, what sort of case hast thou in mind?@~@Something sturdy, yet small enough to carry on my travels. I should hate to have such precious things rattling about in my pack,@ you reply.~@Hmm. A fine wooden case, lined with soft cloth to protect the stones. Aye, I believe I could fashion something suitable.@~@Good timber, and soft cloth for the lining. We must give those stones a proper home! The Guild's work and fittings will cost one hundred gold.@");
     } else if(topic=="commission case" && quest.stage==NOT_STARTED && party_stone()) {
         quest.stage=COMMISSION_ACCEPTED;offer=false;
-        say(conv,"@Aye, I shall undertake thy commission. Arrange the timber with William; he can send it straight to the Guild. Bring me the cloth and our fee when thou art ready. Once all is in hand, allow us two days for the work.@");
+        say(conv,"@I shall be pleased to make it. Ask William to send the timber here, and bring me the cloth and our fee. Once we have everything, we shall need two days for the work.@");
     } else if(topic=="case materials") {
         std::vector<std::string> needed;
         if(!(quest.requirements&1))needed.push_back("timber from William");
         if(!(quest.requirements&2))needed.push_back("a length of cloth");
         if(!(quest.requirements&4))needed.push_back("one hundred gold for labor and fittings");
-        std::string message="@We still need ";
+        std::string message="@Before we can begin thy case, I must have ";
         for(size_t i=0;i<needed.size();++i) {
             if(i)message+=i+1==needed.size()?" and ":", ";
             message+=needed[i];
         }
-        message+=". Once all is in hand, allow us two days for the work.@";say(conv,message.c_str());
+        message+=". Bring what thou canst when thou art ready.@";say(conv,message.c_str());
     } else if(topic=="timber delivery" && npc==93 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&1)) {
-        offer=true;say(conv,"@I require some fine timber. Couldst thou arrange its delivery to the Artist's Guild?@ thou askest.~@Aye, I can provide suitable wood for twenty gold and have it sent to the Guild. Wilt thou buy it?@");
+        offer=true;say(conv,"@I require some fine timber. Couldst thou arrange its delivery to the Artist's Guild?@ you ask.~@Aye, I have suitable planks. Twenty gold for the wood and delivery to the Guild. Dost thou wish to buy them?@");
     } else if(topic=="buy timber" && npc==93 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&1)) {
-        if(!take(644,20))say(conv,"@Twenty gold for sound, seasoned timber, delivered to the Artist's Guild. Thou hast not enough gold at present.@");
-        else { complete_requirement(1);say(conv,"@Twenty gold, then. I shall have the timber sent straight to the Artist's Guild.@"); }
+        if(!take(644,20))say(conv,"@Thou hast not the twenty gold. Come back when thou canst pay, and I shall arrange the delivery.@");
+        else { complete_requirement(1);say(conv,"@Very well. I shall have the planks sent to the Artist's Guild.@"); }
     } else if(topic=="give cloth" && npc==86 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&2)) {
-        if(!take(851,1))say(conv,"@I need a length of cloth for the lining. Bring one when thou art ready.@");
-        else { complete_requirement(2);receipt(conv,"@This cloth will do very well. I shall keep it safe for thy case.@"); }
+        if(!take(851,1))say(conv,"@Have we forgotten the lining? Bring me a length of cloth. I would not have those lovely stones knocking against bare wood.@");
+        else { complete_requirement(2);receipt(conv,"@Yes, this will make a fine lining! I shall put it aside for thy case.@"); }
     } else if(topic=="pay Guild fee" && npc==86 && quest.stage<BUILDING && quest.stage>NOT_STARTED && !(quest.requirements&4)) {
-        if(!take(644,100))say(conv,"@The Guild's labor and fittings cost one hundred gold. Thou hast not enough. We can settle it when thou art able.@");
-        else { complete_requirement(4);receipt(conv,"@One hundred gold. I thank thee; our fee is settled.@"); }
+        if(!take(644,100))say(conv,"@Not quite enough, I fear. The Guild must have one hundred gold for the work and fittings. Bring it when thou art able.@");
+        else { complete_requirement(4);receipt(conv,"@Splendid! That takes care of the Guild's fee.@"); }
     } else if(topic=="collect case" && npc==86 && quest.stage==READY_FOR_DELIVERY && !active_delivery) {
-        if(free_bench_spot(guild_workbench()).tx<0)say(conv,"@Thy case is finished, but I need a little clear space upon my workbench. Make room, then ask me again.@");
-        else {delivery_requested=true;say(conv,"@Thy case is finished, Avatar! Come, I shall set it upon my workbench for thee.@");return 2;}
+        if(free_bench_spot(guild_workbench()).tx<0)say(conv,"@Thy case is ready, but there is no room for it on the table. Clear a space and I shall set it out.@");
+        else {delivery_requested=true;say(conv,"@Thy case is finished, Avatar! Come, I shall set it upon the table for thee.@");return 2;}
     } else if(topic=="case progress") {
-        say(conv,"@Good work takes time. Our two days are not yet passed. Return anon, Avatar.@");
+        say(conv,"@Patience, Avatar! I would not have thee carrying a poorly made case because we hurried the work. Give us a little more time.@");
     }
     return 1;
 }
