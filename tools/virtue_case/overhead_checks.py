@@ -56,12 +56,7 @@ try:
   profile='keyring'if a.mod else'bg';checkpoint=Path('C:/Codex/Ultima7 Decomp/test-output/virtue-stage-e-final/human-review/prepared')/profile/'a-iolo/exult08bg.sav'
   keys=BASE/(a.run+'.keys');keys.write_text('1 INVENTORY 0\n')
   do('init',game='bg',mod=a.mod,run=a.run,checkpoint=str(checkpoint),keys_path=str(keys));do('load',slot=8)
-  # Loading preserves eligibility, but actual stone handling supplies fresh context.
-  while d.state()['input_owner']=='gump':do('dismiss')
-  at=d.state();avatar=do('inspect_world',radius=2)['avatar'];bag=next(o['ref']for o in do('inspect_actor',ref=avatar)['object']['equipment']if o['slot']==1)
-  do('key',key='1');do('move_gump',ref=avatar,x=30,y=5);do('interact_inventory',ref=bag);do('move_gump',ref=bag,x=30,y=220)
-  stone=next(o['ref']for o in do('inspect_inventory',ref=bag)['objects']if o['shape']==330)
-  do('drop_item',ref=stone,x=at['x']+3,y=at['y']+2,z=at['z']);do('transfer_item',ref=stone,destination=bag)
+  # Existing organized stones need no new inventory interaction.
   while d.state()['input_owner']=='gump':do('dismiss')
   iolo=next(o for o in do('find_actors',radius=32,limit=200)['objects']if o.get('npc')==1)
   end=time.monotonic()+25

@@ -1,64 +1,79 @@
-# Stage E short contextual chatter review
+# Stage E natural companion review
 
-PENDING HUMAN EDITORIAL AND GAMEPLAY ACCEPTANCE ó November 4, 2026.
-Stage D remains accepted. The shared overhead renderer and duration are unchanged.
+**PENDING HUMAN EDITORIAL AND GAMEPLAY ACCEPTANCE.** All four short candidates are
+unchanged. Stage D and the accepted overhead renderer/duration remain unchanged.
 
-Review folder: `C:\Codex\Ultima7 Decomp\test-output\virtue-stage-e-final\human-review`.
-Close Exult, double-click **Play BG.cmd**, then select one of the seven states.
-**Play Keyring.cmd** supplies the same review; compatibility is also checked automatically.
-**C** continues your current disposable review game. Selecting a numbered state
-resets only that review profile. **S** opens save/load; slot **8** is the prepared state.
-**I** opens inventory. Original saves/configurations and seven source checkpoints
-are preserved. The two B states use separate `prepared-context` overlays containing
-the same previously marked case, retrieved by actual walking and native pickup.
+Close Exult and launch **Play BG.cmd** from
+`C:\Codex\Ultima7 Decomp\test-output\virtue-stage-e-final\human-review`.
+Press **Enter** to select **8: already-organized**. Keyring has the same launcher
+menu and is automatically verified. **C** continues your current disposable game.
+A numbered selection restores only this review profile; close Exult before resets.
+**S** opens normal save/load; prepared slot **8** is the selected checkpoint.
 
-Nothing should speak just because a save loaded. For an eligible hint, drag an
-individual Virtue Stone to a different free position in its backpack, or between
-the backpack and case. Close all gumps promptly, stand still near the speaker, and
-watch. A stone interaction lasts only 15 seconds as a speech opportunity. If you
-linger in inventory or another protected sequence, move a stone again afterward.
-Moving the entire case alone supplies no context. You need not repeat a spell.
+## Main review: 8, already-organized
 
-1. **a-iolo**: Open the backpack, move one loose stone, close gumps. Watch Iolo:
-   ìThese stones are filling our packs!î
-2. **a-shamino**: Same handling; Iolo is dismissed and Shamino is active:
-   ìOur packs are filling with stones.î
-3. **b-shamino**: Open the case in the backpack. Move one of its marked stones into
-   the backpack, close gumps, watch Shamino:
-   ìKnowest thou where each stone leads?î
-4. **b-dupre**: Same marked-stone handling, with Dupre active and Shamino absent:
-   ìWhich stone leads where? I hope one leads to an inn!î
-5. **deferred-recruit**: Wait: no eligible speaker means no hint. Talk to Shamino
-   through his original **join** and **bye** topics. If asleep, wait normally and
-   feed the Avatar when hungry. Recruitment alone must stay silent. Now handle a
-   loose stone, close gumps promptly, and watch Shamino deliver A.
-6. **both-pending**: Move a marked stone; close gumps; A should speak first. Wait
-   at least five game minutes (the watch/native Wait can help). Waiting alone must
-   not cause B. Handle a marked stone again, close gumps, and watch B. One action
-   cannot queue two remarks. Restart this checkpoint to repeat the comparison.
-7. **delivered-silent**: Xanthia already completed the real tabletop handoff; the
-   earned reward is in the backpack and Shamino is active. Move stones, save/load,
-   open/close or drop the case: neither canceled hint should return. The commission
-   remains permanently delivered.
+The party already has several loose stones and real saved MARK destinations.
+Shamino is active. The commission is not completed, neither remark has been spoken,
+and no case is owned. Close any saved-open inventory windows, then walk normally
+or pause near Shamino. Do not move a stone or cast a spell. A natural remark may
+follow after the startup/safety gates; another may follow later on the same walk.
 
-A eligibility is three distinct original stone colors. B is two distinct real
-stones with valid saved MARK destinations, including old saves. Pending eligibility
-survives stone removal and load, but context does not survive load. Completed hints
-never repeat. Successful MARK can provide fresh context; failed MARK cannot.
-Commissioning/building alone does not suppress hints; actual delivery does.
+There is a delay of at least ten engine seconds after load or newly qualifying
+circumstances. Delivery checks occur at ordinary game-minute boundaries, so do
+not expect a precise second. Walking is allowed. Combat, conversation, gumps,
+spellcasting, sleep, Native Wait, existing overhead speech and other protected
+states defer delivery. After a line, the next requires at least five game minutes
+and ten engine seconds. Merely loading never produces an instant remark. There
+is no random lottery, inventory trigger requirement or 15-second expiration.
 
-Assess reading comfort at normal speed, speaker voice, whether the interaction
-makes the remark understandable, and whether chatter stays unobtrusive. Try a
-brief gump/combat deferral and a delay beyond 15 seconds: stale chatter must not
-appear later. These optional lines never open conversations or change spell rules.
-Broader cutscene/hostile gameplay and physical keyboard/IME behavior remain human
-checks. Automated dispatch/layout checks and screenshots are not human acceptance.
+## Other review branches
 
-These are separate replay branches, not one chronological game. Inventory fixtures
-and Avatar-only companion/Minoc starts were authorized by the owner. Original NPC
-positions, quest flags and MARK destinations were not assigned to pass these tests.
-B destinations were earned with actual MARK and normal mana/reagents; case delivery
-uses the original earned Stage D branch. No cheats/free casting. Existing isolated
-640x400 Point2 review settings, including skip_intro=yes, are retained. These
-snapshots do not certify the natural opening; no Petre/Finnigan fixture changes.
-No computer control or desktop input automation was used. No merge or release.
+1. **a-iolo**: Existing loose stones; close gumps and explore/pause near Iolo.
+   ‚ÄúThese stones are filling our packs!‚Äù
+2. **a-shamino**: Iolo absent; explore/pause near active Shamino.
+   ‚ÄúOur packs are filling with stones.‚Äù
+3. **b-shamino**: One previously marked loose stone, no owned case. Explore/pause.
+   ‚ÄúKnowest thou where each stone leads?‚Äù
+4. **b-dupre**: Same one-marked-stone condition, Dupre active, Shamino absent.
+   ‚ÄúWhich stone leads where? I hope one leads to an inn!‚Äù
+5. **deferred-recruit**: A eligible, no participating companion. Wait: silence.
+   Recruit Shamino through original **join**/**bye** dialogue, then explore normally.
+   Sleep/hunger may require ordinary waiting/feeding. Touch no stone to renew a hint.
+6. **both-pending**: Both state-based conditions, no owned case. Explore normally:
+   A first, B later at a safe opportunity after the minimum separation. No repeat
+   spell or inventory drag is needed. A single update cannot deliver both.
+7. **delivered-silent**: Xanthia already performed the real physical handoff. The
+   earned case is in the backpack. Explore, save/reload, transfer or drop the case:
+   neither canceled hint may return. Permanent quest completion is authoritative.
+
+For an immediate ownership check in state 8, an empty test case was left nearby
+when its real stones were extracted. Drag that closed-case sprite into a party
+backpack before the next line. This is a labeled disposable fixture, not a new
+quest reward. Acquiring any real case into party inventory before a pending line: both hints should stop without falsely being marked spoken.
+An alternate nonquest case uses current ownership: dropping it may restore an
+undelivered hint when the party still has the qualifying stones. No new permanent
+acquisition history exists. Completed commissioning remains permanently silent.
+
+A requires three distinct original colors carried loose through ordinary nested
+party inventory. Seated stones do not count. B requires one valid marked real stone;
+a handwritten label alone is insufficient. Completed observations never repeat,
+including through fallback companions or after save/load. Removing the qualifying
+stones prevents stale observations. Merely commissioning/building/ready does not
+suppress; ownership or completed delivery does.
+
+## Preservation and limits
+
+All seven original checkpoints, previous contextual overlays, current human saves,
+gamedat and configs are preserved. Separate `prepared-natural` overlays adapt B and
+both-pending by native extraction/drop of the existing case and real stones; they
+never assign MARK destinations or quest flags. The new organized checkpoint uses
+that earned branch. Prior Avatar-only starting fixtures remain clearly disposable;
+NPC positions/membership were not assigned. Recruitment/dismissal and any test
+spell use original gameplay. Existing skip_intro=yes is retained; these saves do
+not certify the natural opening and introduce no Petre/Finnigan corrections.
+
+Review reading comfort, character voice, naturalness, timing and unobtrusiveness.
+Static screenshots and automation are separate from your acceptance. SDL event
+handler label tests are automated; physical keyboard/IME and broader ordinary
+adventuring remain human checks. No computer control or desktop automation.
+No merge, tag, release, publication or automatic human acceptance.

@@ -61,7 +61,7 @@ try:
  do('init',game='bg',mod=a.mod,run=a.run,keys_path=str(keys),checkpoint=str(checkpoint));do('load',slot=3)
  check('earned ready checkpoint has not delivered',quest()['stage']==4)
  do('test_case_companion_start',npc=1);dismiss_iolo();do('test_case_commission_start');do('test_case_breadcrumb_items',scenario=0);case=prepare_case();stones=inv(case)
- mark(case,stones[0]['ref']);close_gumps();mark(case,stones[1]['ref']);close_gumps();acquire_third();close_gumps()
+ mark(case,stones[0]['ref']);close_gumps();mark(case,stones[1]['ref']);close_gumps();extract_case();acquire_third();close_gumps()
  check('construction completion without delivery leaves both hints pending',quest()['stage']==4 and q()['a_pending']and q()['b_pending']);do('save',slot=1)
  # Original quest conversation, Xanthia walking and physical tabletop handoff.
  collect_delivery()
@@ -70,9 +70,9 @@ try:
  do('save',slot=2);do('load',slot=2);silence('suppression and canceled pending survive reload')
  join(3);silence('eligible Shamino stays silent after delivery')
  # Reload the earned tabletop checkpoint, then approach and pick up normally.
- do('load',slot=2);case=next(o['ref']for o in inv()if o['shape']==1601);do('move_to',x=1592,y=371,z=0,timeout=35);check('normal approach reaches delivered reward',arrived());reward=next(o for o in do('find_objects',shape=1601,radius=32)['objects']if o['tile']==dict(x=1592,y=370,z=2))
+ do('load',slot=2);do('move_to',x=1592,y=371,z=0,timeout=35);check('normal approach reaches delivered reward',arrived());reward=next(o for o in do('find_objects',shape=1601,radius=32)['objects']if o['tile']==dict(x=1592,y=370,z=2))
  bag=inventories();do('transfer_item',ref=reward['ref'],destination=bag);check('delivered case is picked up through native inventory',obj(reward['ref'])['owner']==bag)
- close_gumps();drop(case);close_gumps();join(3);do('key',key='1');export_checkpoint('delivered-silent');close_gumps()
+ close_gumps();join(3);do('key',key='1');export_checkpoint('delivered-silent');close_gumps()
  drop(reward['ref']);close_gumps();do('save',slot=4);do('load',slot=4);silence('dropping delivered case never reactivates hints')
  # Legacy delivered save has Stage D terminal state and no Stage E trailer.
  legacy=prior/'exult05bg.sav';load_archive(legacy)
@@ -81,7 +81,7 @@ try:
  check('legacy completed quest suppresses freshly satisfied A and B triggers',q()['colors']==3 and q()['marked_stones']==2 and not q()['a_pending']and not q()['b_pending'])
  close_gumps();do('save',slot=5);do('load',slot=5);silence('legacy delivered suppression persists after new save')
  # Restore the earned pending/ready branch; speak both normally before handoff.
- do('load',slot=1);join(3);touch(3,True);until('A spoken before second delivery branch',lambda:q()['a_done']);do('native_wait',minutes=5);touch(3,True);until('B spoken before second delivery branch',lambda:q()['b_done'],35)
+ do('load',slot=1);join(3);until('A spoken before second delivery branch',lambda:q()['a_done']);do('native_wait',minutes=5);until('B spoken before second delivery branch',lambda:q()['b_done'],35)
  check('both actual spoken completions recorded',q()['a_done']and q()['b_done']);do('test_case_commission_start');collect_delivery();check('second branch really delivered',quest()['stage']==5);do('save',slot=6);do('load',slot=6);check('delivery preserves both prior spoken completion bits',q()['a_done']and q()['b_done']and not q()['a_pending']and not q()['b_pending']);do('exit')
 except Exception:
  d.failures+=1;events.append(dict(error=traceback.format_exc()));print(traceback.format_exc(),flush=True)

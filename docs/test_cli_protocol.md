@@ -353,8 +353,9 @@ ordinary gameplay grants and do not establish travel or quest progress evidence.
 ### Private companion breadcrumb observations and fixtures
 
 `case_breadcrumbs_state` is read-only. It reports `breadcrumbs` (pending/completed
-flags, current distinct colors, valid distinct marked-object count, saved cooldown,
-and transient last speaker/text/delivery count) plus descriptions of Iolo (1),
+flags, current distinct colors, `loose_colors` excluding case ancestors, valid
+distinct marked-object count, current `case_owned`, saved cooldown, transient
+`natural_due` pacing, and last speaker/text/delivery count) plus descriptions of Iolo (1),
 Shamino (3), and Dupre (4). Inspection does not qualify or deliver a breadcrumb.
 
 `test_case_breadcrumb_items scenario=N` supplies explicitly synthetic real objects:

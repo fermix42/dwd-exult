@@ -156,7 +156,8 @@ def drop(ref):
  if owner!=avatar:show(owner)
  if owner not in [avatar,bag]:do('move_gump',ref=owner,x=310,y=5)
  at=d.state()
- for dx,dy in [(3,2),(4,2),(5,2),(-3,2),(3,4),(-4,4)]:
+ offsets=[(-4,2),(-4,4),(-3,-3),(3,2)]if obj(ref)['shape']==1601 else[(3,2),(4,2),(5,2),(-3,2),(3,4),(-4,4)]
+ for dx,dy in offsets:
   try:
    dest=dict(x=at['x']+dx,y=at['y']+dy,z=at['z'])
    if do('inspect_tile',**dest)['blocked']:continue
@@ -164,30 +165,6 @@ def drop(ref):
    if not obj(ref)['owner']:return
   except EngineRefusal:pass
  raise RuntimeError('no visible reachable native drop')
-def touch(npc=1,marked=False):
- """Renew context with real native drop/pickup; never set a label or destination."""
- close_gumps();stones=[o for o in inv()if o['shape']==330 and(not marked or any(o.get('stone_target',{}).get(k,0)for k in ['x','y']))]
- worldcase=None
- if marked and not stones:
-  do('test_case_companion_start',npc=1);worldcase=do('find_objects',shape=1601,radius=32)['objects'][0]['ref'];do('move_to_object',ref=worldcase,timeout=30);check('normal retrieval reaches old marked case',arrived());bag=inventories();do('transfer_item',ref=worldcase,destination=bag);close_gumps();stones=[o for o in inv()if o['shape']==330 and any(o.get('stone_target',{}).get(k,0)for k in ['x','y'])]
- if stones:
-  for candidate in reversed(stones):
-   ref=candidate['ref']
-   try:drop(ref);break
-   except RuntimeError:
-    if candidate==stones[0]:raise
- else:
-  world=do('find_objects',shape=330,radius=32)['objects']
-  if not world:world=[do('test_case_breadcrumb_items',scenario=1)['synthetic_world_stone']]
-  ref=world[0]['ref']
- bag=inventories();do('transfer_item',ref=ref,destination=bag)
- if worldcase:
-  close_gumps()
-  drop(worldcase);close_gumps();do('test_case_companion_start',npc=npc)
-  drop(ref);bag=inventories();do('transfer_item',ref=ref,destination=bag)
- check('real stone handling provides fresh contextual opportunity',q()['b_context'if marked else'a_context'])
- close_gumps();return ref
-
 def prepare_case():
  case=do('test_case_extra')['synthetic_case']['ref'];bag=inventories();show(case);do('move_gump',ref=case,x=310,y=5)
  for stone in [o for o in inv()if o['shape']==330]:
@@ -197,37 +174,76 @@ def mark(case,stone):
  close_gumps();do('test_case_spell_setup',scenario=0);inventories();show(case);do('move_gump',ref=case,x=310,y=5)
  g=next(g for g in d.state()['gumps']if'Case_gump'in g['type']);button=next(c for c in do('controls')['controls']if c['gump_id']==g['id']and c['action']=='mark');before=do('case_spell_state');do('activate_control',id=button['id']);until('ordinary MARK target begins',lambda:d.state()['case_targeting']);do('target_object',ref=stone);until('ordinary MARK completes',lambda:not d.state()['case_casting']);after=do('case_spell_state');check('MARK pays normal mana and reagents',after['mana']==before['mana']-4 and after['reagents']==[n-(i in {0,1,3})for i,n in enumerate(before['reagents'])]);check('stone has actual saved native destination',obj(stone)['stone_target']['x']>0 or obj(stone)['stone_target']['y']>0)
  if d.state()['case_editing']>=0:do('key',key='escape')
+def load_review(name,context=False):
+ profile='keyring'if a.mod else'bg'
+ source=Path('C:/Codex/Ultima7 Decomp/test-output/virtue-stage-e-final/human-review')/('prepared-context'if context else'prepared')/profile/name/'exult08bg.sav'
+ shutil.copy2(source,Path(d.state()['save_path'])/'exult08bg.sav');do('load',slot=8)
+
+def extract_case():
+ """Remove actual stones and drop the real case; no destination/quest setters."""
+ close_gumps();case=next(o['ref']for o in inv()if o['shape']==1601);bag=inventories();show(case);do('move_gump',ref=case,x=310,y=5)
+ for stone in inv(case):do('transfer_item',ref=stone['ref'],destination=bag)
+ close_gumps();drop(case);close_gumps()
+ check('normal extraction retains stones and ends current case ownership',not q()['case_owned'])
+ return case
+
+def hold_review(name):
+ close_gumps();inventories();export_checkpoint(name)
+ check('prepared snapshot contains no spoken hints',not q()['a_done']and not q()['b_done'])
+
+def natural(hint,label,walk=False,seconds=55,capture_line=False):
+ close_gumps();end=time.monotonic()+seconds;steps=0;last_move=0;origin=d.state()
+ while time.monotonic()<end:
+  state=q()
+  if state[hint+'_done']:
+   check(label,True)
+   if walk:check('ordinary exploration issued real pathfinding actions',steps>0)
+   if capture_line:
+    capture('natural-'+str(state['last_npc'])+'-'+hint)
+    effect=next(e for e in do('text_effects')['effects']if e['text']==state['last_text'])
+    check('exact candidate displays in one native line',len(effect['lines'])==1)
+    r=effect['destination'];v=effect['viewport'];check('native candidate remains in viewport',r['x']>=v['x']and r['y']>=v['y']and r['x']+r['w']<=v['x']+v['w']and r['y']+r['h']<=v['y']+v['h'])
+   return state
+  if walk and time.monotonic()-last_move>1 and do('movement_status')['movement']!='moving':
+   at=d.state()
+   for dx,dy in [(6,0),(0,6),(-6,0),(0,-6),(4,4),(-4,-4)]:
+    dest=dict(x=origin['x']+dx if steps%2==0 else origin['x'],y=origin['y']+dy if steps%2==0 else origin['y'],z=origin['z'])
+    if do('inspect_tile',**dest)['blocked']:continue
+    try:
+     response=do('move_to',**dest,timeout=6)
+     if response['movement']in ['moving','reached']:steps+=1;break
+    except EngineRefusal:continue
+   last_move=time.monotonic()
+  time.sleep(.08)
+ check(label,False)
+
+def loose_mark(stone,spell=34):
+ close_gumps();do('test_case_spell_setup',scenario=0);bag=inventories();book=next(o['ref']for o in inv()if o['class_id']==8);show(book);do('move_gump',ref=book,x=310,y=5)
+ before=do('case_spell_state');do('spellbook_cast',ref=book,spell=spell);do('aim_object',ref=stone)
+ return book,before
+
 if __name__=='__main__':
  try:
   keys=BASE/(a.run+'.keys');keys.parent.mkdir(parents=True,exist_ok=True);keys.write_text('1 INVENTORY 0\n2 INVENTORY 1\n')
-  if a.checkpoint:
-   do('init',game='bg',mod=a.mod,run=a.run,keys_path=str(keys),checkpoint=str(a.checkpoint.resolve()));do('load',slot=7)
-  else:
-   do('init',game='bg',mod=a.mod,run=a.run,keys_path=str(keys));do('test_case_breadcrumb_items',scenario=0);check('two unmarked colours trigger neither observation',q()['colors']==2 and q()['marked_stones']==0 and q()['flags']==0);do('save',slot=0)
-   duplicate=do('test_case_breadcrumb_items',scenario=3)['synthetic_world_stone'];bag=inventories();do('transfer_item',ref=duplicate['ref'],destination=bag);check('three objects but only two colours do not qualify A',q()['colors']==2 and not q()['a_pending']);close_gumps()
-   do('combat');acquire_third();close_gumps();time.sleep(6);check('combat defers eligible observation',not q()['a_done']);do('combat');inventories();do('save',slot=1);do('load',slot=1);inventories();check('pending survives reload',q()['a_pending']and not q()['a_done']);review_checkpoint('a-iolo');[drop(o['ref'])for o in inv()if o['shape']==330];check('pending survives actual removal of every held stone',q()['colors']==0 and q()['a_pending']);close_gumps();touch();until('Iolo delivers exactly one organizing observation',lambda:q()['a_done']);check('Iolo is primary and line is atmospheric',q()['last_npc']==1 and'case'not in q()['last_text'].lower());do('save',slot=2);do('load',slot=2);time.sleep(6);check('completed organizing observation never repeats after reload',q()['a_done']and q()['deliveries_since_load']==0)
-   # Neither eligible organizer: actual dismissal, followed by actual Shamino recruitment.
-   do('load',slot=0);dismiss_iolo();do('save',slot=7);acquire_third();close_gumps();time.sleep(6);check('absent eligible companions never speak',q()['a_pending']and q()['deliveries_since_load']==0);do('save',slot=9);do('load',slot=9);join(3,'a-shamino');touch(3);until('deferred organizer uses Shamino fallback',lambda:q()['a_done']);check('organizer fallback speaker is Shamino',q()['last_npc']==3)
-  # Native MARKs of two physical objects inside accepted case, with nobody eligible.
-  do('load',slot=7);case=prepare_case();stones=inv(case);mark(case,stones[0]['ref']);check('one successful marked object does not qualify B',q()['marked_stones']==1 and not q()['b_pending']and not q()['b_done']);close_gumps();mark(case,stones[0]['ref']);check('re-marking one physical object does not qualify B',q()['marked_stones']==1 and not q()['b_pending']);close_gumps();mark(case,stones[1]['ref']);check('second distinct successfully marked object latches B',q()['marked_stones']==2 and q()['b_pending']and not q()['b_done']);do('save',slot=3);drop(case);close_gumps();check('pending marking observation survives stones leaving party',q()['marked_stones']==0 and q()['b_pending']);do('save',slot=4);do('load',slot=4);time.sleep(6);check('no absent marking speaker, pending survives load',q()['b_pending']and q()['deliveries_since_load']==0);join(3,'b-shamino');touch(3,True);until('Shamino delivers preferred destination observation',lambda:q()['b_done']);check('preferred destination speaker is Shamino',q()['last_npc']==3);do('save',slot=5);do('load',slot=5);time.sleep(6);check('destination observation completed state survives reload',q()['b_done']and q()['deliveries_since_load']==0);do('test_case_companion_start',npc=1);worldcase=do('find_objects',shape=1601,radius=32)['objects'][0];do('move_to_object',ref=worldcase['ref'],timeout=30);check('player walks into real pickup reach of stored case',arrived());bag=inventories();do('transfer_item',ref=worldcase['ref'],destination=bag);close_gumps();mark(worldcase['ref'],inv(worldcase['ref'])[0]['ref']);close_gumps();time.sleep(6);check('additional successful MARK cannot repeat completed B',q()['b_done']and not q()['b_pending']and q()['deliveries_since_load']==0)
-  do('load',slot=4);join(4,'b-dupre');touch(4,True);until('Dupre delivers destination fallback',lambda:q()['b_done']);check('destination fallback speaker is Dupre',q()['last_npc']==4);do('save',slot=6);do('load',slot=6);check('fallback completion persists',q()['b_done'])
-  # Two different physical stones of the SAME colour still count separately for B.
-  do('load',slot=7);do('test_case_breadcrumb_items',scenario=2);twins=[o['ref']for o in inv()if o['shape']==330];containers=[]
-  for ref in twins:
-   close_gumps();c=do('test_case_extra')['synthetic_case']['ref'];inventories();show(c);do('move_gump',ref=c,x=310,y=5);owner=obj(ref)['owner'];avatar=do('inspect_world',radius=2)['avatar']
-   if owner!=avatar:show(owner)
-   do('transfer_item',ref=ref,destination=c);containers.append(c);close_gumps()
-  mark(containers[0],twins[0]);check('remark B does not count one object twice',q()['marked_stones']==1 and not q()['b_pending']);mark(containers[1],twins[1]);check('two physical marked objects of one colour qualify B',q()['marked_stones']==2 and q()['colors']==1 and q()['b_pending']);close_gumps()
-  # Both pending: one observation, then a persisted game-minute separation.
-  do('load',slot=3);acquire_third();close_gumps();join(3,'both-pending');touch(3,True);until('first of two pending observations is delivered',lambda:q()['a_done']);check('second observation is still pending',q()['b_pending']and not q()['b_done']);check('one handling action cannot queue both remarks',not q()['a_context']and not q()['b_context']);first=q()['next_minute'];do('save',slot=8);do('load',slot=8);time.sleep(2);check('reload does not bypass observation separation',q()['next_minute']==first and not q()['b_done']);do('native_wait',minutes=5);check('cooldown alone never supplies context',not q()['b_done']);touch(3,True);until('second observation is deferred to a later quiet opportunity',lambda:q()['b_done'],35);check('both complete exactly once',q()['a_done']and q()['b_done'])
-  # Old ordinary-engine archive, no Stage E trailer; destinations are supplied
-  # by the retained Stage A state fixture, NOT asserted as player MARK history.
-  legacy=Path(r'C:/Codex/Ultima7 Decomp/test-output/virtue-stage-bc/runs')/('final-physical-keyring'if a.mod else'final-physical-bg')/'saves'/('mods/Keyring/saves'if a.mod else'.')/'exult03bg.sav';shutil.copy2(legacy,Path(d.state()['save_path'])/'exult09bg.sav');do('load',slot=9);check('old native save contains two or more valid distinct destinations',q()['marked_stones']>=2);until('old save acquires pending B without new MARK or metadata',lambda:q()['b_pending']);do('save',slot=6);do('load',slot=6);check('migrated old-save eligibility persists',q()['b_pending'])
-  do('test_case_commission_start');npc=do('case_commission_state')['xanthia'];do('move_to_object',ref=npc['ref']);arrived();do('interact_object',ref=npc['ref']);settle();choose('Virtue Stone case');choose('commission case');leave();check('optional observations never gate real commission acceptance',do('case_commission_state')['commission']['stage']==1);do('save',slot=5);do('load',slot=5);check('Stage D and breadcrumb optional trailers coexist',do('case_commission_state')['commission']['stage']==1 and q()['b_pending']);do('exit')
+  do('init',game='bg',mod=a.mod,run=a.run,keys_path=str(keys))
+  load_review('a-iolo');close_gumps();before=inv();check('old organized loose inventory qualifies without handling',q()['loose_colors']>=3 and q()['a_pending']and not q()['natural_due']);time.sleep(3);check('load never produces an instant remark',not q()['a_done'])
+  state=natural('a','organized old inventory speaks naturally during exploration',True,capture_line=True);check('Iolo remains preferred',state['last_npc']==1);check('exploration never moved or replaced a stone',[(o['ref'],o['owner'])for o in before if o['shape']==330]==[(o['ref'],o['owner'])for o in inv()if o['shape']==330]);do('save',slot=2);do('load',slot=2);time.sleep(12);check('completed A never repeats on load',q()['a_done']and q()['deliveries_since_load']==0)
+  load_review('a-shamino');natural('a','Shamino accumulation fallback is natural',True,capture_line=True);check('fallback remains Shamino',q()['last_npc']==3)
+  load_review('a-iolo');close_gumps();do('test_case_breadcrumb_items',scenario=0);time.sleep(12);check('two unmarked colors trigger neither hint',q()['colors']==2 and not q()['a_pending']and not q()['a_done']and not q()['b_pending']);duplicate=do('test_case_breadcrumb_items',scenario=3)['synthetic_world_stone'];bag=inventories();do('transfer_item',ref=duplicate['ref'],destination=bag);close_gumps();time.sleep(3);check('duplicate physical stone does not add a third color',q()['colors']==2 and not q()['a_pending']);acquire_third();close_gumps();natural('a','ordinary third-color acquisition becomes naturally observable');check('one observation only',q()['deliveries_since_load']==1)
+  load_review('a-iolo');close_gumps();dismiss_iolo();time.sleep(12);check('absent companions stay silent without consuming A',q()['a_pending']and not q()['a_done']);do('save',slot=3);do('load',slot=3);join(3);natural('a','original recruitment permits later natural A with no stone action');check('joined fallback speaks exactly once',q()['last_npc']==3 and q()['deliveries_since_load']==1)
+  for name,npc in [('b-shamino',3),('b-dupre',4)]:
+   load_review(name,True);check('older owned case makes both remarks obsolete',q()['case_owned']and not q()['a_pending']and not q()['b_pending']);extract_case();stones=[o for o in inv()if o['shape']==330];drop(stones[-1]['ref']);close_gumps();hold_review(name);do('load',slot=9);check('one existing valid marked object suffices for B',q()['marked_stones']==1 and q()['b_pending']and not q()['a_pending']);before=[(o['ref'],o['stone_target'])for o in inv()if o['shape']==330];natural('b','old marked stone naturally prompts '+name,True,capture_line=True);check('correct destination speaker',q()['last_npc']==npc);check('natural travel retains original saved destination',before==[(o['ref'],o['stone_target'])for o in inv()if o['shape']==330]);do('save',slot=4);do('load',slot=4);time.sleep(12);check('B completion survives load without repeating',q()['b_done']and q()['deliveries_since_load']==0)
+  load_review('both-pending');extract_case();hold_review('already-organized');do('load',slot=9);check('already-organized checkpoint contains loose and old marked stones',q()['loose_colors']>=3 and q()['marked_stones']>=1 and q()['a_pending']and q()['b_pending']);natural('a','first natural opportunity delivers A only');check('B remains pending after one opportunity',q()['b_pending']and not q()['b_done']);first=q()['next_minute'];do('save',slot=5);do('load',slot=5);check('saved five-minute separation is preserved',q()['next_minute']==first and not q()['b_done']);do('native_wait',minutes=5);check('Native Wait cannot deliver either pending remark',q()['deliveries_since_load']==0 and not q()['b_done']);natural('b','later ordinary travel delivers B without another event',True);check('both completion flags remain independent',q()['a_done']and q()['b_done']);do('save',slot=6);do('load',slot=6);check('both completions persist',q()['a_done']and q()['b_done'])
+  load_review('a-iolo');close_gumps()
+  for stone in reversed([o for o in inv()if o['shape']==330]):drop(stone['ref'])
+  close_gumps();do('save',slot=7);do('load',slot=7);time.sleep(12);check('old pending hint is revalidated after every stone leaves',not q()['a_pending']and not q()['a_done']and q()['colors']==0)
+  # Owning a case cancels both pending hints without falsely completing them.
+  load_review('both-pending');check('nested owned case suppresses old pending flags after load',q()['case_owned']and not q()['a_pending']and not q()['b_pending']and not q()['a_done']and not q()['b_done']);time.sleep(12);check('seated stones do not count as loose and no obsolete line speaks',q()['loose_colors']<3 and q()['deliveries_since_load']==0)
+  load_review('delivered-silent');check('earned permanent delivery suppresses hints',do('case_commission_state')['commission']['stage']==5 and not q()['a_pending']and not q()['b_pending']);time.sleep(12);check('completed quest stays silent',q()['deliveries_since_load']==0)
+  do('exit')
  except Exception:
   d.failures+=1;events.append(dict(error=traceback.format_exc()));print(traceback.format_exc(),flush=True)
-  try:
-   if d.p and d.p.poll()is None:capture('failure')
+  try:do('exit')
   except Exception:pass
  finally:
   subprocess.Popen=original_popen

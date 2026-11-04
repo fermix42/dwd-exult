@@ -11,7 +11,7 @@ try:
   check('earned pre-delivery stage '+str(stage),do('case_commission_state')['commission']['stage']==stage)
   if 6 in companion(1)['flags']:do('test_case_companion_start',npc=1);dismiss_iolo()
   do('test_case_breadcrumb_items',scenario=0);case=prepare_case();stones=inv(case)
-  mark(case,stones[0]['ref']);close_gumps();mark(case,stones[1]['ref']);close_gumps();acquire_third();close_gumps()
+  mark(case,stones[0]['ref']);close_gumps();mark(case,stones[1]['ref']);close_gumps();extract_case();acquire_third();close_gumps()
   check('both hints remain eligible before delivery at stage '+str(stage),q()['a_pending']and q()['b_pending']and not q()['a_done']and not q()['b_done']and do('case_commission_state')['commission']['stage']==stage)
   do('save',slot=2);do('load',slot=2);check('both pending states persist at stage '+str(stage),q()['a_pending']and q()['b_pending'])
  do('exit')

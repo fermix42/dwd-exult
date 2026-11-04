@@ -18,7 +18,7 @@ def config_values(path):
   for child in element:yield from walk(child,prefix+'/'+child.tag)
  return dict(walk(ET.parse(path).getroot(),'config'))
 
-states=['a-iolo','a-shamino','b-shamino','b-dupre','deferred-recruit','both-pending','delivered-silent']
+states=['a-iolo','a-shamino','b-shamino','b-dupre','deferred-recruit','both-pending','delivered-silent','already-organized']
 for profile,mod in [('bg',''),('keyring','Keyring')]:
  cfg=root/('exult-'+profile+'.cfg');before=config_values(cfg)
  for name in states:
@@ -33,12 +33,13 @@ for profile,mod in [('bg',''),('keyring','Keyring')]:
    gd=root/'gamedat/blackgate';sv=root/'saves/blackgate'
    if mod:gd=gd/'mods/Keyring';sv=sv/'mods/Keyring'
    check('canonical review gamedat',Path(at['gamedat_path']).resolve()==gd.resolve());check('canonical review saves',Path(at['save_path']).resolve()==sv.resolve())
-   check('load alone supplies no contextual opportunity',not q['a_context']and not q['b_context'])
-   if name.startswith('b-'):check('marked stones accessible in review party',q['marked_stones']==2)
+   check('load retains a natural startup delay',not q['natural_due'])
+   if name.startswith('b-'):check('marked stones accessible in review party',q['marked_stones']>=1)
    check('correct compiled Keyring selection',(at['overrides']>3)==bool(mod)and('Keyring'in at['patch_usecode_path'])==bool(mod))
    if name=='delivered-silent':
     check('terminal delivery with canceled hints',quest['stage']==5 and not q['a_pending']and not q['b_pending']);time.sleep(7);after=d.execute(dict(cmd='case_breadcrumbs_state'))['breadcrumbs'];check('no late speech in review profile',after['deliveries_since_load']==0)
    elif name=='deferred-recruit':check('pending before original recruitment',q['a_pending']and not q['a_done']and all(6 not in o['flags']for o in b['companions']))
+   elif name=='already-organized':check('organized stones require no handling',q['loose_colors']>=3 and q['marked_stones']>=1 and not q['case_owned']and q['a_pending']and q['b_pending'])
    elif name=='both-pending':check('both real opportunities retained',(q['a_pending']or q['a_done'])and q['b_pending'])
    else:
     hint=name[0];npc={'a-iolo':1,'a-shamino':3,'b-shamino':3,'b-dupre':4}[name]

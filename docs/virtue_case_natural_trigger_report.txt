@@ -1,0 +1,174 @@
+VIRTUE STONE CASE - STAGE E NATURAL COMPANION TRIGGERS
+PENDING HUMAN EDITORIAL AND GAMEPLAY ACCEPTANCE - November 4, 2026
+
+Starting HEAD: 21ff2f310fe2a147bc4acf17ac10a541ec8a8ae6
+Branch/worktree: codex/virtue-stone-case / exult-virtue-native
+The worktree was clean before this correction. Main exult-fork is unchanged/clean.
+No ultima7-modern, original game/mod data, audio, combat or unrelated work changes.
+
+The owner identified an event-only design flaw: already-organized/marked stones
+must suffice during ordinary play. Requiring inventory shuffling or another spell
+is removed. The previous 1,287-assertion report remains historical evidence; the
+coverage below updates obsolete event-only expectations and adds natural-state,
+sleep, multiple-speaker and case-ownership checks. Stage D remains accepted.
+
+EXACT CANDIDATES - UNCHANGED, NOT AUTOMATICALLY APPROVED
+A / Iolo: These stones are filling our packs!
+A / Shamino: Our packs are filling with stones.
+B / Shamino: Knowest thou where each stone leads?
+B / Dupre: Which stone leads where? I hope one leads to an inn!
+
+IMPLEMENTATION
+Production files: native_case_breadcrumbs.cc/.h and usecode/intrinsics.cc only.
+The old stone_interacted API/context timer is removed; successful MARK again calls
+the existing eligibility observer. No spell rule/effect/cost/targeting change.
+
+A preserves the existing minimum of three distinct original colors. They must be
+real stones carried loose by actual party members, recursively through ordinary
+containers. An owning case ancestor excludes seated stones. Physical identities
+are deduplicated; names/labels/artwork are not used as proof. All eight not required.
+B now requires one real party-held stone with a valid saved MARK destination,
+following the new specification's explicit one-stone minimum; this supersedes the
+previous two-marked-stone approximation. Coordinate/map/default rejection remains.
+No per-stone history metadata or reconstruction of absent historical stones.
+
+Eligibility is derived from current state on existing relevant observations and
+the existing ordinary game-minute transition. Before every delivery it is fully
+revalidated, including removal and nested case ownership. Previously pending stale
+flags cannot produce a line when the circumstances no longer exist. No per-frame
+inventory scan, new thread, random lottery, callback queue or generalized scheduler.
+
+A transient delay of at least ten engine seconds follows load/new qualification.
+The next safe ordinary game-minute update may speak, including during normal
+walking. A has priority when both can speak. Each update emits at most one line.
+The saved five-game-minute minimum AND a ten-engine-second gap separate subsequent
+remarks. Protected states can extend this. No fresh stone movement or spell is
+required, and no 15-second opportunity expiration remains. MARK can establish the
+state, but a MARK event is never a prerequisite. Existing saves work naturally.
+
+The original active/nearby/living/capable speaker selection remains: A Iolo then
+Shamino, B Shamino then Dupre. The module reuses Native Wait's read-only safety gate;
+only its party-action result can additionally qualify ordinary walking, after the
+remaining party protections are checked locally. Native Wait source/behavior is
+unchanged. Combat, dialogue, gumps, spellcasting/targeting, sleep, Native Wait,
+existing overhead text, faded transitions, scripts, incapacity, hostile proximity
+and other protected states remain blocked. No renderer/font/wrapping/duration edit.
+
+Any currently party-owned real case suppresses BOTH pending observations, including
+nested cases carried by a companion and cases present in older saves. The quest's
+DELIVERED state is permanently authoritative after dropping/transferring/losing the
+case. Commission/materials/building/ready alone do not suppress. A nonquest case
+uses existing current ownership: dropping it can restore still-valid, undelivered
+eligibility if no completed quest exists. No second acquisition history or quest
+flag assignment. Owning a case does not falsely mark either observation spoken.
+
+VSCH version 1 and the completion/cooldown fields remain byte-format compatible.
+Load resets transient pacing and reconstructs/revalidates pending conditions.
+Already completed remarks never repeat, even through another alternative speaker.
+Save before speech does not discard underlying state. Quest/case/stone/label
+serialization and existing loose-stone behavior remain unchanged.
+
+REAL-ENGINE VERIFICATION - SAME ORDINARY EXULT.EXE / SEMANTIC CLI
+No Computer Use, desktop input, GUI automation, hidden quest setters or internal
+chatter delivery calls. Main regression: old organized inventory, then actual
+bounded exploration with no stone moves or casts, delivered A. Old marked loose
+inventory delivered B without changing destinations or recasting. No instant
+load speech. Native third-color pickup/duplicates, actual original recruitment/
+dismissal, absent/distant speakers, one-time completions, save/load and cooldown
+were exercised. Multiple companions were gathered using normal paid MARK/RECALL,
+not NPC position or membership fixtures. The initial Recall setup did not use a
+displaced start; the corrected harness walks away and checks the actual return.
+
+Protected-state checks include real combat, original dialogue, inventory, ordinary
+MARK/RECALL targeting/cancellation, active overhead speech, Native Wait and an
+actual unoccupied inn bed. The bed put the Avatar to sleep; its native wake-time
+modal was held past ten seconds, then completed through native key handlers. Sleep
+advanced the actual calendar; normal feeding/waking play allowed the retained B.
+Actual case transfer to a companion backpack survived reload; dropping an earned
+case after transfer did not revive hints. Real quest delivery/48-hour waiting and
+all accepted spell/label/renderer suites were rerun.
+
+All final runs below PASS, zero failures, normal shutdown:
+Suite                                                               BG   KR
+Natural old-save A/B, thresholds, speakers, stale state, cooldown  66  67
+Protected contexts, spells, expiry-free eligibility, ownership     33  34
+Natural B/both/already-organized fixture preparation                9   9
+Multiple nearby companion priorities via normal MARK/RECALL        28  29
+Actual bed sleep, native wake-time choice and normal wake          12  12
+Case transfer/nesting, save/load, dropping earned case              8   8
+Original Stage D commission dialogue                               26  26
+Earned commission/material/building eligibility                    51  51
+Permanent delivered suppression and completed flags                51  51
+Original Stage D transactions                                      37  37
+48-hour construction, physical handoff, pickup/persistence         34  35
+Blocked tabletop and recovery                                       9   9
+MARK/RECALL costs/requirements/effects/cancellation                42  42
+SDL keyboard/text events, labels, loose MARK, persistence          79  79
+Shared overhead layout/pages/edges                                114 113
+Natural native Iolo Point1                                          7   7
+Natural native Iolo Point2                                          7   7
+
+Final regression totals: BG 613; Keyring 616.
+Launcher smoke: 86 assertions across 16 combinations (eight states/profile).
+TOTAL: 1315 passing assertions, ZERO final failures.
+
+Earlier failed attempts remain in verification-summary.json and raw transcripts:
+27 failed/diagnostic runs, 39 recorded failure events. These include walking too far
+from a stationary fixture companion, occluded inventory/world drag targets, selecting
+a stone in a closed companion inventory, a ground stone hidden behind the dropped
+case, stale references after load, looking for a companion-held case in Avatar-only
+inspection, sleep prompt acknowledgement/custom-key setup, and pending observation
+before a paused clock had rescanned case removal. A real native save supplied that
+observation before sleeping; no internal observer/flag call was used. Diagnostic
+bed probes with no assertions or canceled modals are failures, not certified sleep
+passes. All corrected final runs above passed; no gameplay safeguard was weakened.
+
+Build: C:/Codex/Ultima7 Decomp/test-output/natural-chatter-build.log
+Executable SHA256: 7c5c121e17e369eeec752f7072077bc9fc258e1d18fc40e58c6a040e4cc14ad7
+
+The ordinary build embeds starting revision 21ff2f310 plus dirty status. Its exact
+production source hashes are recorded in the updated review provenance and match
+the focused source subsequently committed. Existing compiler/manifest/dependency
+copy warnings remain; compile/link and engine runtime verification succeeded.
+
+PRESERVATION AND REVIEW
+127 protected tracked resource/core files match baseline Git content; checkout
+line endings are accounted for. Accepted effects.cc/.h and cli_world.cc/cli_driver.cc
+also have raw hashes identical to the accepted renderer provenance. Native Wait,
+Stage D source, physical case/art, label and spell implementation remain unchanged
+apart from the MARK observer call described above. Protected main worktree is clean.
+
+Review root:
+C:/Codex/Ultima7 Decomp/test-output/virtue-stage-e-final/human-review
+
+Play BG.cmd -> Enter defaults to 8, already-organized. Close saved-open gumps, walk
+normally or pause near the active companion. Touch no stone and cast no spell.
+The state contains three loose colors, real saved marked destinations, an active
+Shamino, no owned case, a quest not yet completed and both hints pending. A naturally
+speaks first, B later under the minimum separation. Play Keyring.cmd is equivalent.
+The nearby empty case is a labeled disposable fixture left during real extraction;
+normal pickup before the next line tests ownership suppression. State 7 tests the
+real earned permanent-delivery branch. Full per-state instructions are in HUMAN-TEST.
+
+All seven original checkpoints for both profiles and earlier contextual overlays
+are retained. New prepared-natural overlays for B/both plus already-organized use
+native extraction/drop of original real objects, without changing destinations,
+completion flags or quest flags. Current human saves/gamedat/configs and .cmd files
+are preserved. A full pre-change backup and hash manifest are retained in evidence.
+The executable, Python menu, instructions and provenance are updated. The menu was
+smoke-tested via exact executable/configuration/launcher paths in an isolated clone,
+so the current human game was not reset. skip_intro=yes remains; no opening-state,
+Petre/Finnigan scheduling or fixture correction. Twelve new actual engine screenshots
+cover all four lines in BG/Keyring Point2 plus natural Iolo at Point1/Point2. They
+are visual evidence separate from human acceptance.
+
+LIMITS / ACCEPTANCE
+Human evaluation of naturalness, voice, reading comfort, pacing and unobtrusiveness
+is still required. Not every story cutscene, hostile arrangement or protection-state
+combination has a dedicated live scenario; shared protections were inspected and
+representative states tested. Physical keyboard/IME behavior remains human testing;
+SDL event queue/handler regressions passed. Nonquest case suppression intentionally
+tracks current ownership, not unknowable prior acquisition history. No merge, tag,
+packaging, release, push, publication or final acceptance.
+
+Evidence root: C:/Codex/Ultima7 Decomp/test-output/natural-chatter-20261104

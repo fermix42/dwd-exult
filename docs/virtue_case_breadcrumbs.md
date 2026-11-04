@@ -1,6 +1,48 @@
-# Virtue Stone Case — Stage E implementation candidate
+# Stage E natural companion observations - current candidate
 
-**PENDING HUMAN EDITORIAL AND GAMEPLAY ACCEPTANCE � November 4, 2026.**
+**PENDING HUMAN EDITORIAL AND GAMEPLAY ACCEPTANCE.** The owner corrected the
+previous event-only design after identifying that ordinary organized inventory
+should suffice. The four short candidates remain exact; Stage D remains accepted.
+Starting branch `codex/virtue-stone-case`, HEAD
+`21ff2f310fe2a147bc4acf17ac10a541ec8a8ae6`.
+
+Current eligibility is revalidated once per existing game-minute update, plus the
+existing inventory/MARK/load/save observations. A retains three distinct original
+colors carried loose through ordinary nested party containers; seated stones are
+excluded. B now requires one real stone with a valid saved destination, following
+the new explicit minimum. No fresh collection, drag or spell is required.
+
+A ten-engine-second startup/new-eligibility delay and existing five-game-minute
+cooldown provide bounded natural pacing. Normal walking and quiet play can deliver
+one line per update, with at least ten engine seconds before another. Protected
+states defer; they never consume an unspoken completion. No random scheduling or
+short event expiration. Pending flags are derived from current conditions; expired
+circumstances cannot generate stale lines. The saved VSCH format is unchanged.
+
+Any current real case owned by the party suppresses both hints, including nested
+cases and older saves. Permanent quest delivery remains authoritative after loss
+of the case. An alternate nonquest case uses current ownership only; no second
+acquisition history is added. A merely commissioned/building/ready quest without
+case ownership does not suppress. The quest does not depend on companion chatter.
+
+Native Wait itself, Stage D, case art/interactions, spell requirements, labels,
+shared overhead renderer/duration and unrelated work remain untouched. The small
+breadcrumb-local travel gate permits normal walking while retaining the applicable
+party protections. No frame scans, new threads or generalized chatter system.
+
+Exact lines and full rules: [review text](virtue_case_breadcrumb_dialogue.txt).
+Current evidence: `docs/virtue_case_natural_trigger_report.txt`.
+
+---
+
+## Historical event-only refinement record (superseded)
+
+The following documents the earlier candidate and its real-engine verification.
+Its event-only requirements and case-ownership exception are superseded above.
+
+# Virtue Stone Case â€” Stage E implementation candidate
+
+**PENDING HUMAN EDITORIAL AND GAMEPLAY ACCEPTANCE — November 4, 2026.**
 Human gameplay testing demonstrated that the previously accepted remarks were too
 long for normal overhead speech. The owner authorized shorter lines and more
 contextual timing. The earlier November 3 editorial acceptance is historical;
@@ -40,7 +82,7 @@ unchanged. Fresh BG/Keyring real-engine evidence and preservation details are in
 
 Before successful case delivery, A latches after the active party holds at least
 three different original Virtue
-Stone colors (shape 330, frames 0–7). Three objects of only two colors do not qualify.
+Stone colors (shape 330, frames 0â€“7). Three objects of only two colors do not qualify.
 B uses the owner's expressly approved approximation: two distinct currently
 party-held native Virtue Stone objects with valid saved MARK destinations suffice,
 including existing saves. Re-marking one object cannot count twice; two physical
@@ -73,7 +115,7 @@ delay hints; the player need not hear them to discover or commission the case.
 A has priority when both can speak. A saved five-game-minute minimum cooldown and
 existing-text guard separate the two remarks. Each is completed only once.
 
-## Post-delivery suppression — VERIFIED
+## Post-delivery suppression â€” VERIFIED
 
 The previous candidate did **not** guarantee suppression after delivery. The narrow
 correction exposes the quest's existing persistent `DELIVERED` state through a

@@ -1,17 +1,17 @@
 """Private Stage E review launcher; restores earned, isolated checkpoints."""
 import argparse,pathlib,shutil,subprocess
-p=argparse.ArgumentParser();p.add_argument('--profile',choices=['BG','Keyring'],required=True);p.add_argument('--state',choices=['a-iolo','a-shamino','b-shamino','b-dupre','deferred-recruit','both-pending','delivered-silent']);p.add_argument('--continue',dest='resume',action='store_true');p.add_argument('--prepare-only',action='store_true');a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--profile',choices=['BG','Keyring'],required=True);p.add_argument('--state',choices=['a-iolo','a-shamino','b-shamino','b-dupre','deferred-recruit','both-pending','delivered-silent','already-organized']);p.add_argument('--continue',dest='resume',action='store_true');p.add_argument('--prepare-only',action='store_true');a=p.parse_args()
 root=pathlib.Path(__file__).resolve().parent
 def owned(relative):
     path=(root/relative).resolve();assert path.is_relative_to(root)and path!=root;return path
 if not a.state and not a.resume:
-    states=['a-iolo','a-shamino','b-shamino','b-dupre','deferred-recruit','both-pending','delivered-silent']
+    states=['a-iolo','a-shamino','b-shamino','b-dupre','deferred-recruit','both-pending','delivered-silent','already-organized']
     print('Disposable companion breadcrumb review: BG / original Keyring')
     for i,state in enumerate(states,1):print(str(i)+': '+state)
-    print('C: continue current review game. Selecting 1-7 resets only this review profile.')
-    choice=input('Start [1]: ').strip().lower()or'1'
+    print('C: continue current review game. Selecting 1-8 resets only this review profile.')
+    choice=input('Start [8, already-organized]: ').strip().lower()or'8'
     if choice=='c':a.resume=True
-    elif choice in ['1','2','3','4','5','6','7']:a.state=states[int(choice)-1]
+    elif choice in ['1','2','3','4','5','6','7','8']:a.state=states[int(choice)-1]
     else:raise SystemExit('Unknown choice.')
 result=subprocess.run(['tasklist','/FI','IMAGENAME eq Exult.exe','/FO','CSV','/NH'],capture_output=True,text=True)
 if '"Exult.exe"'in result.stdout:raise SystemExit('Close Exult before restoring a review checkpoint.')
@@ -21,6 +21,8 @@ if not a.resume:
     fixture=owned('prepared/'+profile+'/'+a.state)
     contextual=owned('prepared-context/'+profile+'/'+a.state)
     if contextual.is_dir():fixture=contextual
+    natural=owned('prepared-natural/'+profile+'/'+a.state)
+    if natural.is_dir():fixture=natural
     assert(fixture/'gamedat/identity').is_file()and(fixture/'exult08bg.sav').is_file()
     gd.mkdir(parents=True,exist_ok=True);sv.mkdir(parents=True,exist_ok=True)
     for entry in gd.iterdir():

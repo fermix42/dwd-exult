@@ -1,46 +1,59 @@
-VIRTUE STONE CASE — STAGE E CONTEXTUAL CHATTER REVIEW
-PENDING HUMAN EDITORIAL AND GAMEPLAY ACCEPTANCE — November 4, 2026
+VIRTUE STONE CASE - STAGE E NATURAL COMPANION OBSERVATIONS
+PENDING HUMAN EDITORIAL AND GAMEPLAY ACCEPTANCE - November 4, 2026
 
-Human gameplay testing demonstrated that the previously accepted remarks were too
-long for normal overhead speech. The owner authorized shorter lines and more
-contextual timing. This reopens only these four Stage E remarks and their timing;
-Stage D Xanthia/William dialogue remains accepted and unchanged.
+A / Iolo (preferred): These stones are filling our packs!
+A / Shamino (fallback): Our packs are filling with stones.
+B / Shamino (preferred): Knowest thou where each stone leads?
+B / Dupre (fallback): Which stone leads where? I hope one leads to an inn!
 
-A — Iolo (preferred): These stones are filling our packs!
-A — Shamino (fallback): Our packs are filling with stones.
-B — Shamino (preferred): Knowest thou where each stone leads?
-B — Dupre (fallback): Which stone leads where? I hope one leads to an inn!
+These exact four candidates are unchanged. Stage D remains accepted and unchanged.
+Human testing first authorized shorter lines for transient overhead speech. The
+owner then corrected the event-only design: companions must notice circumstances
+organically, without requiring inventory shuffling or repeated spellcasting.
 
-A eligibility: at least three distinct original Virtue Stone colors held by the
-party, including nested containers. Once observed, eligibility remains pending.
-A context: actual addition of an individual real stone to party inventory,
-including a native pickup or drag between inventory locations, or successful MARK.
+A: at least three distinct original Virtue Stone colors carried loose by the active
+party, including ordinary nested containers. Real stones inside a case are excluded.
+This retains the established three-color threshold; all eight are never required.
+B: at least ONE distinct real party-held stone with a valid saved MARK destination,
+as explicitly required by the new specification. Labels do not establish marking.
+The prior two-marked-stone approximation is superseded by this one-stone minimum.
+No historical per-stone metadata. Original stone identity/destination checks remain.
 
-B eligibility: two distinct party-held real stones with valid saved MARK
-destinations. This approved approximation includes existing saves; it does not
-reconstruct all historical casts. No per-stone history metadata is introduced.
-B context: successful MARK, or a later native pickup/inventory move of a marked
-stone. Unmarked stones and moving a container alone do not provide B context.
-A context likewise requires the individual stone, not moving its whole container.
+Natural delivery: existing ordinary game-minute updates revalidate current inventory
+and quest state. Eligibility is sufficient; no new stone action is needed. A short
+startup delay of at least ten engine seconds follows load or newly qualifying
+circumstances. Then the next safe minute transition may deliver one observation.
+Normal walking and quiet pauses qualify. No random chance can defer it indefinitely.
+A remains preferred when both observations can speak. Five game minutes AND ten
+engine seconds separate subsequent lines. Blocked states may extend these delays.
 
-Opportunities last 15 seconds of normal engine ticks, permit brief deferral, and
-are discarded on load. Close gumps promptly and stand quietly near the speaker.
-Combat, conversations, protected sequences, gumps and other existing safety gates
-still defer speech. Expiration retains eligibility for the next relevant action.
-One delivery consumes both current opportunities: a single action cannot queue two
-remarks. The second requires another relevant action and the existing minimum
-five game minutes since the first. Recasting spells is never required: moving a
-marked stone suffices. Loading, recruitment, unrelated inventory moves, failed MARK
-and elapsed cooldown alone do not supply context.
+No 15-second event deadline remains. Successful MARK updates eligibility through
+its existing hook, but neither MARK nor inventory movement is required. Loading an
+older save with organized/marked stones works without changing them. Current state
+is revalidated before speaking: dropping all stones removes eligibility, rather than
+preserving stale requests. A deferred observation remains possible while its actual
+conditions remain true. No speech request queue and no new permanent flags.
 
-Pending/completed bits and cooldown retain the existing VSCH version 1 format.
-Older saves acquire eligibility on observation but need a fresh relevant action.
-Completed hints never repeat. Actual completed-case delivery permanently suppresses
-pending hints; commission/construction alone does not. No stone destinations,
-spell requirements, original conversations or accepted renderer rules change.
+Only actual active, nearby, living, capable party members speak. Existing safety
+gates protect combat, conversations, gumps, spellcasting, sleep, Native Wait,
+transitions, overhead text and other protected conditions. The Native Wait service
+is unchanged; the breadcrumb module additionally permits ordinary walking after
+checking the remaining party safety conditions. Shared renderer/duration unchanged.
 
-Original companion dialogue was inspected for voice: Iolo's friendly observations,
-Shamino's practical phrasing and Dupre's established inn/ale humor support these
-exact owner candidates. All four stay ordinary incidental overhead speech.
-Automation checks placement and state; reading comfort, voice, contextual feel and
-unobtrusiveness require the owner's human review. No automatic editorial approval.
+Case suppression: any real case currently owned by the party (also nested or in old
+saves) suppresses BOTH observations. Quest DELIVERED is authoritative and permanent,
+even after dropping/losing the case. Commission/construction/ready alone do not
+suppress. For a nonquest case, current ownership is derived from existing inventory;
+dropping it can restore undelivered eligibility if no completed quest exists. No
+second acquisition history or fabricated quest completion is introduced.
+
+VSCH version 1 pending/completed bits and saved cooldown remain compatible. Completed
+remarks never repeat through another companion or after save/load. Pending bits are
+reconstructed/revalidated on load and periodic updates, not treated as historical
+proof after the underlying conditions disappear. Startup pacing is transient.
+
+Human review: Play BG.cmd -> 8, already-organized (the default). Close any saved-open
+gumps and walk normally or pause near companions. Touch no stone. A may speak after
+the startup/safety gates; B later, respecting the separation. Read HUMAN-TEST.md.
+Assess reading comfort, voice, naturalness and unobtrusiveness. Automated engine
+assertions and screenshots do not establish human editorial/gameplay acceptance.
