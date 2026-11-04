@@ -1,0 +1,180 @@
+DWD EXULT — SHARED OVERHEAD SPEECH CORRECTION
+November 3, 2026. Branch codex/virtue-stone-case; baseline bcec574dad1f4461ae1e13e688b71d13efb847e3.
+Implementation and automated/captured-frame verification; human gameplay acceptance pending.
+
+CONFIRMED CAUSE AND CHANGE
+The former Text_effect renderer took the actor's sprite rectangle but transformed
+pos.x + TEXT_width/2 as its anchor, then subtracted half the scaled text width.
+At matching scales this simply left-aligned the whole line at the actor's left
+edge. Font0 was measured as one unwrapped line, with no viewport placement guard.
+Different world/text scales further displaced the anchor. The diagnostic PNGs
+confirmed this for both the accepted Iolo line and ordinary original NPC chatter.
+
+The correction is in effects.cc/effects.h, shared by Game_object::say and original
+Usecode item_say through Effects_manager::add_text. There is no actor ID, game/mod,
+case, or dialogue-string branch in production layout. No font, palette, gump,
+conversation, NPC schedule, camera-control or persistent gameplay rules change.
+
+Text_effect::update_layout projects the speaker's actual sprite bounds to display
+pixels using existing game_to_screen (including camera scroll and elevation). It
+centers the measured text block over that rectangle and separates it vertically
+from the sprite. If there is insufficient space above, it tries below. Final
+placement is clamped inside the projected game-content rectangle, intersected with
+the display, with a small margin. Letterbox space outside game content is excluded.
+Contained-item rectangles are projected from gump UI coordinates, keeping those
+separate from world pixels. Absolute-coordinate text remains position based.
+
+Text_effect::wrap_lines measures candidates with the same Shape_manager font0
+width API used for painting, including its horizontal leading and final glyph
+ink overhang. Width is derived from the visible game area divided by the configured
+text-effect scale, with padding reserved. Word boundaries are preferred; a word
+that alone exceeds the available width splits by measured glyph advances. There
+is no character-count wrapping rule. Newline/CRLF and the existing '~' paragraph
+convention are recognized; blank lines are retained. Text/punctuation is not
+rewritten. Each line is centered within the resulting block. Layout is cached
+until its available logical width changes, while projected anchoring is refreshed
+on every paint. Old/new display bounds are converted back to game dirty bounds.
+Layer resizing, transparency, z order and cleanup continue through existing APIs.
+
+A message taller than the viewport uses consecutive overhead pages, retaining all
+lines. Each page receives the existing ten-event timeout. This extends lifetime
+only for an otherwise unrepresentable multi-page message; ordinary one-page
+messages, including all four accepted companion remarks, retain the original
+speech-duration rule. No portrait, box, speech bubble, new input owner or keyboard
+action is introduced. An extreme configured text scale is reduced only if one
+glyph plus padding cannot fit; normal tested scales are preserved. Impossible
+physical displays cannot guarantee subjective legibility, but content is not
+silently discarded. Extremely long pages' reading pace remains a human concern;
+no general speech-duration redesign is claimed or authorized by this fix.
+
+DIAGNOSTICS AND FOCUSED TESTS
+text_effects reads the actual most-recent production layout (display viewport,
+projected anchor/destination, font-layer dimensions, scale, lines/widths and page
+state). It does not calculate a second test layout. test_overhead is a scoped CLI
+rendering fixture: fixed original/approved sample messages, real existing actors,
+and camera-only positioning. It never assigns actor positions, frames, schedules,
+party membership or quest flags. Neither command is enabled in normal gameplay.
+Protocol details are in docs/test_cli_protocol.md; overhead_checks.py exercises
+real initialized BG/Keyring through the same ordinary Exult.exe.
+
+Checks include short centered speech, all four verbatim companion lines, metric
+word wrapping, left/right/top/bottom and two corner positions, camera movement of
+the SAME effect, different real actor sizes, explicit breaks/blank paragraphs,
+long unbroken words, full containment and page coverage/cleanup. Petre/Finnigan
+positions, frames and schedules are asserted unchanged by the camera fixtures.
+No introduction was replayed and skip_intro=yes was retained.
+
+LAYOUT RESULTS (zero failures, normal engine cleanup)
+- Final 640x400 / 2x BG, including multi-page fallback: 113 assertions.
+- Final 640x400 / 2x Keyring, including multi-page fallback: 113 assertions.
+- 640x400 / 1x: 93 assertions.
+- 1440x800 display with 640x400 world/text: 91 assertions; actual content viewport
+  x=80,width=1280, and speech remains inside it rather than using the sidebars.
+- 320x200 world, 640x400 text: 90 assertions (different world/text scale).
+- 640x400 world, 320x200 text: 90 assertions (larger text, scale4 versus world2).
+- Actual earned Iolo breadcrumb delivery at 1x and 2x: 6 assertions each, including
+  actual speaker, unchanged text, rendered bounds and wrapped-content retention.
+An exploratory first layout run made redundant per-poll page assertions (361);
+the final suite validates each distinct page once (113), preserving page coverage.
+The first build failed on a test-observer helper name; it was corrected before
+successful builds/tests. There were no reported layout assertion failures.
+
+EXISTING GAMEPLAY REGRESSIONS
+All final gameplay suites passed with zero failures and normal cleanup:
+Suite                                BG       Keyring
+Companion breadcrumbs                81       83
+Post-delivery suppression             50       50
+Pre-delivery eligibility              48       48
+Accepted Stage D dialogue             26       26
+MARK/RECALL requirements/effects       42       42
+Labels/input/persistence              79       79
+Review launcher/checkpoint integrity  29       29
+
+The breadcrumb suite's six optional checkpoint-export assertions were not invoked:
+regenerating those fixtures is explicitly prohibited. Its 81 original gameplay
+assertions remain, plus two conditional normal food-use checks in this Keyring
+run (earlier runs needed three). All seven existing checkpoints instead underwent
+separate launcher integrity checks in an untouched-state disposable clone.
+No existing accepted assertion or gameplay branch is removed or weakened. The required profiles remain ordinary
+BG and the installed original Keyring. Tests retain normal spell costs/restrictions,
+real original companion recruitment, earned quest handoffs and native SDL label
+input. Run names are fixed-breadcrumb/post/pre/stage-d/spells/labels-{bg,keyring},
+with independent result.json and semantic logs under the evidence root. Test setup
+and all writes are isolated from player and review profiles.
+
+CAPTURED-FRAME EVIDENCE
+Root: C:/Codex/Ultima7 Decomp/test-output/overhead-fix-20261103
+- runs/native-iolo-1x/native-iolo-breadcrumb.png
+- runs/native-iolo-2x/native-iolo-breadcrumb.png
+  These are actual Stage E callbacks from copied, unchanged a-iolo checkpoints.
+  The whole accepted line is visible, wrapped above the actual projected speaker.
+- runs/before-1x and before-2x: before-center/left/right/top/bottom.png and
+  before-original-chatter.png.
+- runs/after-1x and after-2x: corresponding after-center/left/right/top/bottom.png
+  and after-original-chatter.png.
+  These matched comparison fixtures move only the camera around the same actual
+  actors and use the same sample text. The ordinary NPC example replays the exact
+  original Petre remark through normal say rendering; the opening remains skipped.
+- runs/final-layout-bg-2x and final-layout-keyring-2x contain actual all-speaker,
+  edge/corner, scroll, paragraph, long-word, different-actor and multi-page frames.
+- runs/layout-letterbox, layout-world-320 and layout-large-text retain the
+  alternative-coordinate/viewport screenshots and layout JSON.
+The pre-fix rendering comparison was compiled through the SAME ordinary executable
+workflow and shared build tree, temporarily restoring the original bcec574d
+paint_to_layer body while retaining camera-only test instrumentation. It is an
+original-render-path comparison, not a pristine-upstream binary comparison.
+The corrected source was then restored and built before final checks. Exact
+provenance is in before-comparison-provenance.json and the build logs. The original
+private review executable remained untouched throughout these builds/captures.
+The earlier diagnostic's untouched baseline actual Iolo/chatter frames remain
+under test-output/npc-speech-diagnosis-20261103 for independent confirmation.
+
+Captured frames were inspected directly for centering when space permits, complete
+wrapping, left/right bounds, below-speaker placement at the top edge, above-speaker
+placement at the bottom edge, and stale/overlapping old text after movement. These
+are real renderer PNGs, not desktop screenshots or composed mockups. Layout tests
+supply geometric evidence; frame inspection supplies visual evidence. Neither
+constitutes the owner's ordinary human gameplay acceptance or an endorsement of
+the unchanged reading duration. Dedicated lifted-actor and every scaler/aspect-mode
+combination were not exercised; native projection is retained, and practical Point/
+Fit, alternate world/text sizes and letterboxing were checked.
+
+HUMAN REVIEW / PRESERVATION
+The owner continues at:
+C:/Codex/Ultima7 Decomp/test-output/virtue-stage-e-final/human-review/Play BG.cmd
+Choose 1 (a-iolo), or C to continue the current review game. Reset a checkpoint
+only when intentionally replaying it. The seven original prepared states, their
+provenance, configs (including skip_intro=yes), launch scripts, current gamedat,
+saves, inventories, party membership and quest progress are preserved exactly.
+Updated speech-review instructions are supplied separately as OVERHEAD-REVIEW.txt;
+original HUMAN-TEST.md is preserved. A complete pre-update SHA-256 manifest is
+retained in review-before-sha256.json. Only the executable and its build provenance
+are refreshed, with a backup of the former executable outside the human folder.
+Required runtime DLLs are unchanged; the fix introduces no new runtime dependency.
+
+Launcher/checkpoint smoke checks run against a complete disposable CLONE of the
+review environment with the corrected ordinary executable, so automated checkpoint
+restoration cannot reset the owner's current review game. Both profiles and all
+seven states are checked through their existing launcher's prepare-only path and
+real engine configuration, with no desktop control. Source inspection/hash checks
+verify that the original Play BG.cmd still invokes its same local executable and
+restoration script. The installed human executable hash is verified separately.
+The existing human-review checkpoint files themselves were never regenerated.
+Final integrity result: 2,955 original files checked; all 2,520 prepared-checkpoint
+files, original configs, launchers, current gamedat, saves and checkpoint provenance
+are byte-identical. Only Exult.exe and BUILD-PROVENANCE.json changed; the separate
+OVERHEAD-REVIEW.txt was added. Evidence: review-update-verification.json.
+Executable SHA-256:
+2de55afc2fabb982317dca849cae18163116eca537f0e48f0091179b9e9f5a54.
+The corrected executable matched the one used for final tests. PE import lists
+are identical to the prior review executable (runtime-imports.json).
+
+Petre and Finnigan require no further work under the owner's decision. Their
+review states and all seven skip-intro scenarios are intentionally preserved.
+Stage D and Stage E editorial acceptance remain unchanged. Stage E overhead
+readability, natural timing and final gameplay remain PENDING HUMAN ACCEPTANCE.
+Only BG human visual review is requested; Keyring is covered automatically unless
+a specific configuration-dependent problem is subsequently demonstrated.
+
+No merge, tag, publication, release package, release integration or unrelated
+feature work is performed. The correction remains on the isolated case branch.

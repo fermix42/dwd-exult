@@ -353,7 +353,103 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
         }
         return "\"category\":\"test_setup\",\"synthetic_food_inventory\":true";
     }
-    if(op=="test_case_companion_start") {
+	if (op == "text_effects") {
+		auto rect = [](const TileRect& r) {
+			return "{\"x\":" + std::to_string(r.x) + ",\"y\":" + std::to_string(r.y) + ",\"w\":" + std::to_string(r.w)
+				   + ",\"h\":" + std::to_string(r.h) + "}";
+		};
+		std::ostringstream out;
+		out << "\"category\":\"inspection\",\"effects\":[";
+		bool comma = false;
+		for (const auto& effect : w->get_effects()->get_text_effects()) {
+			if (comma) {
+				out << ',';
+			}
+			comma            = true;
+			const auto& l    = effect->get_layout();
+			auto        item = effect->get_item();
+			out << "{\"text\":" << cli_quote(effect->get_message()) << ",\"item\":" << (item ? reference(item.get()) : 0)
+				<< ",\"viewport\":" << rect(l.viewport) << ",\"anchor\":" << rect(l.anchor)
+				<< ",\"destination\":" << rect(l.destination) << ",\"scale\":" << l.scale << ",\"width\":" << l.width
+				<< ",\"height\":" << l.height << ",\"line_height\":" << l.line_height << ",\"page\":" << l.page
+				<< ",\"pages\":" << l.pages << ",\"lines_per_page\":" << l.lines_per_page << ",\"lines\":[";
+			for (size_t i = 0; i < l.lines.size(); ++i) {
+				if (i) {
+					out << ',';
+				}
+				out << cli_quote(l.lines[i]);
+			}
+			out << "],\"line_widths\":[";
+			for (size_t i = 0; i < l.line_widths.size(); ++i) {
+				if (i) {
+					out << ',';
+				}
+				out << l.line_widths[i];
+			}
+			out << "]}";
+		}
+		out << ']';
+		return out.str();
+	}
+	if (op == "test_overhead") {
+		player_ready(input);
+		auto object = resolve(x);
+		int  edge;
+		in >> edge;
+		if (!object->as_actor() || edge < 0 || edge > 7 || y < -2 || y > 8) {
+			throw std::runtime_error("invalid_overhead_fixture");
+		}
+		if (y == -2) {
+			w->get_effects()->remove_text_effects();
+			w->center_view(a->get_tile());
+			return "\"category\":\"test_setup\",\"speech_cleared\":true";
+		}
+		auto      center = object->get_tile();
+		const int halfw = w->get_width() / (2 * c_tilesize), halfh = w->get_height() / (2 * c_tilesize);
+		if (edge == 1 || edge == 6) {
+			center.tx += halfw - 2;
+		}
+		if (edge == 2 || edge == 7) {
+			center.tx -= halfw - 2;
+		}
+		if (edge == 3 || edge == 6) {
+			center.ty += halfh - 2;
+		}
+		if (edge == 4 || edge == 7) {
+			center.ty -= halfh - 2;
+		}
+		if (edge == 5) {
+			center.tx += 3;
+			center.ty += 2;
+		}
+		w->center_view(center);
+		w->get_map()->read_map_data();
+		w->set_all_dirty();
+		// No actor movement, flags, party membership or schedule changes.
+		if (y >= 0) {
+			static const char* samples[] = {
+					"@'Tis horrible!@",
+					"These stones are quite a collection, my friend. Finding one in our packs is becoming an adventure of its own!",
+					"We are gathering quite a collection of stones. I hope we can still find what we need in our packs.",
+					"I hope thou rememberest where each of these stones will take us. I would rather not find out by surprise.",
+					"Which stone takes us where, Avatar? I should hate to arrive somewhere unexpected when I meant to find an inn.",
+					"First line.\nSecond line.\n\nFinal paragraph."};
+			std::string text;
+			if (y < 6) {
+				text = samples[y];
+			} else if (y == 6) {
+				text = std::string(200, 'W') + "!";
+			} else if (y == 7) {
+				for (int i = 0; i < 90; ++i) {
+					text += "Line " + std::to_string(i) + ": all words remain visible.\n";
+				}
+			}
+			w->get_effects()->remove_text_effects();
+			object->say(text.c_str());
+		}
+		return "\"category\":\"test_setup\",\"synthetic_speech\":true,\"camera_only_fixture\":true";
+	}
+	if(op=="test_case_companion_start") {
         player_ready(input);if(!GAME_BG || (x!=1 && x!=3 && x!=4))throw std::runtime_error("invalid_companion_fixture");
         auto* npc=w->get_npc(x);if(npc->get_map_num()!=a->get_map_num())throw std::runtime_error("companion_fixture_map_mismatch");
         w->center_view(npc->get_tile());w->get_map()->read_map_data();

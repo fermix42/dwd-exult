@@ -1,0 +1,29 @@
+STAGE E — RESUME BG SPEECH REVIEW
+
+C:\Codex\Ultima7 Decomp\test-output\virtue-stage-e-final\human-review\Play BG.cmd
+
+The review executable now contains the shared overhead-speech rendering correction.
+The seven original checkpoints, save files, private settings and skip_intro=yes
+are preserved. No NPC schedules or dialogue were repaired or changed.
+
+1. Close Exult, double-click Play BG.cmd and choose 1 (a-iolo) to replay Iolo.
+   Choose C instead if you want to continue your existing review game.
+2. Stand still until Iolo speaks. Check that the complete original remark wraps
+   and stays visible. Its font/color and ordinary timeout remain unchanged.
+3. Repeat the same checkpoint if needed to read the transient message again.
+   Selecting a checkpoint resets only the selected disposable review profile's
+   current game and prepared slot 8, as it did before this rendering correction.
+4. The other six original options remain available for fallback speakers, deferred
+   speech, five-game-minute spacing and silence after delivery. Original HUMAN-TEST.md
+   still describes their gameplay. S opens normal save/load; I opens inventory.
+
+Please assess readable wrapping, clear association with the speaker, natural
+placement while walking/scrolling, edge placement, and whether the original timing
+is satisfactory. Automatic multi-page fallback is only for unusually huge messages
+that cannot fit vertically; normal accepted companion remarks fit a single page.
+No modern speech bubble, portrait or dialogue window was added.
+
+Petre's and Finnigan's skip-intro fixture behavior is accepted for this review and
+is not part of this fix. All four Stage E lines and Stage D dialogue remain final.
+Human gameplay acceptance is still pending. Keyring has automated coverage; you
+are not required to repeat the human visual review in Keyring.

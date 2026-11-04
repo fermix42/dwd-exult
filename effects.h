@@ -30,6 +30,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <vector>
 
 class Xform_palette;
 class PathFinder;
@@ -71,7 +72,12 @@ public:
 	void remove_usecode_lightning();
 	int  get_weather();                  // Get # of last weather added.
 	bool has_active_sprites() const;     // Any sprite anims playing?
-	bool has_text_effects() const { return !texts.empty(); }
+	bool has_text_effects() const { return !texts.empty();
+	}
+
+	const std::list<std::unique_ptr<Text_effect>>& get_text_effects() const {
+		return texts;
+	}
 	void set_sprites_always(bool tf);    // Set/clear 'always' on sprites.
 	void paint();                        // Draw all sprites/proj./weather.
 	void paint_text();                   // Draw text.
@@ -228,20 +234,35 @@ public:
  *  of seconds.  These are all kept in a single list, and managed by
  *  Game_window.
  */
+// The last production layout, in display pixels except font/line dimensions.
+// Exposed read-only for renderer diagnostics; no alternate layout implementation.
+struct Text_effect_layout {
+	TileRect                 viewport, anchor, destination;
+	float                    scale = 1;
+	int                      width = 0, height = 0, line_height = 0, page = 0, pages = 1, lines_per_page = 1;
+	std::vector<std::string> lines;
+	std::vector<int>         line_widths;
+};
+
 class Text_effect : public Time_sensitive, public Game_singletons {
 	Game_window*     gwin;
 	std::string      msg;     // What to print.
 	Game_object_weak item;    // Item text is on.  May be null.
 	Tile_coord       tpos;    // Position to display it at.
 	TileRect         pos;
-	short            width, height;    // Dimensions of rectangle.
+	int              width, height;    // Dimensions of rectangle.
 	int              num_ticks;        // # ticks passed.
 	// Each text snippet is drawn onto its own layer so it can be scaled
 	// by the text-effect UI size while staying anchored over its object.
 	int      text_layer = -1;
 	int      layer_w    = 0;
 	int      layer_h    = 0;
-	void     add_dirty();
+	Text_effect_layout layout;
+	int                wrap_width = -1;
+	void               wrap_lines(int max_width);
+	void               update_layout();
+	void               dirty_display_rect(const TileRect& rect);
+	void               add_dirty();
 	void     init();
 	void     free_layer();    // Destroy this text's layer.
 	TileRect Figure_text_pos();
@@ -254,6 +275,18 @@ public:
 	// Render (legacy direct paint into the current target).
 	virtual void paint();
 	void         paint_to_layer();
+
+	const Text_effect_layout& get_layout() const {
+		return layout;
+	}
+
+	const std::string& get_message() const {
+		return msg;
+	}
+
+	std::shared_ptr<Game_object> get_item() const {
+		return item.lock();
+	}
 
 	// Check for matching item.
 	bool is_text(Game_object* it) {

@@ -43,6 +43,9 @@
 #include "ucmachine.h"
 #include "weaponinf.h"
 
+#include <algorithm>
+#include <cmath>
+
 #ifdef __GNUC__
 #	pragma GCC diagnostic push
 #	pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -1036,10 +1039,23 @@ TileRect Text_effect::Figure_text_pos() {
  *  Add dirty rectangle for current position.
  */
 
+void Text_effect::dirty_display_rect(const TileRect& rect) {
+	if (rect.w <= 0 || rect.h <= 0) {
+		return;
+	}
+	int   x1, y1, x2, y2;
+	auto* win = gwin->get_win();
+	win->screen_to_game(rect.x - 2, rect.y - 2, false, x1, y1);
+	win->screen_to_game(rect.x + rect.w + 2, rect.y + rect.h + 2, false, x2, y2);
+	gwin->add_dirty(gwin->clip_to_win(TileRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1)));
+}
+
 void Text_effect::add_dirty() {
-	// Repaint slightly bigger rectangle.
-	const TileRect rect(pos.x - c_tilesize, pos.y - c_tilesize, width + 2 * c_tilesize, height + 2 * c_tilesize);
-	gwin->add_dirty(gwin->clip_to_win(rect));
+	if (layout.destination.w > 0) {
+		dirty_display_rect(layout.destination);
+	} else {
+		gwin->add_dirty(gwin->clip_to_win(pos));
+	}
 }
 
 /**
@@ -1054,7 +1070,7 @@ void Text_effect::init() {
 	add_dirty();    // Force first paint.
 	// Start immediately.
 	gwin->get_tqueue()->add(Game::get_ticks(), this);
-	if (msg[0] == '@') {
+	if (!msg.empty() && msg[0] == '@') {
 		msg[0] = '"';
 	}
 	const int len = msg.size();
@@ -1098,11 +1114,17 @@ void Text_effect::handle_event(
 		uintptr       udata       // Ignored.
 ) {
 	ignore_unused_variable_warning(curtime, udata);
-	if (++num_ticks == 10) {    // About 1-2 seconds.
-		// All done.
-		add_dirty();
-		eman->remove_text_effect(this);
-		return;
+	if (++num_ticks == 10) {    // Preserve the existing timeout for each visible page.
+		if (layout.page + 1 < layout.pages) {
+			++layout.page;
+			num_ticks = 0;
+			add_dirty();
+		} else {
+			// All done.
+			add_dirty();
+			eman->remove_text_effect(this);
+			return;
+		}
 	}
 	// Back into queue.
 	gwin->get_tqueue()->add(Game::get_ticks() + gwin->get_std_delay(), this);
@@ -1160,57 +1182,167 @@ void Text_effect::paint() {
  *  size and anchored over the object so it stays in place as the size option
  *  changes the glyph size.
  */
+// Word wrapping is confined to overhead effects. Measure every candidate with
+// the same font used to paint it. Long words split only when no word boundary fits.
+void Text_effect::wrap_lines(int max_width) {
+	if (wrap_width == max_width) {
+		return;
+	}
+	wrap_width = max_width;
+	layout.lines.clear();
+	std::string line, spaces;
+	auto        measure = [this](const std::string& text) {
+        return sman->get_text_width(0, text.c_str());
+	};
+	auto flush = [&]() {
+		layout.lines.push_back(line);
+		line.clear();
+		spaces.clear();
+	};
+	for (size_t at = 0; at < msg.size();) {
+		const char c = msg[at];
+		if (c == '\n' || c == '\r' || c == '~') {
+			flush();
+			++at;
+			if (c == '\r' && at < msg.size() && msg[at] == '\n') {
+				++at;
+			}
+		} else if (c == ' ' || c == '\t') {
+			spaces += c == '\t' ? "    " : " ";
+			++at;
+		} else {
+			const size_t start = at;
+			while (at < msg.size() && msg[at] != ' ' && msg[at] != '\t' && msg[at] != '\n' && msg[at] != '\r' && msg[at] != '~') {
+				++at;
+			}
+			std::string word = msg.substr(start, at - start);
+			if (!line.empty() && measure(line + spaces + word) > max_width) {
+				flush();
+			}
+			if (!line.empty()) {
+				line += spaces;
+			}
+			spaces.clear();
+			for (char letter : word) {
+				if (!line.empty() && measure(line + letter) > max_width) {
+					flush();
+				}
+				line += letter;
+			}
+		}
+	}
+	flush();
+	layout.line_widths.clear();
+	for (const auto& text : layout.lines) {
+		layout.line_widths.push_back(measure(text));
+	}
+}
+
+void Text_effect::update_layout() {
+	auto*      win = gwin->get_win();
+	const auto old = layout.destination;
+	pos            = Figure_text_pos();
+	int x1, y1, x2, y2;
+	win->game_to_screen(0, 0, false, x1, y1);
+	win->game_to_screen(gwin->get_width(), gwin->get_height(), false, x2, y2);
+	// Only actual game content, intersected with the visible display (letterbox safe).
+	layout.viewport
+			= TileRect(x1, y1, x2 - x1, y2 - y1).intersect(TileRect(0, 0, win->get_display_width(), win->get_display_height()));
+	auto object = item.lock();
+	if (object && gwin->get_gump_man()->find_gump(object.get())) {
+		// Contained-item bounds are in the gump UI's coordinates, not world pixels.
+		const auto kind = Image_window::UiLayerGumps;
+		const int  uw = std::max(1, win->get_ui_width(kind)), uh = std::max(1, win->get_ui_height(kind));
+		SDL_FRect  frame;
+		win->compute_ui_layer_dest(uw, uh, frame, kind);
+		x1 = static_cast<int>(frame.x + pos.x * frame.w / uw);
+		y1 = static_cast<int>(frame.y + pos.y * frame.h / uh);
+		x2 = static_cast<int>(frame.x + (pos.x + pos.w) * frame.w / uw);
+		y2 = static_cast<int>(frame.y + (pos.y + pos.h) * frame.h / uh);
+	} else {
+		win->game_to_screen(pos.x, pos.y, false, x1, y1);
+		win->game_to_screen(pos.x + pos.w, pos.y + pos.h, false, x2, y2);
+	}
+	layout.anchor     = TileRect(x1, y1, x2 - x1, y2 - y1);
+	constexpr int pad = 4, ink_overhang = 2;    // Font0 has horizontal leading -2.
+	const int     font_height = sman->get_text_height(0);
+	layout.line_height        = sman->get_text_line_height(0) + 2;
+	float scale               = win->get_ui_scale_factor(Image_window::UiLayerTextEffects);
+	// In a degenerate viewport, a single glyph must still fit without truncation.
+	int widest = 1;
+	for (char c : msg) {
+		widest = std::max(widest, sman->get_text_width(0, &c, 1));
+	}
+	scale = std::min(
+			scale, std::min(
+						   std::max(1, layout.viewport.w - 4) / static_cast<float>(widest + 2 * pad + ink_overhang),
+						   std::max(1, layout.viewport.h - 4) / static_cast<float>(font_height + 2 * pad)));
+	layout.scale          = scale;
+	const int available_w = std::max(1, static_cast<int>(std::floor((layout.viewport.w - 4) / scale)));
+	const int available_h = std::max(1, static_cast<int>(std::floor((layout.viewport.h - 4) / scale)));
+	wrap_lines(std::max(1, available_w - 2 * pad - ink_overhang));
+	layout.lines_per_page = std::max(1, (available_h - 2 * pad - font_height) / layout.line_height + 1);
+	layout.pages        = std::max(1, (static_cast<int>(layout.lines.size()) + layout.lines_per_page - 1) / layout.lines_per_page);
+	layout.page         = std::min(layout.page, layout.pages - 1);
+	const int first     = layout.page * layout.lines_per_page;
+	const int count     = std::min(layout.lines_per_page, static_cast<int>(layout.lines.size()) - first);
+	int       max_width = 0;
+	for (int i = first; i < first + count; ++i) {
+		max_width = std::max(max_width, layout.line_widths[i]);
+	}
+	width = layout.width = max_width + 2 * pad + ink_overhang;
+	height = layout.height = font_height + (count - 1) * layout.line_height + 2 * pad;
+	const int dw           = std::max(1, static_cast<int>(std::ceil(width * scale)));
+	const int dh           = std::max(1, static_cast<int>(std::ceil(height * scale)));
+	int       left         = object ? x1 + (x2 - x1 - dw) / 2 : x1;
+	int       top          = object ? y1 - dh - static_cast<int>(std::ceil(2 * scale)) : y1;
+	if (object && top < layout.viewport.y + 2) {
+		top = y2 + static_cast<int>(std::ceil(2 * scale));
+	}
+	left = std::clamp(left, layout.viewport.x + 2, std::max(layout.viewport.x + 2, layout.viewport.x + layout.viewport.w - dw - 2));
+	top  = std::clamp(top, layout.viewport.y + 2, std::max(layout.viewport.y + 2, layout.viewport.y + layout.viewport.h - dh - 2));
+	layout.destination = TileRect(left, top, dw, dh);
+	if (old != layout.destination) {
+		dirty_display_rect(old);
+		add_dirty();
+	}
+}
+
 void Text_effect::paint_to_layer() {
-	const int w = width;
-	const int h = height;
-	if (w <= 0 || h <= 0) {
+	update_layout();
+	if (width <= 0 || height <= 0) {
 		return;
 	}
-	Image_window* iwin = gwin->get_win();
-	if (!iwin) {
-		return;
-	}
-	// (Re)create the layer if missing or the text size changed.
-	if (text_layer < 0 || layer_w != w || layer_h != h) {
+	if (text_layer < 0 || layer_w != width || layer_h != height) {
 		if (text_layer >= 0) {
 			gwin->destroy_layer(text_layer);
-			text_layer = -1;
 		}
-		text_layer = gwin->create_layer("Text effect", w, h, 255, 0, text_effect_layer_z);
+		text_layer = gwin->create_layer("Text effect", width, height, 255, 0, text_effect_layer_z);
 		if (text_layer < 0) {
 			return;
 		}
 		gwin->layer_set_ui_kind(text_layer, Image_window::UiLayerTextEffects);
-		layer_w = w;
-		layer_h = h;
+		layer_w = width;
+		layer_h = height;
 	}
 	gwin->layer_set_z(text_layer, text_effect_layer_z);
-
-	Image_buffer8* lbuf = gwin->get_layer_ibuf(text_layer);
-	if (!lbuf) {
+	auto* buffer = gwin->get_layer_ibuf(text_layer);
+	if (!buffer) {
 		return;
 	}
-	lbuf->clear_clip();
-	lbuf->fill8(255);    // Fully transparent.
-	Image_buffer8* prev = gwin->push_render_target(lbuf);
-	// Paint the text at the layer's local origin.
-	const char* ptr = msg.c_str();
-	const int   len = strlen(ptr);
-	sman->paint_text(0, ptr, len, 0, 0);
-	gwin->pop_render_target(prev);
+	buffer->clear_clip();
+	buffer->fill8(255);
+	auto*     previous = gwin->push_render_target(buffer);
+	const int first    = layout.page * layout.lines_per_page;
+	const int end      = std::min(first + layout.lines_per_page, static_cast<int>(layout.lines.size()));
+	for (int i = first; i < end; ++i) {
+		// Center each measured line; leave room for the last glyph's ink overhang.
+		sman->paint_text(0, layout.lines[i].c_str(), (width - layout.line_widths[i] - 2) / 2, 4 + (i - first) * layout.line_height);
+	}
+	gwin->pop_render_target(previous);
 	gwin->layer_set_dirty(text_layer);
-
-	// Scale by the text-effect UI size and centre over the same game point the
-	// text occupies, so the label stays anchored over its object.
-	const float f = iwin->get_ui_scale_factor(Image_window::UiLayerTextEffects);
-	int         csx;
-	int         csy;
-	iwin->game_to_screen(pos.x + w / 2, pos.y + h / 2, false, csx, csy);
-	const float dw = static_cast<float>(w) * f;
-	const float dh = static_cast<float>(h) * f;
-	const int   dx = static_cast<int>(static_cast<float>(csx) - dw / 2.0f);
-	const int   dy = static_cast<int>(static_cast<float>(csy) - dh / 2.0f);
-	gwin->layer_set_dest(text_layer, dx, dy, static_cast<int>(dw), static_cast<int>(dh));
+	const auto& r = layout.destination;
+	gwin->layer_set_dest(text_layer, r.x, r.y, r.w, r.h);
 	gwin->layer_set_visible(text_layer, true);
 }
 

@@ -151,6 +151,8 @@ class Driver:
   if op=='aim_object':return self.raw(op,int(c['ref']))
   if op=='test_case_extra':return self.raw(op)
   if op=='spellbook_cast':return self.raw(op,int(c['ref']),int(c['spell']))
+  if op=='test_overhead':return self.raw(op,int(c['ref']),int(c.get('scenario',0)),int(c.get('edge',0)))
+  if op=='text_effects':return self.raw(op)
   if op=='test_case_companion_start':return self.raw(op,int(c['npc']))
   if op=='test_case_breadcrumb_items':return self.raw(op,int(c.get('scenario',0)))
   if op=='test_case_spell_setup':return self.raw(op,int(c.get('scenario',0)))

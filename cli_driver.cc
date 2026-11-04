@@ -318,15 +318,23 @@ namespace {
             min = 0; max = 1; // Optional full renderer capture, without guard-band cropping.
         } else if (op == "test_calendar" || op == "drop_item") {
             min = max = 4;
-        } else if (op == "move_gump") {
-            min = max = 3;
-        } else if (op == "transfer_item") {
-            min = 2; max = 4; // Optional destination-gump-local drop coordinates.
-        } else if (op == "ready_inventory") {
-            min = max = 2;
-        } else if (op == "test_light_item" || op == "test_remove_fuel_receiver" || op == "test_stall" || op == "test_equipment" || op == "test_stale_event_metadata" || op == "test_legacy_clock" || op == "test_time_rate" || op == "test_temporary_effect" || op == "native_wait" || op == "inspect_inventory" || op == "interact_inventory" || op == "inspect_usecode" || op == "test_case_commission_items" || op == "test_case_companion_start" || op == "test_case_breadcrumb_items" || op == "test_case_spell_setup" || op == "text_character" || op == "aim_object") {
-            min = max = 1;
-        } else if (op == "key" || op == "move" || op == "interact" || op == "click" || op == "control_at" || op == "target_at" || op == "spellbook_cast") {
+		} else if (op == "move_gump" || op == "test_overhead") {
+			min = max = 3;
+		} else if (op == "transfer_item") {
+			min = 2; max = 4; // Optional destination-gump-local drop coordinates.
+		} else if (op == "ready_inventory") {
+			min = max = 2;
+		} else if (
+				op == "test_light_item" || op == "test_remove_fuel_receiver" || op == "test_stall" || op == "test_equipment"
+				|| op == "test_stale_event_metadata" || op == "test_legacy_clock" || op == "test_time_rate"
+				|| op == "test_temporary_effect" || op == "native_wait" || op == "inspect_inventory" || op == "interact_inventory"
+				|| op == "inspect_usecode" || op == "test_case_commission_items" || op == "test_case_companion_start"
+				|| op == "test_case_breadcrumb_items" || op == "test_case_spell_setup" || op == "text_character"
+				|| op == "aim_object") {
+			min = max = 1;
+		} else if (
+				op == "key" || op == "move" || op == "interact" || op == "click" || op == "control_at" || op == "target_at"
+				|| op == "spellbook_cast") {
 			min = max = 2;
 		} else if (op == "find_objects" || op == "find_actors" || op == "inspect_world") {
 			min = 2;
@@ -341,7 +349,11 @@ namespace {
 			max = 2;
 		} else if (
 				op != "state" && op != "ui_state" && op != "exit" && op != "continue" && op != "dismiss" && op != "combat"
-				&& op != "test_exposure" && op != "test_orb_chart_item" && op != "test_virtue_case" && op != "test_virtue_case_labels" && op != "test_case_commission_food" && op != "test_case_commission_start" && op != "case_breadcrumbs_state" && op != "case_commission_state" && op != "case_spell_state" && op != "test_case_extra" && op != "test_jawbone_items" && op != "wait_eligibility" && op != "controls" && op != "screenshot" && op != "quit_prompt" && op != "movement_status") {
+				&& op != "test_exposure" && op != "test_orb_chart_item" && op != "test_virtue_case"
+				&& op != "test_virtue_case_labels" && op != "test_case_commission_food" && op != "test_case_commission_start"
+				&& op != "text_effects" && op != "case_breadcrumbs_state" && op != "case_commission_state"
+				&& op != "case_spell_state" && op != "test_case_extra" && op != "test_jawbone_items" && op != "wait_eligibility"
+				&& op != "controls" && op != "screenshot" && op != "quit_prompt" && op != "movement_status") {
 			throw std::runtime_error("unknown_command");
 		}
 		std::vector<int> args;

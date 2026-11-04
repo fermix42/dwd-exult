@@ -369,3 +369,26 @@ It changes no NPC position, recruitment, schedule, quest or breadcrumb flags.
 Recruitment/dismissal still uses original conversations; sleeping NPCs require
 normal waiting. Fixture starts are not evidence of travel. All provisioning is
 available only in explicitly activated CLI tests, never ordinary gameplay.
+
+
+### Overhead speech rendering observations
+
+`text_effects` reads the most recently painted production `Text_effect` layout:
+original normalized `text`, actual `item` ref, `viewport`, projected sprite `anchor`,
+and `destination` in display pixels; logical font-layer `width`, `height`,
+`line_height`, measured `line_widths`, all wrapped `lines`, and `scale`, `page`,
+`pages`, `lines_per_page`. It does not lay out a parallel test model or generate
+speech. Call normal `screenshot full=true` when associating layout with a rendered
+frame. Layout is empty until the normal renderer has painted the effect.
+
+`test_overhead ref scenario edge` is an explicitly synthetic rendering fixture.
+It replays fixed original/accepted speech samples through the normal object `say`
+entry point and moves only the camera around a real actor. No actor is moved or
+rescheduled; no party, quest or game-clock state is assigned. Scenarios 0..4 are
+original short chatter and the four accepted companion lines; 5 explicit breaks,
+6 an oversized word, 7 a multi-page message, 8 empty text. Scenario -1 changes
+only the camera, retaining the same effect for scrolling checks; -2 clears effects
+and restores the camera to the Avatar. Edges 0..7 are center, left, right, top,
+bottom, a small scroll, top-left and bottom-right. Commands exist only in the
+explicit ordinary-engine test CLI. They are not gameplay options or a general
+input automation framework.
