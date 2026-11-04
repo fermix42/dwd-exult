@@ -88,7 +88,7 @@ Effects_manager::~Effects_manager() {
  *  @param item     Item text ID's, or null.
  */
 
-void Effects_manager::add_text(const char* msg, Game_object* item) {
+void Effects_manager::add_text(const char* msg, Game_object* item, bool character_speech) {
 	if (!msg) {    // Happens with edited games.
 		return;
 	}
@@ -104,7 +104,7 @@ void Effects_manager::add_text(const char* msg, Game_object* item) {
 
 	//	txt->paint(this);        // Draw it.
 	//	painted = 1;
-	texts.emplace_front(std::make_unique<Text_effect>(msg, item, gwin));
+	texts.emplace_front(std::make_unique<Text_effect>(msg, item, gwin, character_speech && item && item->as_actor()));
 }
 
 /**
@@ -1086,9 +1086,11 @@ void Text_effect::init() {
 Text_effect::Text_effect(
 		const string& m,       // A copy is made.
 		Game_object*  it,      // Item text is on, or null.
-		Game_window*  gwin_    // Back-reference to gwin from Effects_manager
+		Game_window*  gwin_,   // Back-reference to gwin from Effects_manager
+		bool character_speech
 		)
-		: gwin(gwin_), msg(m), item(weak_from_obj(it)), pos(Figure_text_pos()), num_ticks(0) {
+		: gwin(gwin_), msg(m), item(weak_from_obj(it)), pos(Figure_text_pos()), num_ticks(0),
+		  lifetime_ticks(character_speech ? gwin_->get_overhead_text_duration() / 10 : 10) {
 	init();
 }
 
@@ -1114,7 +1116,7 @@ void Text_effect::handle_event(
 		uintptr       udata       // Ignored.
 ) {
 	ignore_unused_variable_warning(curtime, udata);
-	if (++num_ticks == 10) {    // Preserve the existing timeout for each visible page.
+	if (++num_ticks == lifetime_ticks) { // Normal is exactly the original ten updates per page.
 		if (layout.page + 1 < layout.pages) {
 			++layout.page;
 			num_ticks = 0;

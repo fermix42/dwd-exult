@@ -1,0 +1,177 @@
+DWD EXULT - GLOBAL OVERHEAD TEXT DURATION IMPLEMENTATION REPORT
+Unpublished candidate. Human acceptance pending. No merge/tag/release/publication.
+
+Starting HEAD: 52a2bcd43db4ced8010ba9c1dd8dc3d1dbf51711
+Branch: codex/virtue-stone-case
+Implementation worktree: C:/Codex/Ultima7 Decomp/exult-virtue-native
+This existing isolated worktree preserves the accepted case baseline and leaves the
+main exult-fork release-preparation worktree unchanged. The feature is engine-wide;
+there is no case-, NPC-, line- or mod-specific duration setting or timing exception.
+
+ARCHITECTURE VERIFIED
+Effects_manager creates Text_effect for both speech and unrelated text. The actual
+accepted fork uses ++num_ticks == 10 in Text_effect::handle_event, per visible page.
+init queues the first event immediately, set_always(true) retains existing pause
+behavior, and later events requeue at Game::get_ticks()+get_std_delay(). Timing is
+in scheduled updates, not a new real-time service or game-calendar timer.
+
+Actor-backed Game_object::say and Usecode_internal::item_say share this effect.
+A call-site audit also found the original Avatar got_bad_feeling bark entering the
+manager directly. All three speech entry points now request the same global rule.
+Damage numbers and name labels also use Text_effect, so a simple optional speech
+argument at the existing factory distinguishes them. Positional/centered messages
+and non-actor object messages keep ten updates. Books, portrait conversations,
+tooltips and case labels use their original paths and remain unchanged.
+
+The manager's existing duplicate and Usecode replacement behavior is preserved.
+Explicit script replacement/manual clearing/scene cleanup can still end a bark
+before its automatic timeout, just as before. Longer timers do not override scripts.
+
+IMPLEMENTATION / OPTIONS / CONFIG
+One Game_window preference: config/gameplay/overhead_text_duration in exult.cfg.
+Supported integer percentages: 50,100,150,200,300. Strict missing/malformed/
+unsupported input defaults to 100; runtime validation has the same bounded choices.
+The preference does not write save-game state or alter any save format.
+
+Escape -> Game Display -> Overhead Text Duration (below Text Background).
+Existing cycling toggle, font and procedural Options style; no new settings window.
+Short (50%), Normal (100%, default), Longer (150%), Double (200%), Triple (300%).
+Left mouse cycles forward, native right mouse backward. In this display gump,
+Left/Right adjust this preference using the existing toggle callback; Enter saves,
+Escape cancels through normal modal handling. Other Options controls are unchanged.
+This is narrowly scoped keyboard support, not a general menu-navigation rewrite.
+OK/checkmark use existing save_settings/config->write_back; reopening shows the
+current value, and the saved preference applies to newly created speech immediately.
+
+A Text_effect captures lifetime_ticks at creation: 10*percent/100, implemented as
+percent/10 for the five exact supported values. Result: 5,10,15,20,30 callbacks per
+page. The default retains the original ten callbacks, the same first scheduling,
+subsequent cadence, counter/page transition, dirtying and destruction. No queue
+entry is added/rebuilt on a settings change. Visible text retains its captured timer,
+including later pages. No extra text-length or character-specific duration rule.
+
+Production files: effects.cc/.h, gamewin.cc/.h, objs/objs.cc, usecode/ucinternal.cc,
+gumps/GameDisplayOptions_gump.cc/.h. gumps/Text_button.h adds a read-only text getter
+for native-control observations. Accepted layout, wrapping, painting, tracking,
+positioning, init and cleanup regions compare byte-identical to baseline after
+normal checkout newline normalization (renderer-preservation.json). Only the timer
+predicate/factory/construction change inside Text_effect. No font/scaling edits.
+
+ADDITIONAL CHANGED FILES
+Adapters: cli_driver.cc, cli_world.cc, tools/test_cli/driver.py.
+Tests/review: tools/test_cli/speech_duration_checks.py,
+tools/test_cli/speech_companion_checks.py, tools/test_cli/speech_review_checks.py,
+tools/test_cli/start_speech_duration_review.py.
+Documentation: docs/test_cli_protocol.md, docs/overhead_text_duration.txt,
+docs/overhead_text_duration_report.txt.
+
+TEST ADAPTERS AND REAL ENGINE CHECKS
+Existing semantic controls gain native text labels and the active modal's native
+on_button hit testing for procedural buttons. Shape-only find_gump previously hid
+Options buttons from CLI despite normal modal mouse input working. Other layers
+remain unavailable; actual Options activation still traverses local SDL mouse events.
+Left/Right/Enter/Escape tests traverse SDL's ordinary queue and modal handlers.
+Read-only state/effect observations report validated percent and captured/elapsed ticks.
+
+The bounded test_text_lifetime fixture creates real speech through say, actor
+Usecode item_say and got_bad_feeling, plus non-speech actor/center notifications.
+It paints the native layer, temporarily suspends unrelated world queue entries,
+dispatches actual entries through Time_queue::activate_next, observes every callback
+and destruction, then restores the unchanged world queue. No direct timer-handler
+call, config-variable assignment, calendar/quest advancement or independent clock.
+This fixture and all automation are inactive in ordinary gameplay.
+
+At each percentage in BG, installed original Keyring and SI, tests check visibility
+before expiration, exact removal at the required update, one queued callback while
+alive, and zero afterward. All five values are chosen with native mouse/keyboard,
+reopened, applied and canceled. Other normalized configuration values are compared.
+Actual process relaunch restores Triple. Ten fresh startup runs check six malformed/
+unsupported values (0,-100,999,100garbage,150.0,garbage) and four valid nondefaults.
+Missing keys default to Normal in all three games. No original Usecode/data changed.
+
+Actual natural Iolo observations, not direct chatter calls, run at 100/200/300 in
+BG and Keyring. Old qualifying saves are loaded without moving stones or casting;
+the current global engine preference survives load, real speech captures 10/20/30,
+the exact candidate and physical inventory identities/locations are unchanged.
+BG/Keyring also verify an already-visible Triple bark retains 30 after selecting
+Short, new speech uses five, moving-actor attachment, and explicit scene cleanup.
+SI verifies all options/scopes/exact lifecycles and persistence; its original opening
+owns player control before the movement scenario, which is explicitly NOT TESTED
+there. No story flags, schedules or scene restrictions are bypassed to force it.
+
+RESULTS
+All selected runs PASS with zero failures and normal engine shutdown:
+Suite                                                     BG   Keyring   SI
+All choices/native Options/queue scope/lifetime           839     839   830
+Actual config relaunch                                     65      65    65
+Shared-config review smoke                                 68      66     2
+Natural companion at 100/200/300                           21      21     -
+Accepted overhead renderer/pages                          113     113     -
+MARK/RECALL requirements/costs/effects                     42      42     -
+SDL text/key/labels/persistence/loose MARK                 79      79     -
+Natural eligibility/speakers/one-time/cooldown             66      67     -
+Actual quest delivery/permanent suppression                51      51     -
+
+Additional BG constructor validation matrix: 310 assertions.
+TOTAL: 3894 passing assertions across 31 selected runs; ZERO final failures.
+Feature/lifecycle/persistence/companion/shared-review runs use the final binary.
+Retained default renderer/case/spell/label regressions ran before the final audit
+addition routing got_bad_feeling through the shared rule. Their exercised renderer,
+normal ten-update timing and case/gameplay paths are unchanged by that one call;
+the final binary explicitly retests the added bark at all percentages in all games.
+The evidence records each executable hash rather than claiming identical binaries.
+
+Earlier failed/uncertified diagnostics remain visible: 7 runs,
+9 recorded failure events. Two menu probes exposed the procedural-modal CLI
+hit-testing gap; a successful exploratory probe with no assertions is uncertified,
+not a PASS. Initial duration-selection tests mistakenly matched 50% inside 150%;
+exact choice matching corrected the harness. An SI movement attempt encountered
+the original protected opening and is recorded as untested in the final SI suite.
+A preflight Python syntax error in the private review script was corrected before
+execution. No gameplay safety gate or existing renderer assertion was weakened.
+
+PRESERVATION / BUILD
+233 protected audio/BG resource/native case/Native Wait/Orb/combat tracked files
+match baseline Git content. The accepted renderer algorithm regions are unchanged.
+No dialogue candidate, case art/identity/interaction, commission, spell requirement,
+label persistence, NPC schedule, original game data or ultima7-modern edit.
+Original Virtue review preservation manifest checks all 5,142 files byte-identical;
+this global feature has a separate private human review directory.
+
+Ordinary shared build: tools/virtue_case/build.ps1
+Build log: C:/Codex/Ultima7 Decomp/test-output/speech-duration-build-final.log
+Executable SHA256: a306eaa0c39c55598b7485c6ca52d5449a7cd44a9ef8f9ed678695972c6fe16f
+The build embeds starting revision 52a2bcd43 plus dirty working-tree status; exact
+production source hashes correspond to the focused source subsequently committed.
+Existing compiler/manifest/dependency-copy warnings remain; build/link and runtime
+checks succeeded. This is not a clean tagged release or distribution package.
+
+HUMAN REVIEW
+C:/Codex/Ultima7 Decomp/test-output/speech-duration-20261104/human-review
+Play BG.cmd, Play Keyring.cmd, Play SI.cmd use one shared exult.cfg and isolated,
+separate native save/gamedat paths. Normal is initially selected by a missing key.
+The private layout/common config was smoke-tested from staging with the exact
+binary and starter: BG chose Triple through native Options; Keyring and SI restored
+that same global value after actual relaunch. Final private copy starts fresh with
+Normal; no personal preference is overwritten. The .cmd/start script runs ordinary
+Exult without --test-cli. See HUMAN-TEST.txt for the full reproducible comparison.
+
+First BG/Keyring launch automatically restores an Iolo fixture if current gamedat
+is missing. Escape -> Game Display -> Overhead Text Duration -> Normal/Double/Triple
+-> OK. Observe new ordinary barks. R in the launcher restores the one-time Iolo
+branch while preserving exult.cfg, so the same line can be compared without debug
+commands, inventory manipulation or repeated spells. C continues review progress.
+The original review fixtures are explicitly disposable; no production provisioning.
+The package retains its source isolated UI/skip_intro/audio-disabled conventions;
+it is not a natural-opening, audio or physical-keyboard/IME certification.
+
+Fourteen actual-engine screenshots show native Options and speech at tested values.
+Frames were visually inspected for readable labels/placement. Static frames and
+assertions are separate from human evaluation of duration, comfort and clutter.
+Human acceptance remains pending. Existing explicit replacement can still clear
+speech early. Non-actor object messages intentionally remain outside this option.
+No exhaustive scenario for every original NPC/mod/cutscene is claimed; they share
+the audited engine entry points. No computer control or desktop automation used.
+No merge, tag, release, publication or final acceptance.
+
+Evidence root: C:/Codex/Ultima7 Decomp/test-output/speech-duration-20261104

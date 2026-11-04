@@ -909,7 +909,7 @@ void Usecode_internal::item_say(Usecode_value& objval, Usecode_value& strval) {
 		}
 		std::string translated(str);
 		translate_usecode_text(translated);
-		eman->add_text(translated.c_str(), obj);
+		eman->add_text(translated.c_str(), obj, obj->as_actor() != nullptr);
 	}
 }
 

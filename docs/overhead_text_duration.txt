@@ -1,0 +1,54 @@
+DWD EXULT - GLOBAL OVERHEAD TEXT DURATION
+Unpublished implementation candidate - human acceptance pending
+
+Menu: Escape / Options -> Game Display -> Overhead Text Duration
+Choices: Short (50%), Normal (100%), Longer (150%), Double (200%), Triple (300%).
+Normal is the default. Click to cycle forward; native right-click cycles backward.
+Inside Game Display, Left/Right adjust this preference, Enter saves all displayed
+options, and Escape cancels. The standard OK/CANCEL/checkmark behavior remains.
+
+Scope: overhead character speech through Game_object::say, Usecode item_say for
+actors, and the original Avatar bad-feeling bark. BG, Serpent Isle and conventional
+mods share the same engine preference. Companion and Virtue Stone observations
+use this rule automatically. No NPC, line, Usecode-function or mod timing overrides.
+
+Damage numbers, item-name labels, non-actor object messages, fixed/centered
+notifications, full portrait dialogue, books, tooltips and case labels retain their
+existing timing. These already have distinct entry points; no content heuristic or
+new text-classification subsystem was introduced. Existing duplicate/replacement
+rules remain unchanged.
+
+Config: config/gameplay/overhead_text_duration in exult.cfg.
+Supported integer percentages: 50, 100, 150, 200, 300. Missing, malformed or unsupported
+values use 100. Normal is not automatically changed on upgrade. The menu writes the
+preference through ordinary config saving; no save-game state or format changes.
+Use one config to share the value across games/mods, as in the private review build.
+
+Timing: the accepted Text_effect timeout was ten scheduled callbacks per visible
+page, with the first callback scheduled immediately and subsequent callbacks at
+get_std_delay(). Normal retains those exact ten callbacks, queue order, dirtying
+and cleanup. Other values use 5, 15, 20 or 30 callbacks per page. They scale the
+existing lifetime, not a new real-time clock. No extra length/character exceptions.
+Existing pause behavior, actor tracking, wrapping, viewport clipping, fonts, scale,
+layer cleanup and page handling are unchanged.
+
+A new speech effect captures its timer on construction. Applying a different
+preference affects subsequent speech; an existing effect keeps its captured timer,
+including its later pages. No active callback is canceled/rebuilt by the option.
+
+Automated verification uses the ordinary Exult.exe and existing semantic CLI/SDL
+queue. All choices are selected through native mouse and keyboard menu handlers,
+then reopened, applied, canceled and persisted across actual engine relaunches.
+A bounded test-only lifecycle fixture temporarily suspends unrelated world entries,
+dispatches genuine text entries through the normal Time_queue, and restores the
+untouched world queue. It does not call a Text_effect timer handler directly, add
+a second timing service, advance world/quest progress or assign the preference.
+Read-only observations expose captured/elapsed ticks and native text-button labels.
+
+Human review: see the separate global speech-duration review package's HUMAN-TEST.txt.
+The original Virtue Stone review environment is preserved. No computer control,
+visible desktop automation, merge, release or publication. Automated assertions and
+headless renderer frames do not establish human acceptance.
+
+Only automatic lifetime changes. Existing explicit script replacement, scene
+cleanup or manual removal may still clear speech sooner, exactly as before.

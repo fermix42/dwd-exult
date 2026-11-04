@@ -352,6 +352,9 @@ Game_window::Game_window(
 
 	string str;
 	config->value("config/gameplay/textbackground", text_bg, -1);
+	config->value("config/gameplay/overhead_text_duration", str, "100");
+	// Strict supported values: old/malformed configurations retain Normal.
+	set_overhead_text_duration(str == "50" ? 50 : str == "150" ? 150 : str == "200" ? 200 : str == "300" ? 300 : 100);
 	config->value("config/gameplay/mouse3rd", str, "no");
 	if (str == "yes") {
 		mouse3rd = true;
@@ -3326,7 +3329,7 @@ void Game_window::got_bad_feeling(int odds) {
 	if ((rand() % odds) == 0) {
 		const char* badfeeling = get_misc_name(GAME_BG ? 0x44 : 0x50);
 		effects->remove_text_effect(main_actor);
-		effects->add_text(badfeeling, main_actor);
+		effects->add_text(badfeeling, main_actor, true);
 	}
 }
 

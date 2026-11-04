@@ -56,7 +56,7 @@ public:
 
 	~Effects_manager();
 	// Add text item.
-	void add_text(const char* msg, Game_object* item);
+	void add_text(const char* msg, Game_object* item, bool character_speech = false);
 	void add_text(const char* msg, int x, int y);
 	void center_text(const char* msg);
 	void add_effect(std::unique_ptr<Special_effect> effect);
@@ -252,6 +252,7 @@ class Text_effect : public Time_sensitive, public Game_singletons {
 	TileRect         pos;
 	int              width, height;    // Dimensions of rectangle.
 	int              num_ticks;        // # ticks passed.
+	int              lifetime_ticks = 10; // Captured on creation, per visible page.
 	// Each text snippet is drawn onto its own layer so it can be scaled
 	// by the text-effect UI size while staying anchored over its object.
 	int      text_layer = -1;
@@ -268,13 +269,16 @@ class Text_effect : public Time_sensitive, public Game_singletons {
 	TileRect Figure_text_pos();
 
 public:
-	Text_effect(const std::string& m, Game_object* it, Game_window* gwin_);
+	Text_effect(const std::string& m, Game_object* it, Game_window* gwin_, bool character_speech = false);
 	Text_effect(const std::string& m, int t_x, int t_y, Game_window* gwin_);
 	// At timeout, remove from screen.
 	void handle_event(unsigned long curtime, uintptr udata) override;
 	// Render (legacy direct paint into the current target).
 	virtual void paint();
 	void         paint_to_layer();
+
+	int get_lifetime_ticks() const { return lifetime_ticks; }
+	int get_elapsed_ticks() const { return num_ticks; }
 
 	const Text_effect_layout& get_layout() const {
 		return layout;

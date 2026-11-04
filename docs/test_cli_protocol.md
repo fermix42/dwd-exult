@@ -393,3 +393,29 @@ and restores the camera to the Avatar. Edges 0..7 are center, left, right, top,
 bottom, a small scroll, top-left and bottom-right. Commands exist only in the
 explicit ordinary-engine test CLI. They are not gameplay options or a general
 input automation framework.
+
+
+### Global overhead speech preference verification
+
+`controls` additionally reports a native text-button `label`. The top modal is
+hit-tested through its actual `on_button` path, as native modal input does; this
+includes procedural Options buttons which have no shape hit mask. Underlying
+controls remain unavailable. `activate_control` still sends engine-local SDL
+mouse events for ordinary Options buttons. The existing `key` path sends native
+Left/Right/Enter/Escape events; no desktop input or preference setter is added.
+
+`state` reports `overhead_text_duration` (validated percent). `text_effects` includes
+read-only `lifetime_ticks` and `elapsed_ticks` for each real effect.
+
+`test_text_lifetime kind=N` is a bounded disposable lifecycle fixture: 0 uses
+character `say`, 1 direct actor notification/damage-style text, 2 centered
+notification, 3 actor Usecode `item_say`, 4 the original Avatar bad-feeling bark.
+It creates the genuine effect at the current preference, paints its native layer,
+temporarily suspends unrelated queue entries, and dispatches the effect's real
+entries through `Time_queue::activate_next`. It returns `limit`, `duration_percent`
+and per-update `samples` (step, alive, entries), including normal destruction.
+The untouched world queue is restored, including on exceptions. It never directly
+calls the timer handler, advances calendar/quest progress, assigns the preference,
+or installs another timing service. The command is unavailable in normal gameplay.
+Use the real Options controls to change duration. Existing renderer fixtures and
+ordinary natural companion gameplay separately verify actual visible speech.

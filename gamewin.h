@@ -144,6 +144,7 @@ class Game_window {
 	bool         mouse3rd;    // use third (middle) mouse button
 	bool         fastmouse;
 	bool         double_click_closes_gumps;
+	int          overhead_text_duration = 100; // Global character-speech percentage.
 	int          text_bg;                 // draw a dark background behind text
 	int          step_tile_delta;         // multiplier for the delta in start_actor_alt
 	int          allow_right_pathfind;    // If moving with right click is allowed
@@ -297,6 +298,14 @@ public:
 
 	void set_double_click_closes_gumps(bool d) {
 		double_click_closes_gumps = d;
+	}
+
+	int get_overhead_text_duration() const { return overhead_text_duration; }
+	void set_overhead_text_duration(int percent) {
+		switch (percent) {
+		case 50: case 100: case 150: case 200: case 300: overhead_text_duration = percent; break;
+		default: overhead_text_duration = 100; break;
+		}
 	}
 
 	int get_text_bg() const {

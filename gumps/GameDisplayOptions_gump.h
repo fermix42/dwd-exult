@@ -35,6 +35,7 @@ private:
 	bool                     sb_hide_missing;
 	std::vector<std::string> sc_outline_txt;
 	int                      text_bg;
+	int                      overhead_duration;
 	int                      smooth_scrolling;
 	bool                     usecode_intro;
 	bool                     extended_intro;
@@ -54,6 +55,7 @@ private:
 		id_sc_outline,
 		id_sb_hide_missing,
 		id_text_bg,
+		id_overhead_duration,
 		id_smooth_scrolling,
 		id_menu_intro,
 		id_usecode_intro,
@@ -105,6 +107,10 @@ public:
 	void toggle_sb_hide_missing(int state) {
 		sb_hide_missing = state;
 	}
+
+	bool key_down(SDL_Keycode chr, SDL_Keycode unicode) override;
+
+	void toggle_overhead_duration(int state) { overhead_duration = state; }
 
 	void toggle_text_bg(int state) {
 		text_bg = state;

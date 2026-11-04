@@ -369,6 +369,7 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
 			const auto& l    = effect->get_layout();
 			auto        item = effect->get_item();
 			out << "{\"text\":" << cli_quote(effect->get_message()) << ",\"item\":" << (item ? reference(item.get()) : 0)
+				<< ",\"lifetime_ticks\":" << effect->get_lifetime_ticks() << ",\"elapsed_ticks\":" << effect->get_elapsed_ticks()
 				<< ",\"viewport\":" << rect(l.viewport) << ",\"anchor\":" << rect(l.anchor)
 				<< ",\"destination\":" << rect(l.destination) << ",\"scale\":" << l.scale << ",\"width\":" << l.width
 				<< ",\"height\":" << l.height << ",\"line_height\":" << l.line_height << ",\"page\":" << l.page

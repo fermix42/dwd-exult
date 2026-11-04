@@ -4,6 +4,8 @@
 #include "cli_driver.h"
 
 #include "Configuration.h"
+#include "effects.h"
+#include "Text_button.h"
 #include "Gump.h"
 #include "Gump_button.h"
 #include "Gump_manager.h"
@@ -98,6 +100,54 @@ static bool cli_listener_active() {
 }
 
 struct CliDriver {
+    // A bounded lifecycle fixture, not a game clock or a direct timer callback.
+    // Suspend unrelated entries, dispatch genuine text entries through the normal
+    // Time_queue, then restore the untouched world queue in its existing order.
+    static std::string text_lifetime(int kind) {
+        if (kind < 0 || kind > 4) throw std::runtime_error("invalid_text_fixture");
+        auto* w = Game_window::get_instance();
+        auto* actor = w->get_main_actor();
+        auto* effects = w->get_effects();
+        effects->remove_text_effects();
+        if (kind == 0) actor->say("A quiet moment.");
+        else if (kind == 1) effects->add_text("18", actor);
+        else if (kind == 2) effects->center_text("A notification.");
+        else if (kind == 4) w->got_bad_feeling(1);
+        else {
+            Usecode_value object(actor), message("A quiet moment.");
+            dynamic_cast<Usecode_internal*>(w->get_usecode())->item_say(object, message);
+        }
+        w->paint();
+        auto* effect = effects->get_text_effects().front().get();
+        const int limit = effect->get_lifetime_ticks();
+        auto* queue = w->get_tqueue();
+        decltype(queue->data) suspended;
+        for (auto it = queue->data.begin(); it != queue->data.end();) {
+            auto current = it++;
+            if (current->handler != effect) suspended.splice(suspended.end(), queue->data, current);
+        }
+        std::ostringstream out;
+        out << "\"category\":\"test_setup\",\"normal_queue_dispatch\":true,\"limit\":" << limit
+            << ",\"duration_percent\":" << w->get_overhead_text_duration() << ",\"samples\":[";
+        try {
+            for (int step = 0; step <= limit; ++step) {
+                const bool alive = !effects->get_text_effects().empty();
+                if (step) out << ',';
+                int entries = 0;
+                for (const auto& e : queue->data) if (e.handler == effect) ++entries;
+                out << "{\"step\":" << step << ",\"alive\":" << alive << ",\"entries\":" << entries << '}';
+                if (step < limit) {
+                    uint32 deadline;
+                    if (!alive || !queue->next_deadline(deadline) || !queue->activate_next(deadline))
+                        throw std::runtime_error("text_lifecycle_fixture_stalled");
+                }
+            }
+        } catch (...) { queue->data.merge(suspended); throw; }
+        queue->data.merge(suspended);
+        out << "]";
+        return out.str();
+    }
+
     static std::string inspect_usecode(int number) {
         if (number < 0) throw std::runtime_error("invalid_function_id");
         auto* uc = dynamic_cast<Usecode_internal*>(Game_window::get_instance()->get_usecode());
@@ -199,6 +249,7 @@ struct CliDriver {
 							 : "")
 		  << ",\"faces\":" << c->get_num_faces_on_screen() << ",\"scripts\":" << Usecode_script::get_count()
 		  << ",\"si_first_scene\":" << uc->get_global_flag_bool(Usecode_machine::si_did_first_scene)
+		  << ",\"overhead_text_duration\":" << w->get_overhead_text_duration()
 		  << ",\"queue_entries\":" << w->get_tqueue()->data.size() << ",\"choices_active\":" << c->cli_choices_active()
 		  << ",\"choices\":[";
 		for (int i = 0; i < c->get_num_answers(); ++i) {
@@ -330,7 +381,7 @@ namespace {
 				|| op == "test_temporary_effect" || op == "native_wait" || op == "inspect_inventory" || op == "interact_inventory"
 				|| op == "inspect_usecode" || op == "test_case_commission_items" || op == "test_case_companion_start"
 				|| op == "test_case_breadcrumb_items" || op == "test_case_spell_setup" || op == "text_character"
-				|| op == "aim_object") {
+				|| op == "aim_object" || op == "test_text_lifetime") {
 			min = max = 1;
 		} else if (
 				op == "key" || op == "move" || op == "interact" || op == "click" || op == "control_at" || op == "target_at"
@@ -653,7 +704,10 @@ int cli_poll(bool input, void*) {
             Gump_button* b=nullptr;
             if (g && w->get_gump_man()->map_game_to_gump(g,x,y,lx,ly)) b=g->on_button(lx,ly);
             cli_reply(id,true,"\"category\":\"inspection\",\"action\":" + cli_quote(b?b->cli_action():""));
-		} else if (op == "controls" || op == "activate_control" || op == "dismiss") {
+		} else if (op == "test_text_lifetime") {
+            if (input || w->get_usecode()->in_usecode() || w->get_gump_man()->gump_mode()) throw std::runtime_error("player_control_owned");
+            cli_reply(id, true, CliDriver::text_lifetime(x));
+        } else if (op == "controls" || op == "activate_control" || op == "dismiss") {
 			std::ostringstream out;
 			out << "\"category\":\"inspection\",\"controls\":[";
 			bool  sep     = false;
@@ -678,7 +732,9 @@ int cli_poll(bool input, void*) {
 					for (int gx = win->get_start_x(); gx < win->get_start_x() + win->get_full_width(); ++gx) {
                         // A control under another Gump cannot receive this native
                         // click. Do not advertise/activate its occluded hit area.
-                        if (w->get_gump_man()->find_gump(gx, gy) != g) continue;
+                        // Native modal input is dispatched directly to the top modal,
+                        // including its procedural buttons (not shape hit masks).
+                        if (g != modal_owner && w->get_gump_man()->find_gump(gx, gy) != g) continue;
 						int lx, ly;
 						if (!w->get_gump_man()->map_game_to_gump(g, gx, gy, lx, ly)) {
 							continue;
@@ -702,6 +758,7 @@ int cli_poll(bool input, void*) {
 					out << "{\"id\":" << b->cli_identity() << ",\"available\":" << (!modal_owner || modal_owner == g)
 						<< ",\"action\":" << cli_quote(b->cli_action()) << ",\"gump_id\":" << g->cli_identity()
 						<< ",\"gump\":" << index << ",\"shape\":" << b->get_shapenum() << ",\"checkmark\":" << b->is_checkmark()
+						<< ",\"label\":" << cli_quote(dynamic_cast<Text_button*>(b) ? dynamic_cast<Text_button*>(b)->get_text() : "")
 						<< ",\"x\":" << (r.minx + r.maxx) / 2 << ",\"y\":" << (r.miny + r.maxy) / 2 << '}';
 					if ((!modal_owner || modal_owner == g)
 						&& ((op == "activate_control" && b->cli_identity() == static_cast<unsigned long long>(x))
