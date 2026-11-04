@@ -19,12 +19,18 @@
 #include <array>
 #include <bitset>
 #include <cstring>
+#include <cstdint>
 #include <set>
 #include <sstream>
 
 namespace {
 constexpr unsigned pending_a=1, done_a=2, pending_b=4, done_b=8;
 unsigned flags=0, next_minute=0;
+// Context is deliberately transient: loading a qualifying save is not an action.
+struct Opportunity { unsigned until=0; bool armed=false; } context_a, context_b;
+bool recent(const Opportunity& context) {
+    return context.armed && static_cast<std::int32_t>(context.until-Game::get_ticks())>0;
+}
 int last_npc=-1;
 unsigned deliveries=0;
 std::string last_text;
@@ -71,10 +77,10 @@ Actor* speaker(int primary,int fallback) {
 }
 }
 void Case_breadcrumbs::reset() {
-    flags=next_minute=deliveries=0;last_npc=-1;last_text.clear();map_valid.fill(0);
+    context_a={};context_b={};flags=next_minute=deliveries=0;last_npc=-1;last_text.clear();map_valid.fill(0);
 }
 void Case_breadcrumbs::observe() {
-    if(Case_commission::is_delivered()) { flags&=~(pending_a|pending_b);return; }
+    if(Case_commission::is_delivered()) { flags&=~(pending_a|pending_b);context_a={};context_b={};return; }
     if(!GAME_BG || ((flags&done_a) && (flags&done_b)))return;
     const auto items=inventory();
     if(items.colors>=3 && !(flags&done_a))flags|=pending_a;
@@ -83,10 +89,22 @@ void Case_breadcrumbs::observe() {
 void Case_breadcrumbs::inventory_added(Game_object* object) {
     if(!GAME_BG || !object || (!object->as_virtstone() && !object->as_container()))return;
     auto* owner=object->get_outermost()->as_actor();auto* w=Game_window::get_instance();
-    if(owner && (owner==w->get_main_actor() || owner->is_in_party()))observe();
+    if(owner && (owner==w->get_main_actor() || owner->is_in_party())) {
+        observe();
+        if(object->as_virtstone())stone_interacted(object);
+    }
+}
+void Case_breadcrumbs::stone_interacted(Game_object* object) {
+    if(!GAME_BG || Case_commission::is_delivered() || !object || !object->as_virtstone())return;
+    auto* w=Game_window::get_instance();auto* owner=object->get_outermost()->as_actor();
+    if(!owner || (owner!=w->get_main_actor() && !owner->is_in_party()))return;
+    observe();
+    const unsigned until=Game::get_ticks()+15000;
+    if(flags&pending_a)context_a={until,true};
+    if((flags&pending_b) && valid_destination(object->as_virtstone()))context_b={until,true};
 }
 void Case_breadcrumbs::minute() {
-    if(Case_commission::is_delivered()) { flags&=~(pending_a|pending_b);return; }
+    if(Case_commission::is_delivered()) { flags&=~(pending_a|pending_b);context_a={};context_b={};return; }
     if(!GAME_BG || !(flags&(pending_a|pending_b)))return;
     // Eligibility is latched by inventory, MARK, recruitment and load events.
     auto* w=Game_window::get_instance();
@@ -96,17 +114,19 @@ void Case_breadcrumbs::minute() {
        || w->get_main_actor()->get_casting_mode()!=Actor::not_casting
        || w->get_effects()->has_text_effects())return;
     Actor* npc=nullptr;unsigned pending=0,done=0;
-    if((flags&pending_a) && (npc=speaker(1,3))) {pending=pending_a;done=done_a;}
-    else if((flags&pending_b) && (npc=speaker(3,4))) {pending=pending_b;done=done_b;}
+    if((flags&pending_a) && recent(context_a) && (npc=speaker(1,3))) {pending=pending_a;done=done_a;}
+    else if((flags&pending_b) && recent(context_b) && (npc=speaker(3,4))) {pending=pending_b;done=done_b;}
     if(!npc)return;
     last_npc=npc->get_npc_num();
     if(pending==pending_a)last_text=last_npc==1
-        ? "These stones are quite a collection, my friend. Finding one in our packs is becoming an adventure of its own!"
-        : "We are gathering quite a collection of stones. I hope we can still find what we need in our packs.";
+        ? "These stones are filling our packs!"
+        : "Our packs are filling with stones.";
     else last_text=last_npc==3
-        ? "I hope thou rememberest where each of these stones will take us. I would rather not find out by surprise."
-        : "Which stone takes us where, Avatar? I should hate to arrive somewhere unexpected when I meant to find an inn.";
+        ? "Knowest thou where each stone leads?"
+        : "Which stone leads where? I hope one leads to an inn!";
     npc->say(last_text.c_str());flags=(flags&~pending)|done;
+    // One interaction supplies one remark, never a delayed two-line queue.
+    context_a={};context_b={};
     next_minute=now+5;++deliveries;
 }
 void Case_breadcrumbs::write(ODataSource* out) {
@@ -130,6 +150,7 @@ std::string Case_breadcrumbs::inspect() {
     const auto items=inventory();std::ostringstream out;
     out<<"{\"flags\":"<<flags<<",\"a_pending\":"<<bool(flags&pending_a)<<",\"a_done\":"<<bool(flags&done_a)
        <<",\"b_pending\":"<<bool(flags&pending_b)<<",\"b_done\":"<<bool(flags&done_b)
+       <<",\"a_context\":"<<recent(context_a)<<",\"b_context\":"<<recent(context_b)
        <<",\"colors\":"<<items.colors<<",\"marked_stones\":"<<items.marked<<",\"next_minute\":"<<next_minute
        <<",\"deliveries_since_load\":"<<deliveries<<",\"last_npc\":"<<last_npc<<",\"last_text\":\""<<last_text<<"\"}";
     return out.str();

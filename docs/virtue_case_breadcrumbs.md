@@ -1,14 +1,40 @@
 # Virtue Stone Case — Stage E implementation candidate
 
-**HUMAN EDITORIAL ACCEPTED — November 3, 2026.**
-All four remarks are final, including Shamino's original Breadcrumb B sentence.
-Owner-approved triggers and the two-distinct-party-held-marked-stones approximation
-are accepted. **PENDING HUMAN GAMEPLAY ACCEPTANCE:** overhead readability, natural
-timing/presentation and the final integrated in-game experience.
-Branch: `codex/virtue-stone-case`; accepted baseline: `786409bd587408c050164b03bd14592122a63459`.
-This candidate does not reopen Stage D acceptance or authorize a release.
-The owner approved the post-delivery correction below on November 3, 2026.
-Exact writing is grouped by speaker in [the editorial review file](virtue_case_breadcrumb_dialogue.txt).
+**PENDING HUMAN EDITORIAL AND GAMEPLAY ACCEPTANCE � November 4, 2026.**
+Human gameplay testing demonstrated that the previously accepted remarks were too
+long for normal overhead speech. The owner authorized shorter lines and more
+contextual timing. The earlier November 3 editorial acceptance is historical;
+these four new candidates require fresh editorial and gameplay review.
+Stage D remains accepted. Branch: `codex/virtue-stone-case`; renderer baseline:
+`85a4a4010fe6d1700831a056b2e2ffd63c832d02`. No release is authorized.
+Exact lines and trigger details: [editorial review](virtue_case_breadcrumb_dialogue.txt).
+
+## Contextual opportunity refinement
+
+Eligibility below remains latched and persistent. Delivery additionally requires a
+recent individual real-stone inventory addition (native pickup or inventory drag),
+or successful MARK. A accepts either; B requires the handled stone to have a valid
+saved destination. Moving a whole container observes eligibility but supplies no
+opportunity. Failed MARK, recruitment, load, unrelated inventory operations and
+elapsed cooldown never provide context. Double-clicking a stone alone is not
+intercepted; native drag/pickup and successful MARK are the small reliable hooks.
+
+Each opportunity expires after 15 seconds of normal engine ticks, allowing brief
+safe deferral while preventing stale chatter. It is not serialized: loading always
+requires a fresh action, including old saves already satisfying the threshold.
+Pending/completed bits and the saved five-game-minute minimum remain unchanged in
+VSCH version 1. Expiration never discards eligibility. A delivery consumes both
+current opportunities, so one handling action cannot queue both remarks; renew
+context with another relevant action after the five-game-minute separation.
+No repeated spell is required: moving a marked stone is sufficient.
+
+Only the breadcrumb module/header and the existing successful native MARK hook
+change production behavior. No broad interaction interceptor, frame scan, new
+per-stone metadata, conversation system, renderer exception or duration change.
+The shared corrected renderer is byte-identical to the baseline. Original Stage D,
+case art/interactions, spell requirements, loose-stone activation and labels remain
+unchanged. Fresh BG/Keyring real-engine evidence and preservation details are in
+`docs/virtue_case_chatter_refinement_report.txt`.
 
 ## Eligibility and delivery
 

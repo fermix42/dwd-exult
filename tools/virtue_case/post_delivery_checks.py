@@ -81,7 +81,7 @@ try:
  check('legacy completed quest suppresses freshly satisfied A and B triggers',q()['colors']==3 and q()['marked_stones']==2 and not q()['a_pending']and not q()['b_pending'])
  close_gumps();do('save',slot=5);do('load',slot=5);silence('legacy delivered suppression persists after new save')
  # Restore the earned pending/ready branch; speak both normally before handoff.
- do('load',slot=1);join(3);until('A spoken before second delivery branch',lambda:q()['a_done']);do('native_wait',minutes=5);until('B spoken before second delivery branch',lambda:q()['b_done'],35)
+ do('load',slot=1);join(3);touch(3,True);until('A spoken before second delivery branch',lambda:q()['a_done']);do('native_wait',minutes=5);touch(3,True);until('B spoken before second delivery branch',lambda:q()['b_done'],35)
  check('both actual spoken completions recorded',q()['a_done']and q()['b_done']);do('test_case_commission_start');collect_delivery();check('second branch really delivered',quest()['stage']==5);do('save',slot=6);do('load',slot=6);check('delivery preserves both prior spoken completion bits',q()['a_done']and q()['b_done']and not q()['a_pending']and not q()['b_pending']);do('exit')
 except Exception:
  d.failures+=1;events.append(dict(error=traceback.format_exc()));print(traceback.format_exc(),flush=True)

@@ -1,26 +1,46 @@
-VIRTUE STONE CASE — STAGE E FINAL DIALOGUE
-HUMAN EDITORIAL ACCEPTED — November 3, 2026
-November 3, 2026
+VIRTUE STONE CASE � STAGE E CONTEXTUAL CHATTER REVIEW
+PENDING HUMAN EDITORIAL AND GAMEPLAY ACCEPTANCE � November 4, 2026
 
-Breadcrumb A — Organizing the Virtue Stones
-Preferred: Iolo
-“These stones are quite a collection, my friend. Finding one in our packs is becoming an adventure of its own!”
+Human gameplay testing demonstrated that the previously accepted remarks were too
+long for normal overhead speech. The owner authorized shorter lines and more
+contextual timing. This reopens only these four Stage E remarks and their timing;
+Stage D Xanthia/William dialogue remains accepted and unchanged.
 
-Fallback: Shamino
-“We are gathering quite a collection of stones. I hope we can still find what we need in our packs.”
+A � Iolo (preferred): These stones are filling our packs!
+A � Shamino (fallback): Our packs are filling with stones.
+B � Shamino (preferred): Knowest thou where each stone leads?
+B � Dupre (fallback): Which stone leads where? I hope one leads to an inn!
 
-Breadcrumb B — Remembering destinations
-Preferred: Shamino
-“I hope thou rememberest where each of these stones will take us. I would rather not find out by surprise.”
+A eligibility: at least three distinct original Virtue Stone colors held by the
+party, including nested containers. Once observed, eligibility remains pending.
+A context: actual addition of an individual real stone to party inventory,
+including a native pickup or drag between inventory locations, or successful MARK.
 
-Fallback: Dupre
-“Which stone takes us where, Avatar? I should hate to arrive somewhere unexpected when I meant to find an inn.”
+B eligibility: two distinct party-held real stones with valid saved MARK
+destinations. This approved approximation includes existing saves; it does not
+reconstruct all historical casts. No per-stone history metadata is introduced.
+B context: successful MARK, or a later native pickup/inventory move of a marked
+stone. Unmarked stones and moving a container alone do not provide B context.
+A context likewise requires the individual stone, not moving its whole container.
 
-The quotation marks above delimit the exact spoken strings. Native overhead speech
-presents them without an added dialogue window, portrait or conversation topic.
-These optional observations give no directions and identify no case maker.
-Stage D's separately accepted Xanthia/William dialogue remains unchanged.
+Opportunities last 15 seconds of normal engine ticks, permit brief deferral, and
+are discarded on load. Close gumps promptly and stand quietly near the speaker.
+Combat, conversations, protected sequences, gumps and other existing safety gates
+still defer speech. Expiration retains eligibility for the next relevant action.
+One delivery consumes both current opportunities: a single action cannot queue two
+remarks. The second requires another relevant action and the existing minimum
+five game minutes since the first. Recasting spells is never required: moving a
+marked stone suffices. Loading, recruitment, unrelated inventory moves, failed MARK
+and elapsed cooldown alone do not supply context.
 
-All four remarks are final and must remain verbatim. In particular, Shamino's
-Breadcrumb B sentence remains exactly as approved; the proposed rewrite was rejected.
-Overhead readability, runtime timing and final gameplay acceptance remain pending.
+Pending/completed bits and cooldown retain the existing VSCH version 1 format.
+Older saves acquire eligibility on observation but need a fresh relevant action.
+Completed hints never repeat. Actual completed-case delivery permanently suppresses
+pending hints; commission/construction alone does not. No stone destinations,
+spell requirements, original conversations or accepted renderer rules change.
+
+Original companion dialogue was inspected for voice: Iolo's friendly observations,
+Shamino's practical phrasing and Dupre's established inn/ale humor support these
+exact owner candidates. All four stay ordinary incidental overhead speech.
+Automation checks placement and state; reading comfort, voice, contextual feel and
+unobtrusiveness require the owner's human review. No automatic editorial approval.

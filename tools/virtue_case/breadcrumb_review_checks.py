@@ -33,6 +33,8 @@ for profile,mod in [('bg',''),('keyring','Keyring')]:
    gd=root/'gamedat/blackgate';sv=root/'saves/blackgate'
    if mod:gd=gd/'mods/Keyring';sv=sv/'mods/Keyring'
    check('canonical review gamedat',Path(at['gamedat_path']).resolve()==gd.resolve());check('canonical review saves',Path(at['save_path']).resolve()==sv.resolve())
+   check('load alone supplies no contextual opportunity',not q['a_context']and not q['b_context'])
+   if name.startswith('b-'):check('marked stones accessible in review party',q['marked_stones']==2)
    check('correct compiled Keyring selection',(at['overrides']>3)==bool(mod)and('Keyring'in at['patch_usecode_path'])==bool(mod))
    if name=='delivered-silent':
     check('terminal delivery with canceled hints',quest['stage']==5 and not q['a_pending']and not q['b_pending']);time.sleep(7);after=d.execute(dict(cmd='case_breadcrumbs_state'))['breadcrumbs'];check('no late speech in review profile',after['deliveries_since_load']==0)

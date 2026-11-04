@@ -19,6 +19,8 @@ mod=a.profile=='Keyring';profile='keyring'if mod else'bg'
 gd=owned('gamedat/blackgate'+('/mods/Keyring'if mod else''));sv=owned('saves/blackgate'+('/mods/Keyring'if mod else''))
 if not a.resume:
     fixture=owned('prepared/'+profile+'/'+a.state)
+    contextual=owned('prepared-context/'+profile+'/'+a.state)
+    if contextual.is_dir():fixture=contextual
     assert(fixture/'gamedat/identity').is_file()and(fixture/'exult08bg.sav').is_file()
     gd.mkdir(parents=True,exist_ok=True);sv.mkdir(parents=True,exist_ok=True)
     for entry in gd.iterdir():

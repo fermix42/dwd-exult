@@ -1,0 +1,133 @@
+VIRTUE STONE CASE — STAGE E CHATTER REFINEMENT
+November 4, 2026 — PENDING HUMAN EDITORIAL AND GAMEPLAY ACCEPTANCE
+Branch: codex/virtue-stone-case
+Baseline: 85a4a4010fe6d1700831a056b2e2ffd63c832d02
+
+Human gameplay testing demonstrated that the previously accepted remarks were too
+long for normal overhead speech. The owner authorized shorter lines and more
+contextual timing. Stage D remains accepted. All four owner candidates are used
+verbatim, after inspecting original companion voice; no alternative was necessary:
+
+A / Iolo: These stones are filling our packs!
+A / Shamino: Our packs are filling with stones.
+B / Shamino: Knowest thou where each stone leads?
+B / Dupre: Which stone leads where? I hope one leads to an inn!
+
+IMPLEMENTATION
+A eligibility remains three distinct original party-held stone colors; B remains
+two distinct party-held real stones with valid saved MARK destinations. Recursive
+party/nested-case traversal, deduplication and destination validation are unchanged.
+Eligibility latches and survives loss of stones; no historical per-stone metadata.
+
+An individual party-owned stone inventory addition (real pickup/inventory drag)
+provides A context. For B that stone must be marked. Successful native MARK also
+provides context. Moving a whole container only observes eligibility. Load,
+recruitment, unrelated inventory operations, failed MARK and elapsed cooldown alone
+never provide context. Native drag within the same backpack was actually tested.
+No broad interaction interceptor, per-frame scan or new conversation subsystem.
+Double-click activation alone is not intercepted; use native handling or MARK.
+
+Context lasts 15 seconds of ordinary engine ticks and is never serialized. Brief
+safe deferral is allowed; expiry preserves eligibility. One remark consumes both
+current opportunities, so one action cannot queue two lines. Another appropriate
+action and the existing five-game-minute minimum are required for the next hint.
+The original speaker priorities, active/nearby/capable requirements and conservative
+combat/gump/conversation/protected-sequence safety gates remain. Ordinary overhead
+Actor::say is retained. Actual completed-case delivery suppresses pending hints
+permanently; commissioning, construction and fixture ownership do not.
+
+VSCH version 1 saved bits/cooldown are unchanged. Older saves become eligible on
+observation but require fresh handling. Completed hints do not repeat. Stone
+serialization, MARK/RECALL destinations/costs/targeting and label persistence do not
+change. Production changes are limited to native_case_breadcrumbs.cc/.h and the
+existing successful MARK observation hook in usecode/intrinsics.cc.
+
+VERIFICATION — ORDINARY SHARED EXULT.EXE / REAL ENGINE SEMANTIC CLI
+All final runs below PASS with zero failures and normal shutdown. BG and installed
+original Keyring use the same executable. Counts can differ because actual food,
+navigation and renderer containment checks are conditional on the observed state.
+No existing assertion was removed. Tests now perform fresh actual contextual actions
+where spontaneous post-load speech was intentionally removed.
+
+Suite                                                    BG   Keyring
+Eligibility, speakers, cooldown and four native layouts   99  102
+Fresh context, expiry, failed/successful MARK, loose rearrangement  32   33
+B review retrieval overlays                               16   16
+Permanent delivered suppression                           52   52
+Stage D original dialogue/commission                      26   26
+Pre-delivery stages 1/2/3 eligibility                     48   48
+Stage D real transactions                                 37   37
+48-hour construction and actual delivery/pickup           37   34
+Blocked tabletop delivery and recovery                     9    9
+MARK/RECALL requirements, effects, cancel                 42   42
+SDL text/key handlers, labels, persistence, loose MARK    79   79
+Shared overhead renderer/pages/edges                     114  114
+Actual contextual Iolo Point1                              7    7
+Actual contextual Iolo Point2                              7    7
+
+Final gameplay/regression totals: BG 605; Keyring 606.
+Launcher smoke: 76 assertions across all 14 checkpoint/profile combinations.
+TOTAL: 1287 assertions, ZERO final failures.
+
+Actual engine captures show all four lines in one native line, contained in the
+viewport, in BG and Keyring at Point2. Iolo was additionally captured and checked at
+Point1/Point2. Frames were visually inspected for placement/clipping. These checks
+do not establish reading comfort at speed or human editorial/gameplay acceptance.
+
+Earlier attempts are retained as failures in verification-summary.json: 15 failed
+runs, 18 recorded failure events. Inventory-window occlusion and reopening at a
+centered position caused harness drag failures; native renderer review initially
+toggled a saved-open inventory closed. Two delivery runs supplied slot 1 to a suite
+requiring earned slot 5 and failed before gameplay assertions. One final Keyring
+suppression run caught a helper timing race: A had already correctly spoken and
+consumed context when the helper checked it after closing gumps. The assertion now
+runs while the gumps still own input, before delivery. A duplicate-name commission
+invocation was also refused before engine start. Fresh corrected runs passed; no
+production safety restriction or existing acceptance assertion was relaxed.
+
+Build log: C:\Codex\Ultima7 Decomp\test-output\chatter-refinement-20261104/final-build.log
+Executable SHA256: f55f279adb97346efb5c82b54f43b24460438dad569146c627dd026329a2b593
+The tested build embeds the baseline revision plus dirty working-tree status; its
+three production source hashes are recorded in BUILD-PROVENANCE.json and correspond
+to the focused source subsequently committed. This is a private review build.
+Existing compiler/manifest/post-build dependency-copy warnings remain; compilation,
+linking and actual engine tests succeeded.
+
+PRESERVATION AND HUMAN REVIEW
+The accepted overhead renderer files effects.cc/.h and cli_world.cc/cli_driver.cc
+have identical raw SHA256 hashes to the accepted review provenance. No duration or
+breadcrumb rendering exception. Protected-file evidence covers 124 BG resource and
+core source files matching baseline Git content (normal checkout CRLF differences
+are recorded separately). Stage D source, art, Native Wait, Orb Chart, combat,
+audio and original loose-stone behavior remain untouched. exult-fork is clean;
+ultima7-modern was not changed. No installed game/mod asset was edited.
+
+The existing review folder now has the tested executable, updated launcher and
+instructions, exact candidate review text, plus 12 actual-engine screenshots:
+C:/Codex/Ultima7 Decomp/test-output/virtue-stage-e-final/human-review
+
+Play BG.cmd -> select a state -> handle an individual stone -> promptly close gumps
+and stand quietly. Use a marked stone for B. Five game minutes alone cannot cause
+the second hint; handle a marked stone again. See HUMAN-TEST.md for all seven states.
+Play Keyring.cmd is equivalent; all states were automatically smoke-tested through
+the exact launcher/configuration/executable paths in an isolated clone.
+
+All 2,956 original review files were checked. All seven original prepared states
+for both profiles, current saves/gamedat, configs and launcher .cmd files remain
+byte-identical. A full pre-change backup is retained under the evidence root.
+Only the executable, Python launcher, review instructions and provenance are updated;
+new files contain candidate text, screenshots and separate prepared-context B
+variants. Those B variants retrieve the already-earned marked case by real approach
+and native pickup, then use the previously authorized Avatar-only companion start.
+No NPC relocation, quest flag assignment or destination setter is used. All source
+checkpoints remain intact. skip_intro=yes is preserved; no Petre/Finnigan fixture
+or scheduling investigation/correction was performed.
+
+Limits: owner review must judge voice, reading speed, unobtrusiveness and natural
+context in ordinary play. Broader protected sequences/hostile situations are not
+exhaustively live-tested; shared gates are unchanged. Physical keyboard/IME input
+remains human testing; automated SDL event-handler regressions passed. No computer
+control, GUI automation, desktop injection or simulated desktop interaction.
+
+No merge, tag, package, push, publication or final acceptance.
+Evidence root: C:\Codex\Ultima7 Decomp\test-output\chatter-refinement-20261104

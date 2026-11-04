@@ -1,55 +1,64 @@
-# Stage E human gameplay review
+# Stage E short contextual chatter review
+
+PENDING HUMAN EDITORIAL AND GAMEPLAY ACCEPTANCE — November 4, 2026.
+Stage D remains accepted. The shared overhead renderer and duration are unchanged.
 
 Review folder: `C:\Codex\Ultima7 Decomp\test-output\virtue-stage-e-final\human-review`.
-Close Exult, then double-click **Play BG.cmd** or **Play Keyring.cmd** and choose:
+Close Exult, double-click **Play BG.cmd**, then select one of the seven states.
+**Play Keyring.cmd** supplies the same review; compatibility is also checked automatically.
+**C** continues your current disposable review game. Selecting a numbered state
+resets only that review profile. **S** opens save/load; slot **8** is the prepared state.
+**I** opens inventory. Original saves/configurations and seven source checkpoints
+are preserved. The two B states use separate `prepared-context` overlays containing
+the same previously marked case, retrieved by actual walking and native pickup.
 
-1. **a-iolo**: A pending, Iolo active, no hints spoken. Stand still and watch Iolo.
-2. **a-shamino**: A pending, Iolo dismissed, Shamino recruited through original
-   conversation. Stand still and watch Shamino.
-3. **b-shamino**: B pending after two real MARK casts, Shamino active. A is ineligible.
-4. **b-dupre**: B pending after two real MARK casts, Dupre active, Shamino absent.
-5. **deferred-recruit**: A pending, no eligible companion in the party. Avatar starts
-   near Shamino at his original location. Wait quietly: no hint should occur. Talk
-   to Shamino, use his original **join** topic, then **bye**. If asleep, wait normally
-   and feed the Avatar when hungry. The hint should be preserved for after joining.
-6. **both-pending**: Shamino active, both pending. Watch A, then B at a later quiet
-   opportunity, at least five game minutes later. Open inventory or talk to a
-   companion to check deferral, then close it and wait. Walking also defers speech.
-7. **delivered-silent**: Both hints were pending when Xanthia completed the actual
-   tabletop handoff; both are now canceled. The real earned reward is in the
-   backpack and Shamino is active. Stand still, save/load, drop or move the case:
-   no breadcrumb should return. The commission remains permanently delivered.
+Nothing should speak just because a save loaded. For an eligible hint, drag an
+individual Virtue Stone to a different free position in its backpack, or between
+the backpack and case. Close all gumps promptly, stand still near the speaker, and
+watch. A stone interaction lasts only 15 seconds as a speech opportunity. If you
+linger in inventory or another protected sequence, move a stone again afterward.
+Moving the entire case alone supplies no context. You need not repeat a spell.
 
-The profile restores current gamedat from the selected checkpoint, so a hint may
-appear shortly after launch. Restart that checkpoint to see it again. **S** opens
-normal save/load; prepared slot **8** is the same state. **I** opens inventory.
-A checkpoint reset changes only this disposable profile's current game and slot 8;
-choose **C** to continue your current review game. Close Exult before resets.
+1. **a-iolo**: Open the backpack, move one loose stone, close gumps. Watch Iolo:
+   “These stones are filling our packs!”
+2. **a-shamino**: Same handling; Iolo is dismissed and Shamino is active:
+   “Our packs are filling with stones.”
+3. **b-shamino**: Open the case in the backpack. Move one of its marked stones into
+   the backpack, close gumps, watch Shamino:
+   “Knowest thou where each stone leads?”
+4. **b-dupre**: Same marked-stone handling, with Dupre active and Shamino absent:
+   “Which stone leads where? I hope one leads to an inn!”
+5. **deferred-recruit**: Wait: no eligible speaker means no hint. Talk to Shamino
+   through his original **join** and **bye** topics. If asleep, wait normally and
+   feed the Avatar when hungry. Recruitment alone must stay silent. Now handle a
+   loose stone, close gumps promptly, and watch Shamino deliver A.
+6. **both-pending**: Move a marked stone; close gumps; A should speak first. Wait
+   at least five game minutes (the watch/native Wait can help). Waiting alone must
+   not cause B. Handle a marked stone again, close gumps, and watch B. One action
+   cannot queue two remarks. Restart this checkpoint to repeat the comparison.
+7. **delivered-silent**: Xanthia already completed the real tabletop handoff; the
+   earned reward is in the backpack and Shamino is active. Move stones, save/load,
+   open/close or drop the case: neither canceled hint should return. The commission
+   remains permanently delivered.
 
-Check the readability, wrapping and duration of overhead speech, whether it occurs
-at natural moments, and the spacing in checkpoint 6. Try opening a gump or starting
-normal conversation before the hint is delivered; it should wait. Report any hint
-that interrupts an inappropriate sequence. Natural combat/cutscene situations
-still need broader human observation; no artificial hostile or cutscene fixture is
-provided. Gameplay acceptance is yours; automated assertions do not establish it.
+A eligibility is three distinct original stone colors. B is two distinct real
+stones with valid saved MARK destinations, including old saves. Pending eligibility
+survives stone removal and load, but context does not survive load. Completed hints
+never repeat. Successful MARK can provide fresh context; failed MARK cannot.
+Commissioning/building alone does not suppress hints; actual delivery does.
 
-All four lines are HUMAN EDITORIAL ACCEPTED, November 3, 2026. Their wording is
-final, including Shamino's original B line. Overhead readability, natural timing and
-final integrated gameplay remain PENDING HUMAN GAMEPLAY ACCEPTANCE. Stage D remains
-accepted, with no dialogue changes. No merge, release integration or publication.
+Assess reading comfort at normal speed, speaker voice, whether the interaction
+makes the remark understandable, and whether chatter stays unobtrusive. Try a
+brief gump/combat deferral and a delay beyond 15 seconds: stale chatter must not
+appear later. These optional lines never open conversations or change spell rules.
+Broader cutscene/hostile gameplay and physical keyboard/IME behavior remain human
+checks. Automated dispatch/layout checks and screenshots are not human acceptance.
 
-These are separate replay branches, not consecutive milestones in one game. Item
-provisioning and Avatar-only companion/Minoc starts are labeled disposable fixtures
-approved by the owner. Threshold pickup, MARK with normal mana/reagents, original
-companion recruitment/dismissal, quest handoff, reward pickup and save/load were
-performed by the real engine. No NPC positions or quest flags were assigned.
-Checkpoint 7's commission and 48-hour deadline came from an earned Stage D archive.
-The other branches have not commissioned the case; their empty case/stone and spell
-supplies are explicit test inventory. Pending B can remain after its marked stones
-leave the party, as approved. See `fixture-provenance.json` for exact source saves.
-
-Cheats/free casting are disabled. Only isolated review configs use the existing
-640x400 world/UI and Point scaling. Previous review folders, player configs/saves,
-original installed game assets and Keyring resources are preserved. No desktop GUI
-verification has been performed by Codex. Launcher configurations and prepared
-states are checked with the ordinary engine's explicit semantic CLI.
+These are separate replay branches, not one chronological game. Inventory fixtures
+and Avatar-only companion/Minoc starts were authorized by the owner. Original NPC
+positions, quest flags and MARK destinations were not assigned to pass these tests.
+B destinations were earned with actual MARK and normal mana/reagents; case delivery
+uses the original earned Stage D branch. No cheats/free casting. Existing isolated
+640x400 Point2 review settings, including skip_intro=yes, are retained. These
+snapshots do not certify the natural opening; no Petre/Finnigan fixture changes.
+No computer control or desktop input automation was used. No merge or release.
