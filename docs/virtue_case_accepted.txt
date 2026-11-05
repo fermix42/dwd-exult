@@ -1,0 +1,113 @@
+Virtue Stone Case and global speech duration - accepted development milestone
+==========================================================================
+Owner final HUMAN ACCEPTANCE: November 4, 2026 (America/Phoenix).
+This is the current project status. It supersedes earlier pending acceptance,
+closed-size review and alternative-companion review gates. No new human testing
+cycle is required. Public release/publication is a separate decision.
+
+Accepted inventory
+------------------
+- Native optional Black Gate enhancement, independent of Keyring. Original BG
+  and original Marzo Keyring are supported without a DWDKeyring identity.
+- Accepted196x135 open wood/velvet case, brass fittings/close control, eight fixed
+  compartments, enlarged seated art representing the original real shape330
+  stones, native drag/drop/rejections, normal inventory/world placement.
+- Compact14x10 closed shape1601/frame0, origin7,9, shared by world and inventory.
+  Earlier28x20 closed artwork was rejected; the open interface is unchanged.
+- Effective loaded BG/Keyring MARK/RECALL Usecode, ordinary spellbook, mana and
+  reagent requirements, normal failures/targeting/cancel, unaffected loose stones.
+- Eight independent initially blank, persistent case notes with real SDL text,
+  Enter/Escape/Backspace and width limits; queued SDL regression tests retained.
+- Xanthia commission, William's20-gold timber, one cloth,100-gold Guild labor fee,
+  reasonable requirement ordering,48 game hours, Native Wait, persistent exactly
+  once state, original-game writing improvements and accepted physical handoff.
+  Studio table placement remains1592,370,z2; no automatic backpack reward.
+- All four companion candidates personally HUMAN TESTED AND ACCEPTED:
+  Iolo: "These stones are filling our packs!"
+  Shamino: "Our packs are filling with stones."
+  Shamino: "Knowest thou where each stone leads?"
+  Dupre: "Which stone leads where? I hope one leads to an inn!"
+  A requires3 distinct loose colors; B requires1 valid marked stone. Natural
+  exploration, original companion eligibility,5-game-minute separation,
+  one-time persistence, acquisition suppression and old-save support are retained.
+  Shamino A/B were explicitly observed without moving stones or recasting MARK.
+
+Separate accepted general engine improvement
+-------------------------------------------
+Escape -> Game Display -> Overhead Text Duration.
+config/gameplay/overhead_text_duration:50/100/150/200/300 percent, giving5/10/15/20/30
+scheduled updates. Normal preserves original10-update behavior. Shared character
+barks, config persistence/validation and captured active timers are retained;
+unrelated text keeps its behavior. No companion-specific exceptions.
+
+Drag scaling investigation CLOSED
+--------------------------------
+The owner accepts the inherited upstream behavior and the finding that review
+world/UI settings exaggerated it. No drag.cc, pointer/world/gump scaling or user
+configuration change is part of this integration. Enlarged seated gemstone art
+is intentional and separate. Diagnostic evidence is retained under
+C:/Codex/Ultima7 Decomp/test-output/drag-scaling-20261104.
+
+Integration
+-----------
+Source: codex/virtue-stone-case at4aefc35e77909bf7d4690f06e6782f7b6247d0ee.
+Authoritative accepted DWD baseline: codex/dwd-release-preparation at
+7bf0bd8ab2797b3618b41c00a85eb8c8e002a702. It is an ancestor of the complete31-commit
+feature range. The old integration candidate0229d515c was2 commits behind source.
+Destination: codex/virtue-stone-case-integration in exult-virtue-integration.
+Method: clean fast-forward to source, then this acceptance/documentation record.
+Includes db78c04f361a520eec738788efce32008302b5f6 and the final14x10 correction.
+No cherry-pick, duplicate feature commit, squash, history rewrite or conflict.
+The source feature branch/history is preserved. No worktree is deleted.
+Protected release-preparation/default branches and published rc.1 stay untouched.
+The superseded DWDKeyring scaffold is excluded.
+
+Verification and reproducibility
+-------------------------------
+Ordinary shared Windows Release/x64 clean rebuild, from this integration worktree:
+powershell -File tools/virtue_case/build.ps1 -Rebuild
+One ordinary Exult.exe/output/intermediate tree, same executable for --test-cli.
+No second engine build, generalized framework or desktop automation.
+Evidence root:
+C:/Codex/Ultima7 Decomp/test-output/virtue-accepted-integration-20261104
+FINAL.json records final commit, local milestone tag, exact executable/source
+hashes, build log, selected focused assertions, preservation checks and limits.
+The clean integrated commit contains precisely the accepted production/resources;
+integration changes only documentation. Earlier3261 Stage F and363 closed-size
+passing assertions plus the speech-duration/natural-trigger reports remain valid.
+The focused integration pass does not repeat the entire development program.
+
+Resources and preservation
+--------------------------
+BG FLEX original entries0..17 remain intact; case at18 has14 frames. Closed0 is
+14x10; open1 is196x135; all other accepted art remains unchanged. Ordinary resource
+packing is used; no preview SHP substitutes for exult_bg.flx. Source PNGs/manifest/
+converter and build manifests are retained. No temporary saves, configs, logs or
+build products are added to production source. Existing credits, GPL notices,
+owner-supplied art provenance and original-game input separation are preserved.
+No original game data, ultima7-modern, installed mods or personal settings changed.
+Audio, combat, Wait, Orb, quiz sliders, portable/installer/optional-download
+implementations remain the accepted baseline. Existing saves load normally;
+there is no new migration or mod dependency. SI receives no case/commission,
+while the general speech preference applies there.
+
+Known limits, not new acceptance gates
+------------------------------------
+Full48-hour sleeping, every NPC schedule boundary and every possible obstruction
+arrangement were not exhaustively certified. Existing real obstruction recovery,
+transition saves, construction travel and deadline evidence is retained. These
+historical limits do not reopen owner acceptance or block this integration.
+Other platforms are not newly certified; SI's later moving-actor bark retention
+beyond its protected opening is not inferred from BG/Keyring results.
+
+Before a future public release
+------------------------------
+Obtain separate authorization for protected/default-branch integration and the
+exact public release scope/version/tag/assets. Choose version through existing
+packaging/dwd/version.json conventions; do not replace rc.1. Build the exact clean
+approved release commit, stage allowlisted binary/source/dependency notices,
+validate archive/installer contents, provenance/checksums and relevant portable/
+install/update/uninstall/optional-download behavior, perform required malware and
+artifact checks, then publish only with explicit publication authorization.
+No new gameplay acceptance cycle is implied. A local feature milestone is not a
+release tag and is not pushed by this development integration.

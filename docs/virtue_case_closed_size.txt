@@ -1,3 +1,7 @@
+FINAL STATUS: HUMAN ACCEPTED; development integration complete (November4,2026).
+See docs/virtue_case_accepted.txt (or virtue_case_accepted.txt from docs). Earlier
+review gates below are historical and do not request another testing cycle.
+
 Closed Virtue Stone Case size correction - November 4, 2026
 =========================================================
 Starting branch: codex/virtue-stone-case, clean0229d515c1ad69811f6f042764338a170ee02564.

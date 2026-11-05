@@ -2,8 +2,16 @@ Dark Wraith Dragon's Exult
 Version History
 ==================================================
 
-Unpublished development candidate — November 4, 2026
-No new release version or tag assigned.
+Human-accepted development integration — November 4, 2026
+No new public release version assigned; publication is a separate decision.
+
+    - Recorded final human acceptance of the complete Virtue Stone Case,
+      including the compact14x10 closed sprite, commissioning and physical
+      delivery, all four natural companion remarks, spells and persistent notes.
+    - Fast-forwarded the isolated development integration branch to the complete
+      accepted feature history. Preserved the protected release baseline and rc.1.
+    - Recorded separate human acceptance of the global Overhead Text Duration
+      improvement. Closed the drag-scaling investigation without rendering changes.
 
     - Reduced the closed Virtue Stone Case native sprite from28x20 to14x10
       for a portable tabletop appearance. Kept the accepted196x135 open interface.
@@ -16,9 +24,9 @@ No new release version or tag assigned.
     - Corrected shared overhead speech positioning, wrapping and clipping.
     - Added the separate global Overhead Text Duration display preference for
       character speech, retaining original timing by default.
-    - Prepared Stage F regression evidence and an isolated review candidate.
-      Final integration and release authorization remain pending. These changes
-      are not part of the immutable published 1.0.0-rc.1 binary below.
+    - Retained Stage F regression evidence and isolated review checkpoints.
+      Development acceptance is complete. These changes are not part of the
+      immutable published 1.0.0-rc.1 binary below.
 
 version: 1.0.0-rc.1
 Status: Published GitHub prerelease, 2026-11-02T01:13:28Z

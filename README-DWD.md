@@ -243,10 +243,10 @@ Current Keyring and SI Fixes remain original editions. Future DWD editions
 require independent acceptance, versions, identities and save compatibility review.
 No mod is merged into original game data by this release preparation.
 
-### Unpublished development candidate: Virtue Stone Case
+### Human-accepted development integration: Virtue Stone Case
 
-The development branch adds an optional built-in Black Gate enhancement, also
-compatible with original Marzo's Keyring. It is not included in the published
+The integrated, human-accepted feature is an optional built-in Black Gate
+enhancement, also compatible with original Marzo's Keyring. It is not included in the published
 1.0.0-rc.1 binary. Carry a Virtue Stone and speak to Xanthia at Minoc's Artist's
 Guild about commissioning a case. William supplies timber for twenty gold;
 Xanthia needs one ordinary cloth item and a hundred gold for labor and fittings.
@@ -263,19 +263,20 @@ elsewhere. Companions may occasionally notice loose stones or marked destination
 during exploration; these one-time observations are not required for the quest.
 Ordinary players receive no case automatically. This enhancement is BG-only.
 
-The same unpublished candidate separately adds **Overhead Text Duration** under
+### Human-accepted engine improvement: Overhead Text Duration
+
+The separate global **Overhead Text Duration** preference is under
 Escape → Game Display. Short, Normal, Longer, Double and Triple control character
 barks globally. Normal retains the original timing; unrelated notification text
 keeps its original behavior. This preference also applies to Serpent Isle.
 
-Physical handling, spellcasting, notes, keyboard input and the duration preference
-have human acceptance. Shamino's natural observations have human acceptance;
-Iolo's and Dupre's alternatives have now also passed human review. The quest's
-primary functional review passed; its revised dialogue and delivery presentation
-remain available for focused final review. See
-[Stage F integration evidence](docs/virtue_case_stage_f.txt).
-The later [closed-case size correction](docs/virtue_case_closed_size.txt) reduces
-only the closed native object to14x10; its visual acceptance remains pending.
+The complete case, revised 14x10 closed sprite, 196x135 open interface, spells,
+notes, SDL keyboard handling, commissioning quest and physical handoff, all four
+companion remarks, and this global duration preference are **HUMAN ACCEPTED**.
+Development integration is complete; publication is a separate decision. No
+further human testing cycle is required. See the
+[accepted milestone](docs/virtue_case_accepted.txt) for integration and verification
+records. Earlier Stage F and size-correction reports remain historical evidence.
 
 ## 7. Known limitations
 
