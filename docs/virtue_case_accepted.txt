@@ -73,7 +73,9 @@ C:/Codex/Ultima7 Decomp/test-output/virtue-accepted-integration-20261104
 FINAL.json records final commit, local milestone tag, exact executable/source
 hashes, build log, selected focused assertions, preservation checks and limits.
 The clean integrated commit contains precisely the accepted production/resources;
-integration changes only documentation. Earlier3261 Stage F and363 closed-size
+integration changes documentation and bootstraps the ordinary resource manifests
+before compilation in a fresh worktree; no gameplay/rendering code changes.
+Earlier3261 Stage F and363 closed-size
 passing assertions plus the speech-duration/natural-trigger reports remain valid.
 The focused integration pass does not repeat the entire development program.
 

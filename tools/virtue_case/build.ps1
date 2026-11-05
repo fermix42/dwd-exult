@@ -5,11 +5,18 @@ $buildTarget = if ($args -contains '-Rebuild') { '/t:Rebuild' } else { '/t:Build
 $sourceRoot = (Resolve-Path "$PSScriptRoot/../..").Path
 $workspace = Split-Path $sourceRoot -Parent
 $vs = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-# Use the ordinary packer/manifest to regenerate the BG archive and its header.
+# Bootstrap generated inputs in the same order declared by data/Makefile.am.
+# A new worktree has no ignored .vga/.flx files; never borrow stale outputs from
+# another checkout. Keep the ordinary packer and shared executable/build tree.
 Push-Location $sourceRoot
 try {
-    & "$workspace/build-exult-fork/bin/expack.exe" -i data/bg/flx.in
-    if ($LASTEXITCODE) { throw "BG resource packing failed: $LASTEXITCODE" }
+    foreach ($manifest in @('data/fonts/original.in', 'data/fonts/serif.in',
+            'data/shortcutbar.in', 'data/flx.in', 'data/bg/bg_paperdol.in',
+            'data/bg/bg_mr_faces.in', 'data/bg/introsfx_mt.in',
+            'data/bg/introsfx_sb.in', 'data/bg/flx.in', 'data/si/flx.in')) {
+        & "$workspace/build-exult-fork/bin/expack.exe" -i $manifest
+        if ($LASTEXITCODE) { throw "Resource packing failed ($manifest): $LASTEXITCODE" }
+    }
 } finally { Pop-Location }
 $oldCL = $env:_CL_
 try {
