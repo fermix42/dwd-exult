@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import struct
 import sys
+import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'test_cli'))
 from driver import BASE, Driver, EngineRefusal
@@ -39,6 +40,46 @@ try:
     assert d.state()['inventory'] == before
     assert (patch / 'shapes.vga').read_bytes() == resource
     d.assertions = 3
+    # A collision must also prevent selling a reward that cannot be installed.
+    # This fixture moves only the Avatar to the approved Minoc start, adds real
+    # items, and then uses Xanthia's original conversation; no quest flags change.
+    d.execute(dict(cmd='test_case_commission_start'))
+    d.execute(dict(cmd='test_case_commission_items', scenario=1))
+    npc = d.execute(dict(cmd='case_commission_state'))['xanthia']['ref']
+    d.execute(dict(cmd='move_to_object', ref=npc))
+    deadline = time.monotonic()+20
+    while time.monotonic() < deadline:
+        if d.execute(dict(cmd='movement_status'))['movement'] == 'reached':
+            break
+        time.sleep(.05)
+    assert d.execute(dict(cmd='movement_status'))['movement'] == 'reached'
+    d.execute(dict(cmd='interact_object', ref=npc))
+    while time.monotonic() < deadline:
+        state = d.state()
+        if 'continue' in state['legal_actions']:
+            d.execute(dict(cmd='continue'))
+        elif state['input_owner'] == 'answer_menu':
+            break
+        else:
+            time.sleep(.05)
+    assert state['input_owner'] == 'answer_menu'
+    assert set(['name','job','bye']).issubset(state['choices'])
+    d.assertions += 1
+    d.assertions += 1
+    if 'Virtue Stone case' in state['choices']:
+        d.failures += 1
+        events.append(dict(defect='Collision still offers an unavailable case commission', choices=state['choices']))
+    d.execute(dict(cmd='choose', text='bye'))
+    deadline = time.monotonic()+12
+    while time.monotonic() < deadline:
+        state = d.state()
+        if 'continue' in state['legal_actions']:
+            d.execute(dict(cmd='continue'))
+        elif state['input_owner'] == 'gameplay':
+            break
+        else:
+            time.sleep(.05)
+    assert state['input_owner'] == 'gameplay'
     d.execute(dict(cmd='exit'))
 finally:
     result = d.close()

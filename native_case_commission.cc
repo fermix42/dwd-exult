@@ -97,7 +97,7 @@ void Case_commission::reset() {
     quest={};speaker=0;offer=false;used.clear();
 }
 void Case_commission::begin(Actor* npc) {
-    speaker=GAME_BG && npc && (npc->get_npc_num()==86 || npc->get_npc_num()==93)?npc->get_npc_num():0;
+    speaker=Virtue_case::available() && npc && (npc->get_npc_num()==86 || npc->get_npc_num()==93)?npc->get_npc_num():0;
     offer=false;used.clear();
 }
 void Case_commission::end() {

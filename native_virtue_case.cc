@@ -345,6 +345,7 @@ void Virtue_case::install_shape(Shapes_vga_file& shapes) {
     shapes.set_info(shape, info);
     installed = true;
 }
+bool Virtue_case::available() { return installed && GAME_BG; }
 bool Virtue_case::is_case(const Game_object* object) {
     return installed && GAME_BG && object && object->get_shapenum() == shape && object->get_framenum() == 0;
 }

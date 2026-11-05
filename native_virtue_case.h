@@ -6,6 +6,7 @@ class Shapes_vga_file;
 namespace Virtue_case {
 constexpr int shape = 1601; // Adjacent to the accepted native Orb chart (1600).
 void install_shape(Shapes_vga_file& shapes);
+bool available();
 bool is_case(const Game_object* object);
 bool accepts(const Container_game_object* container, const Game_object* object);
 void seat(Container_game_object* container, Game_object* object);

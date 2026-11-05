@@ -12,6 +12,8 @@
         FEE100000000000000000002 /* cli_world.cc in Sources */ = {isa = PBXBuildFile; fileRef = FEE100000000000000000012 /* cli_world.cc */; };
         FEE600000000000000000002 /* native_orb_chart.cc in Sources */ = {isa = PBXBuildFile; fileRef = FEE600000000000000000012 /* native_orb_chart.cc */; };
         FEE600000000000000000003 /* native_virtue_case.cc in Sources */ = {isa = PBXBuildFile; fileRef = FEE600000000000000000013 /* native_virtue_case.cc */; };
+        FEE600000000000000000005 /* native_case_breadcrumbs.cc in Sources */ = {isa = PBXBuildFile; fileRef = FEE600000000000000000015 /* native_case_breadcrumbs.cc */; };
+        FEE600000000000000000004 /* native_case_commission.cc in Sources */ = {isa = PBXBuildFile; fileRef = FEE600000000000000000014 /* native_case_commission.cc */; };
         FEE200000000000000000002 /* native_wait.cc in Sources */ = {isa = PBXBuildFile; fileRef = FEE200000000000000000012 /* native_wait.cc */; };
         FEE300000000000000000002 /* game_time.cc in Sources */ = {isa = PBXBuildFile; fileRef = FEE300000000000000000012 /* game_time.cc */; };
         FEE500000000000000000002 /* quiz.cc in Sources */ = {isa = PBXBuildFile; fileRef = FEE500000000000000000012 /* quiz.cc */; };
@@ -361,6 +363,8 @@
         FEE100000000000000000012 /* cli_world.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = cli_world.cc; path = ../cli_world.cc; sourceTree = "<group>"; };
         FEE600000000000000000012 /* native_orb_chart.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = native_orb_chart.cc; path = ../native_orb_chart.cc; sourceTree = "<group>"; };
         FEE600000000000000000013 /* native_virtue_case.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = native_virtue_case.cc; path = ../native_virtue_case.cc; sourceTree = "<group>"; };
+        FEE600000000000000000015 /* native_case_breadcrumbs.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = native_case_breadcrumbs.cc; path = ../native_case_breadcrumbs.cc; sourceTree = "<group>"; };
+        FEE600000000000000000014 /* native_case_commission.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = native_case_commission.cc; path = ../native_case_commission.cc; sourceTree = "<group>"; };
         FEE200000000000000000012 /* native_wait.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = native_wait.cc; path = ../native_wait.cc; sourceTree = "<group>"; };
         FEE300000000000000000012 /* game_time.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = game_time.cc; path = ../game_time.cc; sourceTree = "<group>"; };
         FEE500000000000000000012 /* quiz.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = quiz.cc; path = ../usecode/quiz.cc; sourceTree = "<group>"; };
@@ -1170,6 +1174,8 @@
                 FEE100000000000000000012 /* cli_world.cc */,
                 FEE600000000000000000012 /* native_orb_chart.cc */,
                 FEE600000000000000000013 /* native_virtue_case.cc */,
+                FEE600000000000000000015 /* native_case_breadcrumbs.cc */,
+                FEE600000000000000000014 /* native_case_commission.cc */,
                 FEE200000000000000000012 /* native_wait.cc */,
                 FEE400000000000000000012 /* Wait_gump.cc */,
                 FEE300000000000000000012 /* game_time.cc */,
@@ -2226,6 +2232,8 @@
                 FEE100000000000000000002 /* cli_world.cc in Sources */,
                 FEE600000000000000000002 /* native_orb_chart.cc in Sources */,
                 FEE600000000000000000003 /* native_virtue_case.cc in Sources */,
+                FEE600000000000000000005 /* native_case_breadcrumbs.cc in Sources */,
+                FEE600000000000000000004 /* native_case_commission.cc in Sources */,
                 FEE200000000000000000002 /* native_wait.cc in Sources */,
                 FEE400000000000000000002 /* Wait_gump.cc in Sources */,
                 FEE300000000000000000002 /* game_time.cc in Sources */,
