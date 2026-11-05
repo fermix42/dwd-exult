@@ -20,7 +20,8 @@ def main(a):
     def check(label,ok):
         checks.append({'check':label,'result':'PASS' if ok else 'FAIL'})
         (work/'results.json').write_text(json.dumps(checks,indent=2)+'\n');assert ok,label
-    with zipfile.ZipFile(a.candidate/'DWD-Exult-1.0.0-rc.1-Windows-x64.zip') as z:z.extractall(work/'extracted')
+    version=json.loads((a.candidate/'validation.json').read_text())['metadata']['version']
+    with zipfile.ZipFile(a.candidate/('DWD-Exult-'+version+'-Windows-x64.zip')) as z:z.extractall(work/'extracted')
     app=work/'extracted/DWDExult';helper=(a.candidate/'installer-input/exconfig.exe').resolve()
     def run(args,label,expect=0):
         r=subprocess.run([str(v) for v in args],cwd=unrelated,capture_output=True,creationflags=subprocess.CREATE_NO_WINDOW,timeout=120)

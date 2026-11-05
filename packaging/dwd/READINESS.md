@@ -1,3 +1,24 @@
+# DWD 1.0.0-rc.2 release readiness -- November 5, 2026
+
+The owner explicitly authorized a new public prerelease after mandatory gates pass.
+Accepted integration: `1a66066db6185d3993c87ef6b7919a1e277b3524`. Source preserves
+rc.1 and all human-accepted case/global speech features. No new human review cycle.
+
+Preparation branch: `codex/dwd-release-1.0.0-rc.2`; public default and placeholder
+main are preserved. The existing manual `dwd-candidate.yml` must pass its exact-SHA
+public hosted build and attestation jobs. Exact source, run, package hashes and
+upgrade/publication verification will be recorded after those gates pass.
+
+Required gates: clean local build, exact hosted provenance, package audits,
+rc.1 installer/portable upgrade preservation, focused packaged BG/Keyring/SI checks,
+approved download integrity and available malware scanning, then independent
+public asset verification. Existing unsigned/clean-OS audio/path-alias limitations
+remain documented; no speculative new hold. No new public stable version assigned.
+
+The rc.1 record below remains historical and immutable. Never replace its tag/assets.
+
+---
+
 # DWD 1.0.0-rc.1 candidate readiness -- November 1, 2026
 
 **First public prerelease published and independently verified.**

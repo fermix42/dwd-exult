@@ -205,7 +205,7 @@ def main(a):
         keycfg.write_bytes(keycfg.read_bytes() + b'\n<!-- customized again -->\n')
         script = stage / 'dwd_installer.iss'
         text = script.read_text(encoding='utf-8')
-        script.write_text(text.replace('AppVersion=1.0.0-rc.1', 'AppVersion=9.0.0'), encoding='utf-8')
+        script.write_text(text.replace('AppVersion='+json.loads((candidate/'validation.json').read_text())['metadata']['version'], 'AppVersion=9.0.0'), encoding='utf-8')
         # Force a real binary replacement, rather than relying on unchanged mtime.
         if a.previous_engine:
             shutil.copy2(a.previous_engine, app / 'Exult.exe')

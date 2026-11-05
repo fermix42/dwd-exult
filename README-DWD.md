@@ -1,11 +1,10 @@
 # Dark Wraith Dragon's Exult
 
-**[1.0.0-rc.1 is published as a GitHub prerelease](https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.1)**, not a stable/latest
-release. Published 2026-11-02T01:13:28Z (November 1, 2026 in America/Phoenix).
-Tag: `dwd-v1.0.0-rc.1`; exact binary build source:
-`41a83ac4f2f4f73c080655f29d7946f7944deacb`. Current documentation is newer than
-that immutable build. Original candidate metadata, including the build-time
-publication status in version.json/release-metadata.json, is preserved unchanged.
+**1.0.0-rc.2 is the prepared public prerelease**, succeeding the immutable
+[1.0.0-rc.1](https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.1).
+Publication is authorized after verification. Target tag: `dwd-v1.0.0-rc.2`;
+exact build revision is generated in `release-metadata.json` and corresponding
+source. This is not stable 1.0.0. See [READINESS](packaging/dwd/READINESS.md).
 
 ## 0. About Dark Wraith Dragon's Exult
 
@@ -15,7 +14,7 @@ you supply. The original Exult Team created the engine on which this work depend
 
 ## 1. Relationship to the official Exult engine
 
-This candidate is based on Exult's **1.13.1git development version**, not an official
+This DWD prerelease is based on Exult's **1.13.1git development version**, not an official
 stable release. It preserves the familiar interface and `Exult.exe` name. The
 original [README](README), [ChangeLog](ChangeLog), [AUTHORS](AUTHORS), [COPYING](COPYING),
 [INSTALL](INSTALL) and [FAQ](FAQ) remain the upstream references. DWD additions below
@@ -246,8 +245,8 @@ No mod is merged into original game data by this release preparation.
 ### Human-accepted development integration: Virtue Stone Case
 
 The integrated, human-accepted feature is an optional built-in Black Gate
-enhancement, also compatible with original Marzo's Keyring. It is not included in the published
-1.0.0-rc.1 binary. Carry a Virtue Stone and speak to Xanthia at Minoc's Artist's
+enhancement, also compatible with original Marzo's Keyring. It is included in rc.2; the published
+1.0.0-rc.1 binary predates it. Carry a Virtue Stone and speak to Xanthia at Minoc's Artist's
 Guild about commissioning a case. William supplies timber for twenty gold;
 Xanthia needs one ordinary cloth item and a hundred gold for labor and fittings.
 Construction takes two game days after all requirements are supplied. Return to

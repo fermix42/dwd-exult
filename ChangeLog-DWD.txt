@@ -2,31 +2,32 @@ Dark Wraith Dragon's Exult
 Version History
 ==================================================
 
-Human-accepted development integration — November 4, 2026
-No new public release version assigned; publication is a separate decision.
+version: 1.0.0-rc.2
+Status: Public prerelease candidate; publication authorized after verification.
+Prepared: November 5, 2026 (America/Phoenix)
+Tag: dwd-v1.0.0-rc.2
+Based on: Exult 1.13.1git (upstream development version)
+Upstream revision: 97984e9e0cbb4ccacaab0249da9c51b533818f74
+Exact binary source: Generated per build in release-metadata.json.
 
-    - Recorded final human acceptance of the complete Virtue Stone Case,
-      including the compact14x10 closed sprite, commissioning and physical
-      delivery, all four natural companion remarks, spells and persistent notes.
-    - Fast-forwarded the isolated development integration branch to the complete
-      accepted feature history. Preserved the protected release baseline and rc.1.
-    - Recorded separate human acceptance of the global Overhead Text Duration
-      improvement. Closed the drag-scaling investigation without rendering changes.
-
-    - Reduced the closed Virtue Stone Case native sprite from28x20 to14x10
-      for a portable tabletop appearance. Kept the accepted196x135 open interface.
-
-    - Integrated optional native Black Gate Virtue Stone Case development work,
-      compatible with original Keyring: eight physical compartments, normal paid
-      MARK/RECALL, persistent editable notes and Xanthia's commissioning quest.
-    - Added occasional one-time companion observations of stones already carried
-      by the party, with suppression after obtaining the case.
-    - Corrected shared overhead speech positioning, wrapping and clipping.
-    - Added the separate global Overhead Text Duration display preference for
-      character speech, retaining original timing by default.
-    - Retained Stage F regression evidence and isolated review checkpoints.
-      Development acceptance is complete. These changes are not part of the
-      immutable published 1.0.0-rc.1 binary below.
+    - Added the HUMAN ACCEPTED native Black Gate Virtue Stone Case, optionally
+      commissioned from Xanthia at Minoc's Artist's Guild: William's20-gold timber,
+      one cloth,100-gold labor fee and48 in-game hours, with physical table delivery.
+    - Eight real stone compartments, normal MARK/RECALL spellbook/mana/reagent
+      requirements, persistent editable destination labels and original Keyring
+      compatibility. Accepted196x135 open interface and compact14x10 closed object.
+    - Four human-accepted natural companion observations of loose stones and
+      marked destinations; no inventory shuffling required, no repeat after case
+      acquisition, and no companion requirement for completing the optional quest.
+    - Separate global Overhead Text Duration setting under Game Display: Short,
+      Normal, Longer, Double and Triple. Normal retains original timing.
+    - Corrected overhead speech positioning/wrapping/clipping; retained normal
+      SDL text entry and queued keyboard regression support.
+    - Bootstrap ordinary resource dependencies in fresh checkouts. Release checks
+      derive filenames/version fixtures from metadata rather than assuming rc.1.
+    - Preserved accepted audio, Native Wait, Orb chart, quiz defaults, combat,
+      portable/installer isolation and optional-download preservation policy.
+      Original game files remain required; original mods remain optional downloads.
 
 version: 1.0.0-rc.1
 Status: Published GitHub prerelease, 2026-11-02T01:13:28Z
