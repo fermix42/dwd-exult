@@ -1,36 +1,30 @@
-Stage F private review - not a release
+Closed Virtue Stone Case size correction - private review
 
-Close Exult first. Open Play BG.cmd or Play Keyring.cmd, then select a checkpoint.
-Each profile is disposable and isolated. C continues your current review game.
-A numbered choice replaces only that profile's current state and prepared slot 8.
-Your other reviews, normal saves and configurations are preserved.
+Close Exult, then open Play BG.cmd or Play Keyring.cmd.
+Options1..9 and their original checkpoints are preserved. C continues your game.
+New options (default10):
+10 size-ready: speak to Xanthia and collect the case. Watch the unchanged handoff.
+11 size-table: the real delivered case is already on the studio table.
+12 size-backpack: the real case is in the backpack, with inventory panels open.
+13 size-ground: the case has been dropped nearby through ordinary gameplay.
 
-Remaining focused human review:
-1. A-Iolo: close saved-open inventory panels and explore normally near Iolo.
-   Do not shuffle stones or cast MARK. Expect: "These stones are filling our packs!"
-2. B-Dupre: explore normally near Dupre without touching stones or recasting.
-   Expect: "Which stone leads where? I hope one leads to an inn!"
-   These alternatives have automated coverage, but not individual human acceptance.
-3. Ready: speak to Xanthia and collect the case. Review the final wording and
-   visible studio-table handoff: walk, face, reach, placement, straighten, step aside.
-   Pick up the case normally. Primary quest functionality already passed human review.
+Confirm that the CLOSED object reads as a small portable personal case, closer to
+jewelry/music-box size than a chest. It should occupy less than half the table's
+width and remain easy to pick up and double-click. Open it to confirm the accepted
+196x135 interface remains full size. You may insert stones and move/drop it normally.
 
-Other menu checkpoints are optional conveniences, not requests to repeat acceptance:
-Not-started: approved Minoc Avatar starting fixture; real materials/stone supplied.
-Requirements/building/ready/delivered: earned normal quest progression checkpoints.
-Full-case: explicitly provisioned physical/spell test fixture with all eight stones,
-spellbook, mana and reagents. Costs and spell restrictions are normal, not free casting.
-Already-organized: Shamino's A/B natural remarks, now already HUMAN PASSED.
-Delivered: earned case with blank notes; gather/insert stones normally if desired.
+The native closed sprite is now14x10 in both inventory and world, retaining the
+same shape1601/frame0 object. No production scale preference has changed. Current
+world/UI scales still control apparent size independently.
 
-The physical case, MARK/RECALL, labels, keyboard entry and global duration preference
-are already HUMAN ACCEPTED. Escape -> Game Display -> Overhead Text Duration is
-available in all three game profiles; Play SI.cmd is optional shared-setting review.
-All profiles share this private exult.cfg. Selecting checkpoints preserves settings.
-Short/Normal/Longer/Double/Triple correspond to 50/100/150/200/300 percent.
+All companion alternatives, including Iolo and Dupre, are now HUMAN ACCEPTED.
+The other accepted gameplay and global speech-duration features need no repeat
+human acceptance. Only the new closed-object size is awaiting visual acceptance.
 
-No ordinary game is awarded a case by these launchers. These are private prepared
-saves, not production provisioning. Original GOG game files are read-only inputs.
-BG starts skip the original opening and do not certify its Petre/Finnigan sequence.
-No desktop automation or CLI flag is used by these normal-play launchers.
-Screenshots are actual engine captures; see screenshots and final verification report.
+Current saves, config and old checkpoints were preserved. Numbered restores replace
+only this disposable profile's current state and slot8, as before. Other review
+folders and original GOG game assets remain untouched. Do not distribute these
+private game-derived checkpoints as a release.
+
+See CURRENT-CORRECTION.json and size-screenshots for current evidence. Stage F's
+older reports/screenshots remain historical. No merge, tag or release was made.

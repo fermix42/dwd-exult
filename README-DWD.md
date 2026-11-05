@@ -270,10 +270,12 @@ keeps its original behavior. This preference also applies to Serpent Isle.
 
 Physical handling, spellcasting, notes, keyboard input and the duration preference
 have human acceptance. Shamino's natural observations have human acceptance;
-Iolo's and Dupre's alternatives still await individual human review. The quest's
+Iolo's and Dupre's alternatives have now also passed human review. The quest's
 primary functional review passed; its revised dialogue and delivery presentation
 remain available for focused final review. See
 [Stage F integration evidence](docs/virtue_case_stage_f.txt).
+The later [closed-case size correction](docs/virtue_case_closed_size.txt) reduces
+only the closed native object to14x10; its visual acceptance remains pending.
 
 ## 7. Known limitations
 

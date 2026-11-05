@@ -11,6 +11,7 @@ from driver import Driver
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--root', type=Path, required=True)
 p.add_argument('--prefix', required=True)
+p.add_argument('--small-case', action='store_true')
 a = p.parse_args()
 root = a.root.resolve()
 old = subprocess.Popen
@@ -25,7 +26,7 @@ def launch(args, **kw):
     return old(args, **kw)
 
 for profile in ['BG', 'Keyring']:
-    for state in ['a-iolo','b-dupre','ready','full-case']:
+    for state in (['size-ready','size-table','size-backpack','size-ground'] if a.small_case else ['a-iolo','b-dupre','ready','full-case']):
         subprocess.run([sys.executable, str(root/'start_integration_review.py'), '--profile', profile,
                         '--state', state, '--prepare-only'], check=True)
         d = Driver()
@@ -48,11 +49,22 @@ for profile in ['BG', 'Keyring']:
             check('launcher uses private current-state paths',
                   Path(at['gamedat_path']).resolve().is_relative_to(root) and
                   Path(at['save_path']).resolve().is_relative_to(root))
-            check('new private global preference is Normal', at['overhead_text_duration']==100)
+            if not a.small_case:
+                check('new private global preference is Normal', at['overhead_text_duration']==100)
             quest = do('case_commission_state')['commission']
-            if state == 'ready':
+            if state in ['ready','size-ready']:
                 check('earned ready checkpoint has no automatic reward', quest['stage']==4 and
                       not do('find_objects', shape=1601, radius=32)['objects'])
+            elif a.small_case:
+                def contents(ref=0):
+                    for item in do('inspect_inventory',ref=ref)['objects']:
+                        yield item
+                        if item['class_id']==6:yield from contents(item['ref'])
+                items=list(contents()) if state=='size-backpack' else do('find_objects',shape=1601,radius=32)['objects']
+                case=next(o for o in items if o['shape']==1601)
+                check('real small native case is present',case['class_id']==6 and case['frame']==0 and case['sprite']==dict(width=14,height=10,xleft=7,yabove=9))
+                check('earned delivery remains terminal',quest['stage']==5)
+                if state=='size-table':check('fixed delivery surface retained',case['tile']==dict(x=1592,y=370,z=2))
             elif state in ['a-iolo','b-dupre']:
                 q = do('case_breadcrumbs_state')['breadcrumbs']
                 check('natural alternative starts unspoken', not q['a_done'] and not q['b_done'])

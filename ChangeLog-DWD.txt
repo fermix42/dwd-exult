@@ -5,6 +5,9 @@ Version History
 Unpublished development candidate — November 4, 2026
 No new release version or tag assigned.
 
+    - Reduced the closed Virtue Stone Case native sprite from28x20 to14x10
+      for a portable tabletop appearance. Kept the accepted196x135 open interface.
+
     - Integrated optional native Black Gate Virtue Stone Case development work,
       compatible with original Keyring: eight physical compartments, normal paid
       MARK/RECALL, persistent editable notes and Xanthia's commissioning quest.

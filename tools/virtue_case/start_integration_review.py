@@ -20,15 +20,19 @@ processes = subprocess.run(['tasklist','/FI','IMAGENAME eq Exult.exe','/FO','CSV
 if '"Exult.exe"' in processes.stdout:
     raise SystemExit('Close Exult before restoring a review checkpoint.')
 states = ['a-iolo', 'b-dupre', 'ready', 'not-started', 'requirements', 'building', 'delivered', 'full-case', 'already-organized']
+has_size_review = (root/'prepared'/a.profile.lower()/'size-ready').is_dir()
+if has_size_review:
+    states += ['size-ready', 'size-table', 'size-backpack', 'size-ground']
 if not a.state:
     if a.profile == 'SI':
         a.state = 'continue'
     else:
-        print('Stage F private review. Remaining human checks: Iolo, Dupre, revised Guild handoff.')
+        print('Closed-case size review:10 delivery,11 tabletop,12 backpack,13 ground.' if has_size_review else 'Private integrated case review.')
         for index, state in enumerate(states, 1):
             print(str(index)+': '+state)
         print('C: continue current game. A number restores only this disposable profile.')
-        choice = input('Start [1]: ').strip().lower() or '1'
+        default = '10' if has_size_review else '1'
+        choice = input('Start ['+default+']: ').strip().lower() or default
         a.state = 'continue' if choice == 'c' else states[int(choice)-1] if choice.isdigit() and 1 <= int(choice) <= len(states) else None
 if a.state not in states + ['continue']:
     raise SystemExit('Unknown checkpoint.')

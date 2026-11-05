@@ -1,0 +1,54 @@
+Closed Virtue Stone Case size correction - November 4, 2026
+=========================================================
+Starting branch: codex/virtue-stone-case, clean0229d515c1ad69811f6f042764338a170ee02564.
+Current owner approval also accepts Iolo/Dupre companion remarks. This supersedes
+the pending-alternative statuses in the historical Stage F report.
+
+Cause
+-----
+Both inventory and world registered the same shape1601/frame0 from BG FLEX entry18.
+Its native frame was28x20, origin14,19; no alternate enlarged world frame existed.
+The studio table is shape633/frame1,30x30 native pixels. The closed sprite's canvas
+was93.3% of that table's width. Point2 made these56 versus60 display pixels; it
+enlarged both equally. Independent world/UI scales can change backpack comparison
+size but did not cause this tabletop ratio. The accepted position1592,370,z2 and
+bottom-aligned origin were consistent; no placement/scaling correction was needed.
+
+Correction
+----------
+Only packed frame0 is reduced to14x10, origin7,9. Its native canvas now spans46.7%
+of the table width and has one quarter of its previous pixel area. Both world and
+inventory continue using the same real object/shape/frame. The original28x20 PNG
+is retained unchanged; the manifest/converter center-sample its palette indices
+at packing time. This is an asset conversion, not an engine scaling exception.
+The strict native art validator now expects the matching frame0 geometry.
+
+Frames1..13 decode identically to starting HEAD, including all pixels/origins.
+Every source PNG is unchanged. The196x135 open case, seated stones, labels,
+button art, close control and actual item hit masks remain untouched. Shape class,
+one-tile collision/height, weight/volume, quest state, placement coordinate,
+animation, spell/input handlers, companion triggers and global speech timing are
+unchanged. Existing objects/saves resolve the smaller frame without migration.
+
+Evidence
+--------
+C:/Codex/Ultima7 Decomp/test-output/virtue-small-case-20261104
+FINAL.json records exact commits/files, selected assertions, failures/limits,
+resource/preservation checks, executable provenance and screenshot paths.
+Both original baseline sprite checks passed9 assertions. Fresh delivery, SDL label
+and MARK/RECALL suites run in ordinary BG and original Keyring. Extended sprite
+checks inspect native dimensions, pickup/dragging, actual supports, opening and
+save/load. Failed diagnostic attempts are retained separately, not counted PASS.
+No desktop automation, actor teleport, quest flag assignment or fake scene prop.
+
+Review
+------
+Existing final isolated review is updated:
+C:/Codex/Ultima7 Decomp/test-output/virtue-stage-f-20261104/human-review
+Play BG.cmd / Play Keyring.cmd retain old options1..9 and add10..13 for delivery,
+tabletop, backpack and ground. Default10 starts just before delivery. Existing
+config/current saves and old prepared checkpoints are preserved; a pre-update
+backup is retained under the correction evidence root. Review only whether this
+now reads as a small portable personal case. This correction is NOT human accepted.
+No merge (including integration-candidate fast-forward), tag, release or publication.
+The earlier isolated integration branch remains at0229d515c and is now stale.
