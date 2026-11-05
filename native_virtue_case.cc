@@ -64,10 +64,10 @@ std::unique_ptr<Shape_file> load_art() {
     if (art->get_num_frames() != 14) throw std::runtime_error("Invalid Virtue Case art frame count");
     for (int i = 0; i < 14; ++i) {
         const auto* f = art->get_frame(i);
-        const int w = i == 0 ? 28 : i == 1 ? width : i < 10 ? 13 : 32;
-        const int h = i == 0 ? 20 : i == 1 ? height : i < 10 ? 15 : 12;
-        const int ox = i == 0 ? 14 : i >= 2 && i < 10 ? 6 : 0;
-        const int oy = i == 0 ? 19 : i >= 2 && i < 10 ? 7 : 0;
+        const int w = i == 0 ? 14 : i == 1 ? width : i < 10 ? 13 : 32;
+        const int h = i == 0 ? 10 : i == 1 ? height : i < 10 ? 15 : 12;
+        const int ox = i == 0 ? 7 : i >= 2 && i < 10 ? 6 : 0;
+        const int oy = i == 0 ? 9 : i >= 2 && i < 10 ? 7 : 0;
         if (!f || f->get_width() != w || f->get_height() != h || f->get_xleft() != ox || f->get_yabove() != oy)
             throw std::runtime_error("Invalid Virtue Case art geometry");
     }

@@ -541,7 +541,16 @@
       "position_relative_to_gump": null,
       "target_resource": "data/bg/virtue_case.shp (proposed); EXULT_BG_FLX_VIRTUE_CASE_SHP (generated only after integration)",
       "target_shape": "native world shape 1601 frame 0",
-      "conversion": "python asset_tools.py --input incoming --output converted"
+      "conversion": "python asset_tools.py --input incoming --output converted",
+      "packed_dimensions": [
+        14,
+        10
+      ],
+      "packed_rendering_origin": [
+        7,
+        9
+      ],
+      "packing_note": "Closed native object only: center-sampled nearest-neighbor half size. Source PNG retained; open gump and all other frames unchanged."
     },
     {
       "name": "open_case",

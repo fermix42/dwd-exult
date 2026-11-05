@@ -13,7 +13,7 @@ import sys
 repo = Path(__file__).resolve().parents[2]
 art = repo/'data/bg/virtue_case'
 sys.path.insert(0, str(art))
-from asset_tools import read_png, write_png, indexed, encode_shape, decode_shape
+from asset_tools import runtime_frame, read_png, write_png, indexed, encode_shape, decode_shape
 
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--source', type=Path, required=True)
@@ -94,7 +94,7 @@ frames=[]
 for asset in manifest['assets']:
     sw,sh,indices,n=indexed(art/asset['filename'],palette)
     assert [sw,sh]==[asset['width'],asset['height']] and n==0
-    frames.append((sw,sh,*asset['rendering_origin'],indices))
+    frames.append(runtime_frame(asset,sw,sh,indices))
 blob=encode_shape(frames)
 for expected,decoded in zip(frames,decode_shape(blob)):
     assert expected==(decoded['width'],decoded['height'],decoded['xleft'],decoded['yabove'],decoded['pixels'])

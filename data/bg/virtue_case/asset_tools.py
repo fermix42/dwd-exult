@@ -1,6 +1,7 @@
 """PNG / BG shape conversion. Python 3 standard library; no artwork generation.
 CLI: python asset_tools.py --input incoming --output converted [--quantize]
-PNG: 8-bit indexed, RGB or RGBA, noninterlaced. No resizing or dithering.
+PNG: 8-bit indexed, RGB or RGBA, noninterlaced. No dithering.
+The manifest may request a smaller packed closed-object frame; source art is kept.
 """
 import argparse, hashlib, json, struct, zlib
 from pathlib import Path
@@ -115,6 +116,20 @@ def encode_shape(frames):
     for data in encoded: offsets.append(off); off+=len(data)
     return struct.pack('<I',off)+struct.pack('<'+'I'*len(offsets),*offsets)+b''.join(encoded)
 
+def runtime_frame(asset, w, h, pixels):
+    """Apply the declared closed-object reduction while packing native SHP data."""
+    origin = asset['rendering_origin']
+    if 'packed_dimensions' not in asset:
+        return w, h, *origin, pixels
+    assert asset['name'] == 'closed_case' and asset['packed_frame'] == 0
+    dw, dh = asset['packed_dimensions']
+    assert 0 < dw <= w and 0 < dh <= h
+    # Center-sampled nearest neighbour retains exact palette indices/transparency.
+    sampled = [pixels[min(h-1, (2*y+1)*h//(2*dh))*w +
+                      min(w-1, (2*x+1)*w//(2*dw))]
+               for y in range(dh) for x in range(dw)]
+    return dw, dh, *asset['packed_rendering_origin'], bytes(sampled)
+
 def main():
     p=argparse.ArgumentParser(description=__doc__); p.add_argument('--input',type=Path,required=True); p.add_argument('--output',type=Path,required=True); p.add_argument('--quantize',action='store_true'); args=p.parse_args()
     manifest=json.loads((ROOT/'asset_manifest.json').read_text()); bg=(ROOT/'bg_palette_rgb8.bin').read_bytes(); frames=[]; report=[]
@@ -122,7 +137,8 @@ def main():
         path=args.input/a['filename']; w,h,pixels,changed=indexed(path,bg,args.quantize)
         if [w,h]!=[a['width'],a['height']]: raise ValueError(f'{path}: wrong dimensions {w}x{h}')
         if 255 not in pixels: pass  # Fully opaque backgrounds are allowed.
-        ox,oy=a['rendering_origin']; frames.append((w,h,ox,oy,pixels)); report.append({'asset':a['name'],'quantized_pixels':changed,'sha256_png':hashlib.sha256(path.read_bytes()).hexdigest()})
+        frame=runtime_frame(a,w,h,pixels); frames.append(frame)
+        report.append({'asset':a['name'],'quantized_pixels':changed,'sha256_png':hashlib.sha256(path.read_bytes()).hexdigest(),'source_dimensions':[w,h],'packed_dimensions':list(frame[:2]),'packed_origin':list(frame[2:4])})
     blob=encode_shape(frames); decoded=decode_shape(blob)
     for frame,expected in zip(decoded,frames):
         assert (frame['width'],frame['height'],frame['xleft'],frame['yabove'],frame['pixels'])==expected
