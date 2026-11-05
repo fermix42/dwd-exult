@@ -18,7 +18,6 @@ review.mkdir(parents=True)
 speech = workspace/'test-output/speech-duration-20261104/human-review'
 quest = workspace/'test-output/virtue-stage-d-final-dialogue/human-review'
 chatter = workspace/'test-output/virtue-stage-e-final/human-review'
-physical = workspace/'test-output/virtue-stage-bc/human-review'
 for name in ['data', 'mods']:
     shutil.copytree(speech/name, review/name)
 shutil.copy2(source/'data/exult_bg.flx', review/'data/exult_bg.flx')
@@ -33,9 +32,8 @@ shutil.copy2(source/'tools/virtue_case/start_integration_review.py', review/'sta
 (review/'.exult-test-run').write_text('Private Stage F human review; disposable state.\n')
 fixtures = []
 for profile in ['bg','keyring']:
-    for state in ['a-iolo','b-dupre','already-organized','not-started','requirements','building','ready','delivered','full-case']:
-        origin = (physical/'prepared'/profile if state == 'full-case' else
-                  quest/'prepared'/profile/state if state in ['not-started','requirements','building','ready','delivered'] else
+    for state in ['a-iolo','b-dupre','already-organized','not-started','requirements','building','ready','delivered']:
+        origin = (quest/'prepared'/profile/state if state in ['not-started','requirements','building','ready','delivered'] else
                   chatter/('prepared-natural' if state in ['b-dupre','already-organized'] else 'prepared')/profile/state)
         target = review/'prepared'/profile/state
         shutil.copytree(origin, target)
@@ -48,4 +46,6 @@ for profile in ['BG','Keyring','SI']:
     source_head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=source,text=True).strip(),
     executable_sha256=hashlib.sha256((review/'Exult.exe').read_bytes()).hexdigest(),
     fixtures=fixtures), indent=2))
+subprocess.run([sys.executable,str(source/'tools/virtue_case/prepare_integration_cases.py'),
+                '--root',str(review),'--prefix','integration-full-case'],check=True)
 print(review)
