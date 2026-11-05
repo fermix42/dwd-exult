@@ -1,10 +1,15 @@
 # Dark Wraith Dragon's Exult
 
-**1.0.0-rc.2 is the prepared public prerelease**, succeeding the immutable
+**[1.0.0-rc.2 is the current public prerelease](https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.2)**, published
+2026-11-05T15:53:36Z (November 5, 2026 America/Phoenix), succeeding the unchanged
 [1.0.0-rc.1](https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.1).
-Publication is authorized after verification. Target tag: `dwd-v1.0.0-rc.2`;
-exact build revision is generated in `release-metadata.json` and corresponding
-source. This is not stable 1.0.0. See [READINESS](packaging/dwd/READINESS.md).
+Tag: `dwd-v1.0.0-rc.2`; exact binary source:
+`9a71267288ec2f3be1c62a79a32515fddc33bd2a`. This is not stable 1.0.0.
+[Hosted build and attestations](https://github.com/fermix42/dwd-exult/actions/runs/42054960446) passed;
+public downloads were independently verified. See [READINESS](packaging/dwd/READINESS.md)
+and the [publication record](packaging/dwd/PUBLICATION-1.0.0-rc.2.json) for hashes,
+upgrade/runtime results and retained limitations. This documentation update is
+separate from the immutable tagged binary source.
 
 ## 0. About Dark Wraith Dragon's Exult
 
@@ -300,7 +305,7 @@ command, then compare the complete hash with the matching filename in the publis
 `SHA256SUMS.txt` and release notes (letter case does not matter):
 
 ```powershell
-Get-FileHash -LiteralPath '.\DWD-Exult-1.0.0-rc.1-Setup.exe' -Algorithm SHA256
+Get-FileHash -LiteralPath '.\DWD-Exult-1.0.0-rc.2-Setup.exe' -Algorithm SHA256
 ```
 
 Substitute the portable or source ZIP filename to check those downloads. A mismatch
@@ -312,7 +317,7 @@ associates these hosted artifacts with exact source revision
 verification for the installer is:
 
 ```powershell
-gh attestation verify '.\DWD-Exult-1.0.0-rc.1-Setup.exe' --repo fermix42/dwd-exult
+gh attestation verify '.\DWD-Exult-1.0.0-rc.2-Setup.exe' --repo fermix42/dwd-exult
 ```
 
 Checksums, provenance and prior Defender scans are not an Authenticode signature

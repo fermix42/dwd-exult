@@ -1,0 +1,118 @@
+{
+  "result": "PASS",
+  "version": "1.0.0-rc.2",
+  "tag": "dwd-v1.0.0-rc.2",
+  "source": "9a71267288ec2f3be1c62a79a32515fddc33bd2a",
+  "published_at": "2026-11-05T15:53:36Z",
+  "url": "https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.2",
+  "prerelease": true,
+  "assets": {
+    "dependency-sources.json": {
+      "size": 5329,
+      "sha256": "8185679992cab62994310751fb695678afba5e16d080f11c680f73bd3bafeaf6",
+      "url": "https://github.com/fermix42/dwd-exult/releases/download/dwd-v1.0.0-rc.2/dependency-sources.json"
+    },
+    "DWD-Exult-1.0.0-rc.2-Setup.exe": {
+      "size": 12132723,
+      "sha256": "1cde5990acaa1bad2d6f54b1384b98a42f0d2ca3cf2cfe948b31ec61ed3150b4",
+      "url": "https://github.com/fermix42/dwd-exult/releases/download/dwd-v1.0.0-rc.2/DWD-Exult-1.0.0-rc.2-Setup.exe"
+    },
+    "DWD-Exult-1.0.0-rc.2-Source.zip": {
+      "size": 60070217,
+      "sha256": "16f9062cd582efc42f7b3f0b957f3ac5c214812ad39a191513b68ac4d671e318",
+      "url": "https://github.com/fermix42/dwd-exult/releases/download/dwd-v1.0.0-rc.2/DWD-Exult-1.0.0-rc.2-Source.zip"
+    },
+    "DWD-Exult-1.0.0-rc.2-Windows-x64.zip": {
+      "size": 13229203,
+      "sha256": "7bd6afed6c12c14104cf24ac24a8fee483ea2be0a40dded765053cee1dae17d4",
+      "url": "https://github.com/fermix42/dwd-exult/releases/download/dwd-v1.0.0-rc.2/DWD-Exult-1.0.0-rc.2-Windows-x64.zip"
+    },
+    "optional-downloads.json": {
+      "size": 2712,
+      "sha256": "b585cfddd07559f7b713ada5e0f87231b5252975564ed88885c4f0b5c899ef35",
+      "url": "https://github.com/fermix42/dwd-exult/releases/download/dwd-v1.0.0-rc.2/optional-downloads.json"
+    },
+    "payload-manifest.json": {
+      "size": 5498,
+      "sha256": "589e771a93eee2caade730f811946306fae1e3bf73bdc87f6e5c9fd1e472cc9f",
+      "url": "https://github.com/fermix42/dwd-exult/releases/download/dwd-v1.0.0-rc.2/payload-manifest.json"
+    },
+    "release-notes.txt": {
+      "size": 1973,
+      "sha256": "e49061e9cd1e3e64d5ffc06c57e1e5507a86dfc70e78a68ead9180012e03cdb9",
+      "url": "https://github.com/fermix42/dwd-exult/releases/download/dwd-v1.0.0-rc.2/release-notes.txt"
+    },
+    "SHA256SUMS.txt": {
+      "size": 740,
+      "sha256": "7ef37b1ce6065ae38bf4ef63b9c044b6c751e3432863d9334c0d966cb1505324",
+      "url": "https://github.com/fermix42/dwd-exult/releases/download/dwd-v1.0.0-rc.2/SHA256SUMS.txt"
+    },
+    "validation.json": {
+      "size": 661,
+      "sha256": "bde3ad3709de34b2284ec92b7ebce810d1983cd0479b96e0d2cd49ca72f16b4d",
+      "url": "https://github.com/fermix42/dwd-exult/releases/download/dwd-v1.0.0-rc.2/validation.json"
+    }
+  },
+  "rc1_unchanged": true,
+  "public_unauthenticated_page": "HTTP 200",
+  "default_branch": "codex/dwd-release-preparation",
+  "branch": "codex/dwd-release-1.0.0-rc.2",
+  "starting_source": {
+    "branch": "codex/virtue-stone-case-integration",
+    "revision": "1a66066db6185d3993c87ef6b7919a1e277b3524"
+  },
+  "preserved_release_baseline": {
+    "branch": "codex/dwd-release-preparation",
+    "revision": "7bf0bd8ab2797b3618b41c00a85eb8c8e002a702"
+  },
+  "placeholder_main": "6fbda9a8d887c5ddfced99412502a36ae48665e2",
+  "workflow_run_id": 42054960446,
+  "workflow_url": "https://github.com/fermix42/dwd-exult/actions/runs/42054960446",
+  "workflow_result": {
+    "build": "success",
+    "attest": "success"
+  },
+  "preparation_commits": [
+    "b1f15d6ec10e414fe80f83e95174b9053ee58b13 Prepare DWD Exult 1.0.0-rc.2 prerelease source and version-aware checks",
+    "4ec3ec16397c673e2bf8325c3208a45fd0147caf Document rc.2 features and make release verification version-aware",
+    "f520d6f874751c63778debb99eff44540bd344af Refresh official mod archive pins after identical-payload metadata repack audit",
+    "9a71267288ec2f3be1c62a79a32515fddc33bd2a Bind verified metadata-repacked archives to unchanged installed-content manifests"
+  ],
+  "tests": {
+    "packaged_runtime_assertions": {
+      "hosted-bg-labels": 79,
+      "hosted-keyring-spells": 42,
+      "hosted-rc2-commission-bg": 26,
+      "hosted-rc2-commission-keyring": 26,
+      "hosted-si-presence": 4,
+      "hosted-bg-speech-default": 25,
+      "hosted-si-speech-triple": 65,
+      "hosted-si-speech-persistence": 65
+    },
+    "old_save_load_assertions": 9,
+    "installer_rc1_upgrade_assertions": 30,
+    "portable_rc1_overlay_assertions": 17,
+    "portable_path_assertions": 39,
+    "real_https_download_assertions": 7,
+    "package_payload_files": 58,
+    "checksummed_workflow_files": 8
+  },
+  "malware_scan": {
+    "hosted": "Defender: scan finished, no threats",
+    "local": "Defender: scan finished, no threats"
+  },
+  "attestations": {
+    "installer": "PASS exact source/workflow/GitHub-hosted runner",
+    "portable": "PASS exact source/workflow/GitHub-hosted runner",
+    "source": "PASS exact source/workflow/GitHub-hosted runner",
+    "engine": "PASS exact source/workflow/GitHub-hosted runner"
+  },
+  "authenticode": "Unsigned / NotSigned (accepted)",
+  "evidence_root": "C:\\Codex\\Ultima7 Decomp\\test-output\\dwd-rc2-20261105",
+  "limitations": [
+    "No new clean-Windows/runtime validation or audio-selector/MT32EMU listening; prior accepted limitation remains.",
+    "Full campaigns and every mod/language combination are not certified.",
+    "Canonical Windows backslashes required for unattended BGDIR/SIDIR to avoid existing path-alias formatting limitation."
+  ],
+  "immutable_build_metadata": "Candidate/prepublication status and packaging-only NOT TESTED fields are preserved verbatim in exact-source archives. This publication record and READINESS record subsequent verification; the release tag is never moved."
+}

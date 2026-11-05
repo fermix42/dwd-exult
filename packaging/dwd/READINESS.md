@@ -1,28 +1,132 @@
-# DWD 1.0.0-rc.2 release readiness -- November 5, 2026
+# DWD 1.0.0-rc.2 -- published and independently verified
 
-The owner explicitly authorized a new public prerelease after mandatory gates pass.
-Accepted integration: `1a66066db6185d3993c87ef6b7919a1e277b3524`. Source preserves
-rc.1 and all human-accepted case/global speech features. No new human review cycle.
+[Dark Wraith Dragon's Exult 1.0.0-rc.2](https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.2)
+was published **2026-11-05T15:53:36Z**, November 5, 2026 America/Phoenix.
+GitHub confirms a public prerelease, not stable/latest. An unauthenticated request
+returned HTTP200. All nine public assets were downloaded and independently hashed.
 
-Preparation branch: `codex/dwd-release-1.0.0-rc.2`; public default and placeholder
-main are preserved. The existing manual `dwd-candidate.yml` must pass its exact-SHA
-public hosted build and attestation jobs. Exact source, run, package hashes and
-upgrade/publication verification will be recorded after those gates pass.
+## Source and preserved history
 
-The first rc.2 hosted candidate42050911090 passed build/attestation, but live
-installer tests caught all3 mutable official snapshots repacked with new ZIP
-metadata. A direct HTTPS comparison established every84 payload files unchanged;
-`download-pin-review-20261105.json` records old/new hashes and counts. Only archive
-pins were refreshed, with strict validation and original mod identities retained.
-A new exact-source hosted candidate is required; older artifacts are not substitutes.
+- Release branch: `codex/dwd-release-1.0.0-rc.2`; started from accepted integration
+  `1a66066db6185d3993c87ef6b7919a1e277b3524`. The release baseline had no divergent
+  packaging changes: histories reconciled through their existing ancestry, with no
+  duplicate cherry-picks or discarded commits. rc.1's binary source remains an ancestor.
+- Exact clean binary/source/tag commit: **`9a71267288ec2f3be1c62a79a32515fddc33bd2a`**.
+  Annotated remote tag `dwd-v1.0.0-rc.2` was independently peeled to that commit.
+- Preparation commits, in order:
+  - `b1f15d6ec10e414fe80f83e95174b9053ee58b13`: Prepare DWD Exult 1.0.0-rc.2 prerelease source and version-aware checks
+  - `4ec3ec16397c673e2bf8325c3208a45fd0147caf`: Document rc.2 features and make release verification version-aware
+  - `f520d6f874751c63778debb99eff44540bd344af`: Refresh official mod archive pins after identical-payload metadata repack audit
+  - `9a71267288ec2f3be1c62a79a32515fddc33bd2a`: Bind verified metadata-repacked archives to unchanged installed-content manifests
 
-Required gates: clean local build, exact hosted provenance, package audits,
-rc.1 installer/portable upgrade preservation, focused packaged BG/Keyring/SI checks,
-approved download integrity and available malware scanning, then independent
-public asset verification. Existing unsigned/clean-OS audio/path-alias limitations
-remain documented; no speculative new hold. No new public stable version assigned.
+- No engine/gameplay/art/audio/rendering changes were made during release execution.
+  The accepted case, quest, four natural remarks, global duration, Native Wait,
+  Orb chart, combat and audio implementations remain unchanged from the integration.
+  The fresh-checkout bootstrap correction and required manifests are included.
+- Protected release baseline/default remains `7bf0bd8ab2797b3618b41c00a85eb8c8e002a702`;
+  placeholder main remains `6fbda9a8d887c5ddfced99412502a36ae48665e2`.
+  Accepted feature/integration branches and local milestone were retained.
+  No changes to ultima7-modern, original game installations or official Exult.
+- This is a separate post-publication reporting commit. Never move the binary tag
+  to include it. Archived metadata correctly captures prepublication status and
+  packaging-only test scope; this report records the subsequently completed gates.
 
-The rc.1 record below remains historical and immutable. Never replace its tag/assets.
+## Build and verification
+
+| Gate | Observed result |
+| --- | --- |
+| Local ordinary Release x64 | Clean Rebuild PASS, exact source/dirty=false; one ordinary executable/build tree |
+| [Hosted run42054960446](https://github.com/fermix42/dwd-exult/actions/runs/42054960446) | build SUCCESS; attest SUCCESS, exact `9a71267288ec2f3be1c62a79a32515fddc33bd2a` |
+| Installer and portable contents | All58 payload files match each other and manifests; no optional installable mod payloads embedded |
+| Corresponding source | Archive commit/comment, full source manifest, dependency SHA512 sources and runtime SHA256 mappings PASS |
+| Actual rc.1 Setup → hosted rc.2 | 30 assertions PASS: config/paths, BG/Keyring/SI saves, original/customized mods and identity preserved; zero optional HTTP requests scheduled |
+| Actual rc.1 portable ZIP → hosted rc.2 overlay | 17 assertions PASS: same-root replacement, config, old saves and custom mod preservation |
+| Ordinary portable paths | 39 assertions PASS: unrelated CWD, relocation, isolated base/mod state, malformed archives, protected original/official trees, nonwritable-root refusal/ACL cleanup |
+| Hosted installer real official HTTPS downloads | 7 assertions PASS, strict archive hashes and original extracted file manifests |
+| Packaged BG labels | 79 assertions PASS: real case/stones, SDL text/key event queue, editing, real MARK/RECALL interoperability and normal save/load note ownership |
+| Packaged Keyring spells | 42 assertions PASS: original effective Usecode, spellbook/mana/reagents, valid targeting and normal spell execution |
+| Packaged original BG/Keyring commissioning | 26 +26 assertions PASS: original NPC functions, optional eligibility/dialogue and persistent earned commission state |
+| Packaged SI | 4 presence/default checks PASS: no granted case/reward and default Normal |
+| Global speech-duration packaged runtime | BG default25, SI Triple65 and SI restart persistence65 assertions PASS |
+| Existing rc.1-era saves | 9 checks PASS: actual BG/Keyring/SI saves load, Normal without new key, no stale case targeting |
+| Available malware scans | Hosted and local Microsoft Defender: scan finished, no threats |
+| GitHub provenance | Downloaded installer/portable/source and exact packaged Exult.exe verified against source SHA, expected workflow and GitHub-hosted runner; public primary downloads reverified |
+| Public artifact integrity | All9 files byte-identical to candidate; 8 checksum entries plus checksum file agree with GitHub API asset digests and sizes |
+| Public startup/source inspection | Public ZIP extracted executable --version PASS; public Source.zip and dependency manifests audited again |
+| Prior release/protected branches | rc.1 release record and every asset unchanged (excluding download counters); rc.1 tag not moved; default/main preserved |
+
+Focused packaged gameplay totals **332** assertions, plus9 old-save checks. Do not
+add them to historical feature totals as if all previous suites were rerun. Prior
+human acceptance and accepted StageF/integration evidence remain valid; no new
+open-ended human review, audio changes or experimental combat work occurred.
+
+The first older-save harness attempt asked SI to load while its initial protected
+opening owned control; the real handler correctly refused. The corrected verification
+acknowledged the original opening dialogue, then loaded the old save successfully.
+No gameplay flags or bypasses were introduced.
+
+## Investigated download discrepancy and superseded candidates
+
+All three official snapshots had changed archive bytes. Direct official HTTPS
+comparison proved **84 of84 extracted files identical** to the original approved
+archives; only ZIP timestamps/extra metadata changed. The explicit audit and old/new
+digests are in [download-pin-review-20261105.json](download-pin-review-20261105.json).
+Only archive pins and corresponding catalogue headers changed; per-file hashes,
+package IDs, mod versions, official URLs, integrity policy and strict checks stayed
+intact. No unverified mirror or integrity bypass was used.
+
+The rc.1 upgrade fixture used the immutable original rc.1 installer and its approved
+cached archives through rc.1's native `--installmod` handler, simulating already-downloaded user
+content. rc.1's old live pins reject today's repacks; rc.1 was not modified. A fresh
+rc.2 installation separately used real current official HTTPS downloads successfully.
+
+- Initial hosted42050911090 (`4ec3ec16397c673e2bf8325c3208a45fd0147caf`):
+  build/attest passed but superseded after live download checks rejected the repacks.
+- Hosted42054052804 (`f520d6f874751c63778debb99eff44540bd344af`): cancelled
+  after local strict catalogue validation found archive-header hashes also needed
+  updating. Corrected only those headers; all84 per-file hashes stayed identical.
+- Final42054960446 (`9a71267288ec2f3be1c62a79a32515fddc33bd2a`): passed all mandatory gates;
+  **only these hosted artifacts were published**. No older successful artifacts substituted.
+
+## Published assets
+
+All sizes are bytes; names are unchanged workflow output. Supporting metadata is
+the original immutable build snapshot, not a claim that the packaging script ran
+the subsequent gameplay/upgrade checks. [Publication JSON](PUBLICATION-1.0.0-rc.2.json)
+contains direct asset URLs and machine-readable results.
+
+| File | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `dependency-sources.json` | 5329 | `8185679992cab62994310751fb695678afba5e16d080f11c680f73bd3bafeaf6` |
+| `DWD-Exult-1.0.0-rc.2-Setup.exe` | 12132723 | `1cde5990acaa1bad2d6f54b1384b98a42f0d2ca3cf2cfe948b31ec61ed3150b4` |
+| `DWD-Exult-1.0.0-rc.2-Source.zip` | 60070217 | `16f9062cd582efc42f7b3f0b957f3ac5c214812ad39a191513b68ac4d671e318` |
+| `DWD-Exult-1.0.0-rc.2-Windows-x64.zip` | 13229203 | `7bd6afed6c12c14104cf24ac24a8fee483ea2be0a40dded765053cee1dae17d4` |
+| `optional-downloads.json` | 2712 | `b585cfddd07559f7b713ada5e0f87231b5252975564ed88885c4f0b5c899ef35` |
+| `payload-manifest.json` | 5498 | `589e771a93eee2caade730f811946306fae1e3bf73bdc87f6e5c9fd1e472cc9f` |
+| `release-notes.txt` | 1973 | `e49061e9cd1e3e64d5ffc06c57e1e5507a86dfc70e78a68ead9180012e03cdb9` |
+| `SHA256SUMS.txt` | 740 | `7ef37b1ce6065ae38bf4ef63b9c044b6c751e3432863d9334c0d966cb1505324` |
+| `validation.json` | 661 | `bde3ad3709de34b2284ec92b7ebce810d1983cd0479b96e0d2cd49ca72f16b4d` |
+
+## Security, redistribution and retained limits
+
+Setup and Exult.exe report **NotSigned**. Unsigned/Unknown publisher is explicitly
+accepted; no paid signing or signing-service change. Checksums/attestations and
+Defender findings do not establish an Authenticode signature or guarantee safety.
+The dependency-inclusive source package retains GPL sources/recipes, component
+notices, Exult credits, upstream history and the owner's previously documented
+inherited-source retention decisions. No newly introduced proprietary game data,
+ROM, soundfont, credential, private configuration, save or test fixture is packaged.
+
+Fresh clean-Windows/runtime validation and simplified audio-selector/MT32EMU
+listening remain **NOT TESTED**, as previously accepted; no new listening claim.
+Other platforms, full campaigns and every mod/language combination are not certified.
+For unattended BGDIR/SIDIR use canonical Windows backslashes or omit unchanged
+paths: the existing forward-slash alias can rewrite config formatting. Advanced
+repair/overwrite/backup/rollback policy/code is unchanged; prior53-assertion
+idempotence evidence was reused rather than replayed in full. Actual rc.1 upgrades
+and live-download failure/integrity checks were freshly exercised as recorded above.
+
+Local detailed evidence: `C:\Codex\Ultima7 Decomp\test-output\dwd-rc2-20261105`. No publication issue requiring owner action remains.
 
 ---
 

@@ -3,12 +3,12 @@ Version History
 ==================================================
 
 version: 1.0.0-rc.2
-Status: Public prerelease candidate; publication authorized after verification.
-Prepared: November 5, 2026 (America/Phoenix)
+Status: Published GitHub prerelease, 2026-11-05T15:53:36Z
+Published: November 5, 2026 (America/Phoenix)
 Tag: dwd-v1.0.0-rc.2
 Based on: Exult 1.13.1git (upstream development version)
 Upstream revision: 97984e9e0cbb4ccacaab0249da9c51b533818f74
-Exact binary source: Generated per build in release-metadata.json.
+Exact binary source: 9a71267288ec2f3be1c62a79a32515fddc33bd2a
 
     - Added the HUMAN ACCEPTED native Black Gate Virtue Stone Case, optionally
       commissioned from Xanthia at Minoc's Artist's Guild: William's20-gold timber,
