@@ -17,34 +17,34 @@
   "bgkeyring.zip": {
     "url": "https://exult.sourceforge.io/snapshots/Keyring.zip",
     "resolved_url": "https://exult.sourceforge.io/snapshots/Keyring.zip",
-    "sha256": "134fb3605932e4c76861bba3a1d5d39c78b616bc5fe9f80d0e0714c9602ff5fe",
+    "sha256": "55ea196be9fb1398536722a96de02d13c80c16f27c65001c1e8dc3d061adf67f",
     "bytes": 777962,
-    "checksum_provenance": "Locally computed SHA-256 from live official HTTPS archive; no official SHA-256 publisher checksum located",
+    "checksum_provenance": "Locally computed SHA-256 of the official HTTPS ZIP; every extracted file byte-identical to the previous approved package. See download-pin-review-20261105.json; no publisher-issued checksum claim.",
     "official_listing": "https://exult.info/download.html",
     "official_archive_name": "Keyring.zip",
     "text_line_endings_only": true,
-    "verified_date": "2026-11-01"
+    "verified_date": "2026-11-05"
   },
   "sifixes.zip": {
     "url": "https://exult.sourceforge.io/snapshots/Sifixes.zip",
     "resolved_url": "https://exult.sourceforge.io/snapshots/Sifixes.zip",
-    "sha256": "ff4dd633572b10911965291c3379d8af05086c661077150880fcf284e9d39ebb",
+    "sha256": "8ea3aa12f5833a74d08f35f7f5fee330e15cc58c8a2a59ccbb990fbca1dee9c6",
     "bytes": 344937,
-    "checksum_provenance": "Locally computed SHA-256 from live official HTTPS archive; no official SHA-256 publisher checksum located",
+    "checksum_provenance": "Locally computed SHA-256 of the official HTTPS ZIP; every extracted file byte-identical to the previous approved package. See download-pin-review-20261105.json; no publisher-issued checksum claim.",
     "official_listing": "https://exult.info/download.html",
     "official_archive_name": "Sifixes.zip",
     "text_line_endings_only": true,
-    "verified_date": "2026-11-01"
+    "verified_date": "2026-11-05"
   },
   "islefaq.zip": {
     "url": "https://exult.sourceforge.io/snapshots/SFisland.zip",
     "resolved_url": "https://exult.sourceforge.io/snapshots/SFisland.zip",
-    "sha256": "f9d982eccdc03aabb6964ef7f5c48cbf6fcc5a2788bde1c2a0a21937a59ba22c",
+    "sha256": "71c848daa8d259f3780a4aba856bf0c33ab6ee5607e0d4ea9d32f41db51dc9a7",
     "bytes": 289182,
-    "checksum_provenance": "Locally computed SHA-256 from live official HTTPS archive; no official SHA-256 publisher checksum located",
+    "checksum_provenance": "Locally computed SHA-256 of the official HTTPS ZIP; every extracted file byte-identical to the previous approved package. See download-pin-review-20261105.json; no publisher-issued checksum claim.",
     "official_listing": "https://exult.info/download.html",
     "official_archive_name": "SFisland.zip",
     "text_line_endings_only": true,
-    "verified_date": "2026-11-01"
+    "verified_date": "2026-11-05"
   }
 }

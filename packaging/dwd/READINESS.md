@@ -9,6 +9,13 @@ main are preserved. The existing manual `dwd-candidate.yml` must pass its exact-
 public hosted build and attestation jobs. Exact source, run, package hashes and
 upgrade/publication verification will be recorded after those gates pass.
 
+The first rc.2 hosted candidate42050911090 passed build/attestation, but live
+installer tests caught all3 mutable official snapshots repacked with new ZIP
+metadata. A direct HTTPS comparison established every84 payload files unchanged;
+`download-pin-review-20261105.json` records old/new hashes and counts. Only archive
+pins were refreshed, with strict validation and original mod identities retained.
+A new exact-source hosted candidate is required; older artifacts are not substitutes.
+
 Required gates: clean local build, exact hosted provenance, package audits,
 rc.1 installer/portable upgrade preservation, focused packaged BG/Keyring/SI checks,
 approved download integrity and available malware scanning, then independent

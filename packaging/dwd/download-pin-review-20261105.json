@@ -1,0 +1,48 @@
+{
+  "reason": "Official snapshot ZIP metadata repack only; strict SHA256 validation retained. No mod payload or package identity/version changes.",
+  "source": "Direct HTTPS from the existing approved official URLs; compared against previously verified archive cache and installed-content manifests.",
+  "changes": [
+    {
+      "archive": "bgkeyring.zip",
+      "url": "https://exult.sourceforge.io/snapshots/Keyring.zip",
+      "old_sha256": "134fb3605932e4c76861bba3a1d5d39c78b616bc5fe9f80d0e0714c9602ff5fe",
+      "new_sha256": "55ea196be9fb1398536722a96de02d13c80c16f27c65001c1e8dc3d061adf67f",
+      "bytes": 777962,
+      "member_comparison": {
+        "member_payloads_identical": true,
+        "old_member_count": 50,
+        "new_member_count": 50,
+        "changed_members": [],
+        "changed_metadata_entries": 53
+      }
+    },
+    {
+      "archive": "sifixes.zip",
+      "url": "https://exult.sourceforge.io/snapshots/Sifixes.zip",
+      "old_sha256": "ff4dd633572b10911965291c3379d8af05086c661077150880fcf284e9d39ebb",
+      "new_sha256": "8ea3aa12f5833a74d08f35f7f5fee330e15cc58c8a2a59ccbb990fbca1dee9c6",
+      "bytes": 344937,
+      "member_comparison": {
+        "member_payloads_identical": true,
+        "old_member_count": 14,
+        "new_member_count": 14,
+        "changed_members": [],
+        "changed_metadata_entries": 16
+      }
+    },
+    {
+      "archive": "islefaq.zip",
+      "url": "https://exult.sourceforge.io/snapshots/SFisland.zip",
+      "old_sha256": "f9d982eccdc03aabb6964ef7f5c48cbf6fcc5a2788bde1c2a0a21937a59ba22c",
+      "new_sha256": "71c848daa8d259f3780a4aba856bf0c33ab6ee5607e0d4ea9d32f41db51dc9a7",
+      "bytes": 289182,
+      "member_comparison": {
+        "member_payloads_identical": true,
+        "old_member_count": 20,
+        "new_member_count": 20,
+        "changed_members": [],
+        "changed_metadata_entries": 22
+      }
+    }
+  ]
+}

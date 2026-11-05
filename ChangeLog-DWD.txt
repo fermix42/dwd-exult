@@ -23,6 +23,8 @@ Exact binary source: Generated per build in release-metadata.json.
       Normal, Longer, Double and Triple. Normal retains original timing.
     - Corrected overhead speech positioning/wrapping/clipping; retained normal
       SDL text entry and queued keyboard regression support.
+    - Refreshed official mod ZIP hashes after verifying metadata-only repacks;
+      all84 extracted files match the approved originals. Strict validation remains.
     - Bootstrap ordinary resource dependencies in fresh checkouts. Release checks
       derive filenames/version fixtures from metadata rather than assuming rc.1.
     - Preserved accepted audio, Native Wait, Orb chart, quiz defaults, combat,
