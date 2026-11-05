@@ -1,0 +1,169 @@
+Virtue Stone Case - Stage F integration readiness (November 4, 2026)
+================================================================
+
+Status: UNPUBLISHED DEVELOPMENT CANDIDATE. No release version assigned.
+Final integration authorization and the focused human checks below remain open.
+This record supersedes historical pending-stage descriptions in earlier reports;
+those reports and failed diagnostic attempts are retained as evidence.
+
+Repository and integration
+--------------------------
+Starting branch: codex/virtue-stone-case, exult-virtue-native worktree.
+Starting HEAD: db78c04f361a520eec738788efce32008302b5f6, clean.
+Accepted target: codex/dwd-release-preparation at
+7bf0bd8ab2797b3618b41c00a85eb8c8e002a702 in exult-fork.
+That target is the feature branch's merge base and ancestor. Its accepted Orb
+Chart, Native Wait, combat and audio implementation are retained. The entire
+26-commit feature history was reviewed, not replaced by a squash or scaffold.
+The obsolete codex/dwd-keyring-virtue-case branch is excluded.
+
+An isolated codex/virtue-stone-case-integration candidate is prepared after the
+focused Stage F commits. Its exact commit, status, executable hash, assertion
+totals and changed-file inventory are recorded in the evidence root's FINAL.json.
+The protected target and dwd-v1.0.0-rc.1 tag remain untouched.
+
+Proposed procedure, ONLY after owner integration authorization:
+1. Verify both worktrees are clean; compare FINAL.json's candidate/target IDs with
+   git rev-parse. If the target moved, redo the ancestry/conflict/shared-file check.
+2. In exult-fork on codex/dwd-release-preparation, run:
+   git merge --ff-only codex/virtue-stone-case-integration
+3. Build the resulting clean source through the one ordinary Release/x64 workflow.
+   Refresh exact-source provenance and perform release packaging validation only
+   under a separately approved release scope. Do not retag or replace rc.1.
+No protected merge, push, release tag, publication or installer release is done here.
+
+Narrow Stage F corrections: the commission now checks that the native case shape
+was actually registered before exposing its dialogue. This prevents charging for
+an unavailable reward when a third-party shape occupies1601. The occupied shape
+itself is preserved. Two missing commission/chatter compilation entries were
+added to the iOS project. No accepted art, spell, note, speech renderer, timing,
+quest transaction, delivery location or animation implementation was changed.
+
+Feature and acceptance inventory
+--------------------------------
+HUMAN ACCEPTED: 196x135 wood/velvet gump and 28x20 closed sprite, eight real
+shape330 stones, fixed seating, insertion/removal/rejections, current UI scaling,
+native buttons, normal paid MARK/RECALL, eight independent persistent runtime
+notes, keyboard entry/Enter/Escape/Backspace and the global duration preference.
+The backpack and world use the identical shape1601/frame0 native sprite. Their
+apparent sizes follow the existing independent world/UI scales. No art changed.
+
+HUMAN PASSED: primary commissioning functionality; final editorial wording was
+accepted in prior Stage D instructions. Shamino A and B were personally observed
+arising naturally during exploration, without handling stones or recasting MARK;
+the owner confirmed their readability. Do not reopen those design decisions.
+
+AUTOMATICALLY VERIFIED, individually HUMAN REVIEW PENDING:
+Iolo A: "These stones are filling our packs!"
+Dupre B: "Which stone leads where? I hope one leads to an inn!"
+The final revised Guild dialogue/handoff remains available for focused visual
+review. Automated scene captures do not establish final human acceptance.
+
+The case is an optional built-in BG enhancement, not a DWDKeyring mod. Original
+BG and original Marzo Keyring use their effective loaded spell/NPC Usecode.
+Ordinary players receive no automatic case. SI receives neither case nor quest.
+Test provisioning is explicitly CLI-only or in disposable prepared saves.
+
+Quest invariants audited
+-------------------------
+At least one real party-held stone, including companion/nested storage, enables
+commissioning. William supplies only timber for 20 gold, delivered to the Guild;
+he does not know the case design, stones or Xanthia's two-day schedule. One cloth
+and 100 gold go to Xanthia. Requirements may be supplied in reasonable orders;
+each transaction happens once and persists. The last requirement records an
+absolute deadline exactly 2880 game minutes later. Calendar progress/Native Wait
+refresh readiness; reaching the deadline never spawns the reward automatically.
+
+Delivery retains the visible studio table at (1592,370,z2), normal NPC path,
+facing/reach/place/straighten/step-aside timing and one-shot completion. The real
+case starts empty with blank notes and must be picked up. Current-conversation
+topics disappear immediately; completed transactions and the completed commission
+do not return. Dropping/losing the delivered case never restarts the commission.
+Original Xanthia/William functions and ordinary topics remain loaded.
+
+Companion A requires three distinct loose colors; seated stones do not count.
+B requires one genuine valid saved destination. Current existing inventory is
+observed during exploration, without a fresh handling/MARK event. Real party
+speaker availability, protected-state deferral, no overlap, one-shot completion
+and five-game-minute separation remain. Any party-owned case suppresses remarks;
+earned quest completion suppresses them permanently even after losing the case.
+
+Speech preference is separate from this quest: all actor barks share one global
+50/100/150/200/300 preference, capturing 5/10/15/20/30 scheduled updates. Normal
+retains the original ten-update default. Config validation, active-timer retention
+and unaffected non-speech text are retained. There are no companion overrides.
+
+Evidence and verification
+--------------------------
+Root: C:/Codex/Ultima7 Decomp/test-output/virtue-stage-f-20261104
+FINAL.json: exact final revisions, counts, selected runs and preservation checks.
+build.log: ordinary Release/x64 build; existing SDK/manifest/postbuild warnings
+are retained, not represented as test failures or silently removed.
+final-summary.json and individual logs/transcripts: final focused engine suites.
+audit.json: resource/protected-file checks and prior-review file inventory.
+converted/conversion_report.json: all 14 frames round-trip dimensions, origins,
+palette/pixels exactly; rebuilt SHP is byte-identical to the frozen SHP.
+human-review/screenshots: uncomposited actual engine frames, including 1x/2x.
+
+Reuse of accepted evidence (not counted as fresh assertions):
+- virtue-stage-d-accepted/acceptance-test-summary.json: original full construction,
+  real feeding/Wait, 47/48-hour deadline, obstructed tabletop/recovery in BG and
+  Keyring, save/load near physical placement, exactly-once delivery and pickup.
+- natural-chatter-20261104: 1315 passing assertions, including actual Iolo/Dupre,
+  companion/case ownership, earned completion suppression, protected contexts and
+  ordinary sleep deferral. That sleep test is not a 48-hour construction test.
+- speech-duration-20261104/verification-summary.json: 3894 selected passing
+  assertions; all five settings across BG/Keyring/SI, malformed/default values,
+  relaunch, captured active timers, unrelated text, actual shared-config profiles.
+  Diagnostic failures are retained separately in that report.
+
+SI shared Options/timer behavior is tested; its original opening can retain input
+ownership. Later SI active-bark movement retention is not certified by the BG/KG
+results. No opening/quest flags were forced. Other Keyring quests are not all
+replayed; original mod files and loaded functions are retained. Protected audio,
+combat, Wait and Orb implementation are unchanged; no new listening/combat
+acceptance is inferred from that source-preservation audit.
+
+Construction edge probes and remaining limits are recorded in FINAL.json and
+construction-boundary transcripts. Exhaustive NPC schedule-boundary delivery is
+not certified. Existing obstruction/transition results are already sufficient
+and were not needlessly repeated. No unsupported action is called PASS.
+
+Resources, persistence and licensing
+------------------------------------
+BG FLEX retains entries0..17 and appends the case at18. The ordinary resource
+packer builds the archive; the isolated preview SHP never replaces exult_bg.flx.
+The 14 indexed PNGs, manifest, palette, frozen SHP and converter are source assets.
+No seated stones are baked into the background or represented by proxy objects.
+No original mod Usecode/function ID or shared quest-flag slot is allocated by
+the native commission. Optional VSCQ/VSCH save trailers store its state instead.
+Per-container notes use the existing accepted optional item extension. Old saves
+without these records start safely; current saves retain actual stones, notes,
+deadlines and completion. Downgrading to older binaries that do not recognize
+the case is not promised as a supported migration.
+
+GPL-2.0-or-later source notices and upstream COPYING/AUTHORS/credits are retained.
+The accepted art is the owner's supplied artwork and existing original stone
+depictions, not newly imported third-party content in this pass. No additional
+redistribution license is invented by this audit. This private review includes
+game-derived saves/mod resources and is not a public redistributable payload.
+Any later release must use the explicit packaging lists and corresponding-source
+and attribution rules; no public archive or installer was produced here.
+Automake and Windows list the native modules and include/resource dependencies.
+Two missing iOS source entries were corrected; iOS/non-Windows builds are NOT TESTED.
+
+Consolidated private human review
+---------------------------------
+C:/Codex/Ultima7 Decomp/test-output/virtue-stage-f-20261104/human-review
+Play BG.cmd / Play Keyring.cmd: numbered checkpoint menu, C to continue.
+Play SI.cmd: optional shared display-setting review. One new private config;
+checkpoint restores preserve it and other save slots. Existing review folders,
+user saves and configurations are preserved. HUMAN-TEST.txt gives focused steps
+for Iolo, Dupre and the revised Guild handoff. Other checkpoints are conveniences,
+not a request to repeat hundreds of automated assertions. Launchers run the
+ordinary executable without --test-cli, desktop injection or free casting.
+
+Release-readiness gates: final human presentation/alternative-line review and
+owner integration authorization remain. Subsequent release packaging, exact clean
+build provenance, installer/archive validation and publication require their own
+authorized pass. Passing tests is not a claim of full human acceptance.

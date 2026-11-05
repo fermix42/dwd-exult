@@ -1,3 +1,7 @@
+Stage F update (November 4, 2026): HUMAN ACCEPTED by the owner.
+The accepted global timing and UI remain frozen. Current consolidated evidence
+and review instructions: virtue_case_stage_f.txt. Historical report follows.
+
 DWD EXULT - GLOBAL OVERHEAD TEXT DURATION
 Unpublished implementation candidate - human acceptance pending
 

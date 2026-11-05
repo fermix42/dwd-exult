@@ -1,5 +1,11 @@
 # Virtue Stone Case — native Stage A development handoff
 
+Historical implementation journal. Later sections supersede earlier layouts and
+stage limitations. Current behavior, owner acceptance and final limitations are
+recorded in virtue_case_stage_f.txt and the unpublished README-DWD.md section.
+The final physical case, spells, notes and keyboard handling are human accepted;
+earlier pending statements below describe their original development stage.
+
 Current presentation: owner-supplied image at **196x135 native pixels**.
 This compact revision supersedes the320x200 presentation described historically
 below. It uses13x15 seated stones at(44/115,52/70/88/106), original BG tiny-font

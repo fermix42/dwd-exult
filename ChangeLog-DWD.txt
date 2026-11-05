@@ -2,6 +2,21 @@ Dark Wraith Dragon's Exult
 Version History
 ==================================================
 
+Unpublished development candidate — November 4, 2026
+No new release version or tag assigned.
+
+    - Integrated optional native Black Gate Virtue Stone Case development work,
+      compatible with original Keyring: eight physical compartments, normal paid
+      MARK/RECALL, persistent editable notes and Xanthia's commissioning quest.
+    - Added occasional one-time companion observations of stones already carried
+      by the party, with suppression after obtaining the case.
+    - Corrected shared overhead speech positioning, wrapping and clipping.
+    - Added the separate global Overhead Text Duration display preference for
+      character speech, retaining original timing by default.
+    - Prepared Stage F regression evidence and an isolated review candidate.
+      Final integration and release authorization remain pending. These changes
+      are not part of the immutable published 1.0.0-rc.1 binary below.
+
 version: 1.0.0-rc.1
 Status: Published GitHub prerelease, 2026-11-02T01:13:28Z
 Local publication date: November 1, 2026 (America/Phoenix)
