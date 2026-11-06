@@ -276,6 +276,7 @@ public:
 	// Render (legacy direct paint into the current target).
 	virtual void paint();
 	void         paint_to_layer();
+	bool         is_visible() const;
 
 	int get_lifetime_ticks() const { return lifetime_ticks; }
 	int get_elapsed_ticks() const { return num_ticks; }

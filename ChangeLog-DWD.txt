@@ -2,6 +2,21 @@ Dark Wraith Dragon's Exult
 Version History
 ==================================================
 
+Unreleased changes (after 1.0.0-rc.2)
+Date: November 5, 2026 (America/Phoenix)
+
+    - Hide distant ambient world text instead of clamping it into the view.
+      Preserve nearby off-screen speech within the normal ten-tile proximity
+      margin and directed approach-and-talk/arrest calls within the existing
+      50-tile schedule range, including Finnigan's opening summons.
+      Edge placement, gump text and selected duration are preserved; hidden speech
+      continues to expire through the normal queue.
+    - Added built-in CLI visibility observations and camera-only nearby/distant
+      speech regressions for BG, original Keyring and SI, plus a natural BG opening
+      check. Revised speech policy and retained duration behavior passed 964
+      assertions with zero failures. See docs/offscreen_speech_fix.txt for evidence
+      boundaries, including the synthetic directed-call rendering check.
+
 version: 1.0.0-rc.2
 Status: Published GitHub prerelease, 2026-11-05T15:53:36Z
 Published: November 5, 2026 (America/Phoenix)

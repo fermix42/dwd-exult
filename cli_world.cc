@@ -370,6 +370,7 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
 			auto        item = effect->get_item();
 			out << "{\"text\":" << cli_quote(effect->get_message()) << ",\"item\":" << (item ? reference(item.get()) : 0)
 				<< ",\"lifetime_ticks\":" << effect->get_lifetime_ticks() << ",\"elapsed_ticks\":" << effect->get_elapsed_ticks()
+				<< ",\"visible\":" << effect->is_visible()
 				<< ",\"viewport\":" << rect(l.viewport) << ",\"anchor\":" << rect(l.anchor)
 				<< ",\"destination\":" << rect(l.destination) << ",\"scale\":" << l.scale << ",\"width\":" << l.width
 				<< ",\"height\":" << l.height << ",\"line_height\":" << l.line_height << ",\"page\":" << l.page
@@ -397,7 +398,7 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
 		auto object = resolve(x);
 		int  edge;
 		in >> edge;
-		if (!object->as_actor() || edge < 0 || edge > 7 || y < -2 || y > 8) {
+		if (!object->as_actor() || edge < 0 || edge > 15 || y < -2 || y > 8) {
 			throw std::runtime_error("invalid_overhead_fixture");
 		}
 		if (y == -2) {
@@ -423,6 +424,15 @@ std::string cli_world(int sequence, const std::string& op, int x, int y, std::is
 			center.tx += 3;
 			center.ty += 2;
 		}
+		// Fully off-screen camera fixtures; the actor and world state stay put.
+		if (edge == 8) center.tx += halfw + 16;
+		if (edge == 9) center.tx -= halfw + 16;
+		if (edge == 10) center.ty += halfh + 16;
+		if (edge == 11) center.ty -= halfh + 16;
+		if (edge == 12) center.tx += halfw + 4;
+		if (edge == 13) center.tx -= halfw + 4;
+		if (edge == 14) center.ty += halfh + 4;
+		if (edge == 15) center.ty -= halfh + 4;
 		w->center_view(center);
 		w->get_map()->read_map_data();
 		w->set_all_dirty();

@@ -1,0 +1,47 @@
+DWD Exult: bounded off-screen speech correction
+Local unpublished changes after rc.2, November 5, 2026
+
+Reported symptom: Trinsic pub patrons' barks remained visible in the swamp.
+The renderer clamped every overhead message into the viewport, even from distant
+world anchors. The first local fix hid every fully off-screen world speaker.
+The owner then identified the regression: Finnigan's opening summons is a valid
+off-screen call. That strict screen-boundary rule is superseded below.
+
+Current policy:
+- On-screen speakers keep the accepted placement, wrapping and duration.
+- Nearby actor speech remains visible within a ten-tile margin around the game
+  view, matching existing NPC proximity processing and world scaling.
+- Actors approaching under talk or arrest_avatar schedules retain directed calls
+  within the existing 50-tile approach range, on the current map. There is no actor
+  ID, dialogue-string or mod override.
+- Other world text outside its applicable visibility region has no visible layer.
+- Gump placement and captured lifetimes are preserved. Hidden speech expires normally.
+
+Verification uses the same ordinary Release/x64 Exult.exe, explicit test CLI,
+fresh disposable profiles and real read-only game/mod assets. Camera fixtures do
+not move actors or force quests, schedules or story flags.
+
+PASS: BG nearby/distant speech lifecycle, 40 assertions.
+PASS: original Keyring nearby/distant speech lifecycle, 40 assertions.
+PASS: SI nearby/distant speech after its natural opening, 40 assertions.
+PASS: existing BG duration/native Options regression, 839 assertions.
+PASS: natural BG opening with skip_intro=no, 5 assertions. Real Iolo/Petre opening
+dialogue ran; Finnigan acquired his talk schedule, approached and completed his
+ordinary conversation. While that real schedule was active, a camera/sample-speech
+fixture verified his off-screen call beyond the ambient margin stayed visible.
+No naturally generated off-screen Finnigan bark happened in this run; the fixture
+is rendering evidence, not a claim of naturally observed random bark.
+Total for revised policy: 964 assertions, zero failures; normal cleanup.
+
+The existing wrapping/edge-placement regression passed 92 assertions on the prior
+local version; the revised allowance does not change layout math. Earlier strict
+boundary results are retained and superseded by nearby/distant checks above.
+Evidence: test-output/offscreen-barks and test-output/mayor-barks (not committed).
+The exploratory opening observer used an unsupported query radius after real
+conversations and was not counted as PASS. The corrected assertion-bearing check
+uses supported bounds. The personal swamp save was not loaded. Exact-save human
+verification remains NOT TESTED.
+
+Incremental linking hit LNK1103 debug-object corruption. Cleaning the same Release
+target and rebuilding through the accepted workflow succeeded. No alternate engine
+executable, compilation configuration or object tree was introduced.

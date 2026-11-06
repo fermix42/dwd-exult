@@ -39,6 +39,7 @@
 #include "gamemap.h"
 #include "gamewin.h"
 #include "ignore_unused_variable_warning.h"
+#include "schedule.h"
 #include "shapeinf.h"
 #include "ucmachine.h"
 #include "weaponinf.h"
@@ -1251,7 +1252,8 @@ void Text_effect::update_layout() {
 	layout.viewport
 			= TileRect(x1, y1, x2 - x1, y2 - y1).intersect(TileRect(0, 0, win->get_display_width(), win->get_display_height()));
 	auto object = item.lock();
-	if (object && gwin->get_gump_man()->find_gump(object.get())) {
+	const bool in_gump = object && gwin->get_gump_man()->find_gump(object.get());
+	if (in_gump) {
 		// Contained-item bounds are in the gump UI's coordinates, not world pixels.
 		const auto kind = Image_window::UiLayerGumps;
 		const int  uw = std::max(1, win->get_ui_width(kind)), uh = std::max(1, win->get_ui_height(kind));
@@ -1303,7 +1305,27 @@ void Text_effect::update_layout() {
 	}
 	left = std::clamp(left, layout.viewport.x + 2, std::max(layout.viewport.x + 2, layout.viewport.x + layout.viewport.w - dw - 2));
 	top  = std::clamp(top, layout.viewport.y + 2, std::max(layout.viewport.y + 2, layout.viewport.y + layout.viewport.h - dh - 2));
-	layout.destination = TileRect(left, top, dw, dh);
+	// Nearby world speech can originate just beyond the screen. Use the same
+	// ten-tile margin as NPC proximity processing, projected at the world scale.
+	int near_x1, near_y1, near_x2, near_y2;
+	constexpr int speech_margin = 10 * c_tilesize;
+	win->game_to_screen(-speech_margin, -speech_margin, false, near_x1, near_y1);
+	win->game_to_screen(gwin->get_width() + speech_margin, gwin->get_height() + speech_margin,
+			false, near_x2, near_y2);
+	const TileRect nearby_view(near_x1, near_y1, near_x2 - near_x1, near_y2 - near_y1);
+	// Approach-and-talk calls (including the opening mayor and arresting guards)
+	// address the Avatar deliberately. Retain the schedule's existing 50-tile
+	// approach range without granting distant ambient barks the same exception.
+	Actor* speaker = object ? object->as_actor() : nullptr;
+	const bool on_map = object && object->get_outermost()->get_map() == gwin->get_map();
+	const bool directed_call = speaker && on_map
+			&& (speaker->get_schedule_type() == Schedule::talk || speaker->get_schedule_type() == Schedule::arrest_avatar)
+			&& speaker->distance(gwin->get_main_actor()) <= 50;
+	const bool world_visible = layout.anchor.intersects(layout.viewport)
+			|| (speaker && on_map && layout.anchor.intersects(nearby_view)) || directed_call;
+	// Gump objects retain their own UI placement. Hidden text keeps its timer.
+	layout.destination = !in_gump && !world_visible
+			? TileRect(0, 0, 0, 0) : TileRect(left, top, dw, dh);
 	if (old != layout.destination) {
 		dirty_display_rect(old);
 		add_dirty();
@@ -1312,6 +1334,10 @@ void Text_effect::update_layout() {
 
 void Text_effect::paint_to_layer() {
 	update_layout();
+	if (layout.destination.w <= 0 || layout.destination.h <= 0) {
+		free_layer();
+		return;
+	}
 	if (width <= 0 || height <= 0) {
 		return;
 	}
@@ -1346,6 +1372,10 @@ void Text_effect::paint_to_layer() {
 	const auto& r = layout.destination;
 	gwin->layer_set_dest(text_layer, r.x, r.y, r.w, r.h);
 	gwin->layer_set_visible(text_layer, true);
+}
+
+bool Text_effect::is_visible() const {
+	return text_layer >= 0 && gwin->layer_is_visible(text_layer);
 }
 
 /**

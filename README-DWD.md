@@ -1,5 +1,12 @@
 # Dark Wraith Dragon's Exult
 
+Unreleased fix on `codex/offscreen-bark-visibility`: distant ambient
+speech is hidden. Nearby off-screen speech remains readable within the engine's
+ten-tile proximity margin; actors approaching to talk or arrest retain their
+directed calls within the schedule's existing 50-tile approach range. Visible
+edge speakers retain readable clamped text and the selected duration.
+This fix is not part of the immutable rc.2 public downloads described below.
+
 **[1.0.0-rc.2 is the current public prerelease](https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.2)**, published
 2026-11-05T15:53:36Z (November 5, 2026 America/Phoenix), succeeding the unchanged
 [1.0.0-rc.1](https://github.com/fermix42/dwd-exult/releases/tag/dwd-v1.0.0-rc.1).

@@ -380,7 +380,10 @@ and `destination` in display pixels; logical font-layer `width`, `height`,
 `line_height`, measured `line_widths`, all wrapped `lines`, and `scale`, `page`,
 `pages`, `lines_per_page`. It does not lay out a parallel test model or generate
 speech. Call normal `screenshot full=true` when associating layout with a rendered
-frame. Layout is empty until the normal renderer has painted the effect.
+frame. `visible` reports whether the actual text layer is visible. World anchors
+outside both the view and applicable nearby/directed-call allowance have an empty
+destination and no visible layer. Layout is
+empty until the normal renderer has painted the effect.
 
 `test_overhead ref scenario edge` is an explicitly synthetic rendering fixture.
 It replays fixed original/accepted speech samples through the normal object `say`
@@ -390,7 +393,11 @@ original short chatter and the four accepted companion lines; 5 explicit breaks,
 6 an oversized word, 7 a multi-page message, 8 empty text. Scenario -1 changes
 only the camera, retaining the same effect for scrolling checks; -2 clears effects
 and restores the camera to the Avatar. Edges 0..7 are center, left, right, top,
-bottom, a small scroll, top-left and bottom-right. Commands exist only in the
+bottom, a small scroll, top-left and bottom-right. Edges 8..11 place the speaker
+well outside the left, right, top and bottom via camera movement only (beyond the
+ten-tile ambient margin). Edges 12..15 put the speaker just outside those edges
+inside the nearby allowance. No actor is moved by either set.
+Commands exist only in the
 explicit ordinary-engine test CLI. They are not gameplay options or a general
 input automation framework.
 
